@@ -15,7 +15,7 @@ xc = np.array([1, 1.3, 1.6]);
 yc = np.array([1, 1.3, 1.6]);
 zc = np.array([1, 1.3, 1.6]);
 atoms = "C C C "
-x = crystal();
+xtal = crystal();
 vdw_matrix = np.array([[0, 1, 1],[1 , 0, 1],[ 1, 1, 0]], dtype = 'float32')
 
 
