@@ -1,0 +1,661 @@
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include "read_input.h"
+#include "spg_generation.h"
+#include "crystal_utils.h"
+#include "check_structure.h"
+#include "algebra.h"
+
+
+
+//probably should get rid of this. used by pdist()
+void vector_cpy(float A[], float B[][3], int index)
+{
+	for (int k = 0; k < 3; k++)
+	{
+		A[k]=B[index][k];
+	} 
+}
+
+/* The most function of this file. returns the distance between
+ * two points under periodic boundary. T and T_inv are lattice
+ * vector matrix and its inverse. T is in row major form. x1,x2,x3 are
+ * the first point and y's are second in cartesian
+ * returns the shortest distance as a float.
+ */
+float pdist(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3  )
+{
+    //intialising variables
+	float p_dist = 0;
+
+	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
+						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
+		
+	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
+	//vector3_subtract(x,y,cartesian_distance);
+
+    /*computes tthe distance in fractinal space and reduces it 
+     * inside first unit cube
+     * #TODO: make this outside pdist().
+     *  Needs to be done only once per crystal
+     */
+    float fractional_distance[3];
+	for (int i = 0; i < 3; i++)
+	{	
+		float sum = 0;
+		for (int j = 0; j < 3; j++)
+			sum = sum + T_inv[j][i] * cartesian_distance[j];	
+
+		float frac_part = sum - ((long)sum); //if -ve add one
+		if (frac_part < 0)
+			fractional_distance[i] = frac_part + 1;	
+		else
+			fractional_distance[i] = frac_part;
+	}
+
+	for (int z = 0; z < 8; z++)
+	{
+		float A[3];
+		float dist_corner[3];
+		vector_cpy(A, Q, z);
+
+        dist_corner[0] = fractional_distance[0] - A[0];
+		dist_corner[1] = fractional_distance[1] - A[1];
+        dist_corner[2] = fractional_distance[2] - A[2];
+
+		//distance vector to 8 corners in cartesian.
+		float dist_z = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			float sum = 0;
+			for (int j = 0; j < 3 ;j++)
+				sum = sum + dist_corner[j] * T[j][i];	
+			dist_z += sum*sum;
+		}
+        // length odistnce vector to the zth corner 
+        // for finding the minimum distance (min dist_z)
+		if (z == 0)
+			p_dist = dist_z;
+		else if (p_dist > dist_z)
+			p_dist = dist_z;
+	}
+	return sqrt(p_dist); 
+}
+
+/* Almost the same as p_dist, but returns the shortest and the second
+ * shortest distance. return value is in argument. used for self image 
+ * check
+ */
+void pdist_2(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3,
+			float *p_dist,
+			float *p_dist_2  )
+{
+    //intialising variables
+	*p_dist = 0;
+	*p_dist_2 = 0;
+	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
+						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
+		
+	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
+	//vector3_subtract(x,y,cartesian_distance);
+
+    /*computes tthe distance in fractinal space and reduces it 
+     * inside first unit cube
+     * #TODO: make this outside pdist().
+     *  Needs to be done only once per crystal
+     */
+    float fractional_distance[3];
+	for (int i = 0; i < 3; i++)
+	{	
+		float sum = 0;
+		for (int j = 0; j < 3; j++)
+			sum = sum + T_inv[j][i] * cartesian_distance[j];	
+
+		float frac_part = sum - ((long)sum); //if -ve add one
+		if (frac_part < 0)
+			fractional_distance[i] = frac_part + 1;	
+		else
+			fractional_distance[i] = frac_part;
+	}
+
+    //computes the distances to all the corners of the unit cube
+	for (int z = 0; z < 8; z++)
+	{
+		float A[3];
+		float dist_corner[3];
+		vector_cpy(A, Q, z);
+
+        dist_corner[0] = fractional_distance[0] - A[0];
+		dist_corner[1] = fractional_distance[1] - A[1];
+        dist_corner[2] = fractional_distance[2] - A[2];
+
+		//distance vector to 8 corners in cartesian.
+		float dist_z = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			float sum = 0;
+			for (int j = 0; j < 3 ;j++)
+				sum = sum + dist_corner[j] * T[j][i];	
+			dist_z += sum*sum;
+		}
+        // length odistnce vector to the zth corner 
+        // for finding the minimum distance (min dist_z)
+		if (z == 0)
+		{
+			*p_dist = dist_z;
+		}
+		else if (z == 1)
+		{
+			if (*p_dist > dist_z)
+				{*p_dist_2 = *p_dist; *p_dist = dist_z;}
+			else
+				*p_dist_2 = dist_z;
+		}
+		else if (*p_dist > dist_z)
+		{
+			*p_dist_2 = *p_dist;
+			*p_dist = dist_z;
+		}
+		else if (*p_dist_2 > dist_z)
+		{
+			*p_dist_2 = dist_z;
+		}
+		
+	}
+	*p_dist 	= sqrt(*p_dist);
+	*p_dist_2	= sqrt(*p_dist_2);
+
+}
+
+/*checks the distance between two pair of molecules
+ */
+int check_pair( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *atom_vdw,
+				int i,
+				int j,
+				int N,
+				float sr)
+{
+	
+	for (int k = i; k < i + N; k++)
+	{
+		for (int l = j; l < j + N; l++)
+		{
+		//	printf("k=%d \t l= %d  \n", k, l);
+			if (pdist(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
+			{
+				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
+				//printf("failed at %d atom and %d atom with distance %f,
+				// expected %f \n", k+1%N, l+1%N,
+				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
+				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				return 0;
+			}
+		}
+	}
+//	printf("yes");
+	return 1;
+}
+
+void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms)
+{
+
+	for (int i = 0; i < num_atoms; i++)
+	{
+		if      (atom[2*i] == 'C' && atom[2*i+1] == ' ')
+		atom_vdw[i]=1.7;
+		else if (atom[2*i] == 'H' && atom[2*i+1] == ' ')
+		atom_vdw[i]=1.1;
+		else if (atom[2*i] == 'N' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.55 ;
+		else if (atom[2*i] == 'O' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.52;
+		else
+			{printf("error atom not found : %c\n", atom[2*i]);exit(0);}
+	//	printf("%d --> %f \n", i, atom_vdw[i]);
+	}
+}
+
+/* used for checking self-image overlap. this has the information if the 
+ * atoms are bonded.
+ */
+void calc_bond_length(float *bond_length,float *X, float *Y, float *Z, int N)
+{
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			*(bond_length+i*N+j) = sqrt( (X[i] - X[j])*(X[i] - X[j]) + 
+			(Y[i] - Y[j])*(Y[i] - Y[j]) + (Z[i] - Z[j])*(Z[i] - Z[j]) );
+		//printf("%f \t" , *(bond_length+i*N+j));	
+		}
+		//printf("\n");
+	}
+}
+
+int check_self(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length)
+{
+
+	int j,k, modj,modk;
+	float pdist_kj, pdist_kj_2;
+	for (j = i; j < i+N; j++)
+	{
+		modj = j % N;
+		for (k = j ; k < i + N; k++)
+		{
+			modk = k % N;
+			pdist_2(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
+			
+			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+				return 0;
+				
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			{
+				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
+				{
+					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n", k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					return 0 ;
+				}
+			}
+			
+			if(pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+				return 0;
+			
+		}
+	}
+	return 1;
+}
+
+//void main()
+int check_structure(crystal random_crystal, float sr)
+{
+	//float T[3][3]; //lattice_vectors
+	int N = random_crystal.num_atoms_in_molecule;	//number of atoms in a molecule
+	int m = random_crystal.Z;	//number of molecules in a unit cell; numberof atom in a unit cell = N*m	
+	int total_atoms = m*N;
+	float *atom_vdw= malloc (N*m*sizeof(float));
+	//convert atoms array to atom_vdw distance. this array has vdw informtion of each atom
+	convert_atom2atom_vdw(random_crystal.atoms, atom_vdw, N*m);
+	if( fast_screener(random_crystal, sr, atom_vdw) == 0)
+		{ free (atom_vdw); return 0;}
+	
+	float *bond_length = malloc (N*N*sizeof(float));
+
+
+	int final_verdict =1;
+	int check_val=1;
+	float T_inv[3][3];
+	int i,j;
+	inverse_mat3b3(T_inv, random_crystal.lattice_vectors);
+
+
+	//start checking each pair of molecule
+	for (i = 0; i < total_atoms; i = i + N)
+	{
+		for(j= i + N; j < total_atoms; j = j + N)
+		{
+			check_val = check_pair(random_crystal.lattice_vectors,T_inv,
+			random_crystal.Xcord,random_crystal.Ycord, random_crystal.Zcord,
+			atom_vdw, i, j, N, sr);
+			
+			//if(i == 0)
+			//printf("check val = %d \n", check_val );
+			
+			
+			if (check_val == 0) // 0 if check failed , 1 if it is ok
+			{
+				i = N*m + 1; //to break out of both loops if the check failed
+				j = N*m + 1;
+				final_verdict = 0;
+			}
+		}
+	}
+	
+	//check self-image
+	 calc_bond_length(bond_length, random_crystal.Xcord, 
+		random_crystal.Ycord,  random_crystal.Zcord, N);
+    if (final_verdict == 1)
+    {
+		for (i = 0; i < total_atoms; i = i + N)
+		{
+			check_val = check_self(random_crystal.lattice_vectors, T_inv,
+				random_crystal.Xcord, random_crystal.Ycord, random_crystal.Zcord,
+				atom_vdw, i, N, sr, bond_length);
+				
+			if (check_val == 0)
+			{
+				i = total_atoms+ 1;
+				//break;
+			}
+		}
+	}
+	if (check_val == 0)
+		final_verdict = 0;
+
+	//decide if the structure is feasible
+	//if (check_val == 1)
+	//printf("intermolecular distance check pass \n");	
+
+	/*
+	if (final_verdict == 1)
+	printf("Verdict : Pass \n");
+	else
+	printf("Verdict : fail \n");
+	*/
+	free(atom_vdw);
+	free(bond_length);
+
+	return final_verdict;
+} 
+
+
+/* Precheck if intermolecular distances are too close.
+ * Doesn't take into account of periodic boundary condition, but is 
+ * much faster than rigourous checking.
+ * Doesn't check molecule with its own periodic image
+ */
+int fast_screener(crystal xtal, float sr, float *atom_vdw)
+{
+	//number of atoms in a molecule
+	int N = xtal.num_atoms_in_molecule;	
+	int m = xtal.Z;	//number of molecules in a unit cell;
+	// numberof atom in a unit cell = N*m
+	int total_atoms = N*m;	
+
+	float mol_len = 11.6;
+	float small_number = 0.1;
+	
+	for(int i = 0; i < total_atoms; i += N)
+	{
+		float com1[3];
+		compute_molecule_COM( xtal, com1, i);
+		for(int j = i + N; j < total_atoms; j += N)
+		{
+			//check if the molecule COM are far. if they are, dont 
+			//bother checking distances
+			if (j == i + N)
+			{	float com2[3];
+				compute_molecule_COM( xtal, com2, j);
+				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
+						  (com1[1] - com2[1])*(com1[1] - com2[1])+
+						  (com1[2] - com2[2])*(com1[2] - com2[2]))
+					<     (mol_len + small_number)                  )
+					continue;
+			}
+			
+			//molecule COM are close than molecule length
+			else
+			{
+				for(int k = i; k < i + N; k++)
+				{	
+					for (int z = j; z < j + N; z++ )
+					{
+						if(		(xtal.Xcord[k] - xtal.Xcord[z])*
+							   (xtal.Xcord[k] - xtal.Xcord[z])+
+							   (xtal.Ycord[k] - xtal.Ycord[z])*
+							   (xtal.Ycord[k] - xtal.Ycord[z])+
+							   (xtal.Zcord[k] - xtal.Zcord[z])*
+							   (xtal.Zcord[k] - xtal.Zcord[z])
+							   <sr * (atom_vdw[k]+atom_vdw[z])*
+								sr * (atom_vdw[k]+atom_vdw[z])		)
+						    return 0;
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+
+
+int check_structure_with_vdw_matrix(crystal random_crystal,
+	float *vdw_matrix,
+	int dim1,
+	int dim2)
+{
+	int N = random_crystal.num_atoms_in_molecule;	//number of atoms in a molecule
+	int m = random_crystal.Z;						//number of molecules in a unit cell; numberof atom in a unit cell = N*m	
+	int total_atoms = m*N;
+	
+	if (dim1 != dim2)
+		{printf("matrix not square\n"); return 0;}
+
+	if (dim1 != total_atoms)
+		{printf("matrix size doesnt match total atoms\n"); return 0;}
+
+	if( fast_screener_vdw(random_crystal, vdw_matrix) == 0)
+		{return 0;}
+	
+	int final_verdict =1;
+	int check_val=1;
+	float T_inv[3][3];
+	int i,j;
+	inverse_mat3b3(T_inv, random_crystal.lattice_vectors);
+
+	//start checking each pair of molecule
+	for (i = 0; i < total_atoms; i = i + N)
+	{
+		for(j= i + N; j < total_atoms; j = j + N)
+		{
+			check_val = check_pair_vdw(random_crystal.lattice_vectors,
+									   T_inv,
+									   random_crystal.Xcord,
+									   random_crystal.Ycord,
+									   random_crystal.Zcord,
+									   vdw_matrix,
+									   i, 
+									   j,
+									   N,
+									   total_atoms);
+			
+			//if(i == 0)
+			//printf("check val = %d \n", check_val );
+			if (check_val == 0) // 0 if check failed , 1 if it is ok
+			{
+				i = N*m + 1; //to break out of both loops if the check failed
+				j = N*m + 1;
+				final_verdict = 0;
+			}
+		}
+	}
+	
+	//check self-image
+	float *bond_length = malloc (N*N*sizeof(float));
+	 calc_bond_length(bond_length,
+					  random_crystal.Xcord,
+					  random_crystal.Ycord,
+					  random_crystal.Zcord,
+					  N);
+		
+    if (final_verdict == 1)
+    {
+		for (i = 0; i < total_atoms; i = i + N)
+		{
+			check_val = check_self_vdw(random_crystal.lattice_vectors,
+									T_inv,
+									random_crystal.Xcord,
+								   random_crystal.Ycord,
+								   random_crystal.Zcord,
+								   vdw_matrix,
+								   i,
+								   N,
+								   total_atoms,
+								   bond_length);
+				
+			if (check_val == 0)
+			{
+				i = total_atoms+ 1;
+				//break;
+			}
+		}
+	}
+	if (check_val == 0)
+		final_verdict = 0;
+
+	//decide if the structure is feasible
+	//if (check_val == 1)
+	//printf("intermolecular distance check pass \n");	
+
+	/*
+	if (final_verdict == 1)
+	printf("Verdict : Pass \n");
+	else
+	printf("Verdict : fail \n");
+	*/
+
+	free(bond_length);
+
+	return final_verdict;
+} 
+
+int fast_screener_vdw(crystal xtal, float *vdw_matrix)
+{
+									//number of atoms in a molecule
+	int N = xtal.num_atoms_in_molecule;	
+	int m = xtal.Z;					//number of molecules in a unit cell;
+								// numberof atom in a unit cell = N*m
+	int total_atoms = N*m;	
+	float mol_len = 11.6;
+	float small_number = 0.1;
+	
+	for(int i = 0; i < total_atoms; i += N)
+	{
+		float com1[3];
+		compute_molecule_COM( xtal, com1, i);
+		for(int j = i + N; j < total_atoms; j += N)
+		{
+			//check if the molecule COM are far. if they are, dont 
+			//bother checking distances
+			if (j == i + N)
+			{	float com2[3];
+				compute_molecule_COM( xtal, com2, j);
+				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
+						  (com1[1] - com2[1])*(com1[1] - com2[1])+
+						  (com1[2] - com2[2])*(com1[2] - com2[2]))
+					<     (mol_len + small_number)                  )
+					continue;
+			}
+			
+			//molecule COM are close than molecule length
+			else
+			{
+				for(int k = i; k < i + N; k++)
+				{	
+					for (int z = j; z < j + N; z++ )
+					{
+						if(		(xtal.Xcord[k] - xtal.Xcord[z])*
+							   (xtal.Xcord[k] - xtal.Xcord[z])+
+							   (xtal.Ycord[k] - xtal.Ycord[z])*
+							   (xtal.Ycord[k] - xtal.Ycord[z])+
+							   (xtal.Zcord[k] - xtal.Zcord[z])*
+							   (xtal.Zcord[k] - xtal.Zcord[z])
+							   < *(vdw_matrix + total_atoms*k + z) *
+								 *(vdw_matrix + total_atoms*k + z)	)
+						    return 0;
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+
+/*checks the distance between two pair of molecules
+ */
+int check_pair_vdw( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *vdw_matrix,
+				int i,
+				int j,
+				int N,
+				int total_atoms)
+{
+	
+	for (int k = i; k < i + N; k++)
+	{
+		for (int l = j; l < j + N; l++)
+		{
+		//	printf("k=%d \t l= %d  \n", k, l);
+			if (pdist(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+				 *(vdw_matrix + k*total_atoms + l) 					)
+			{
+				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
+				//printf("failed at %d atom and %d atom with distance %f,
+				// expected %f \n", k+1%N, l+1%N,
+				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
+				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				return 0;
+			}
+		}
+	}
+//	printf("yes");
+	return 1;
+}
+
+int check_self_vdw(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length)
+{
+
+	int j,k, modj,modk;
+	float pdist_kj, pdist_kj_2;
+	for (j = i; j < i+N; j++)
+	{
+		modj = j % N;
+		for (k = j ; k < i + N; k++)
+		{
+			modk = k % N;
+			pdist_2(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
+			
+			if (k == j && pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
+				return 0;
+				
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			{
+				if (pdist_kj < *(vdw_matrix + k*total_atoms + j) )
+				{
+					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n", k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					return 0 ;
+				}
+			}
+			
+			if(pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
+				return 0;
+			
+		}
+	}
+	return 1;
+}
