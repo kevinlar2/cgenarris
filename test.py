@@ -9,12 +9,13 @@ Created on Thu May 30 16:36:06 2019
 from pygenarris import *
 import numpy as np
 
+
 lattice = np.eye(3)
 xc = np.array([1, 1.3, 1.6]);
 yc = np.array([1, 1.3, 1.6]);
 zc = np.array([1, 1.3, 1.6]);
 atoms = "C C C "
-xtal = crystal();
+x = crystal();
 vdw_matrix = np.array([[0, 1, 1],[1 , 0, 1],[ 1, 1, 0]], dtype = 'float32')
 
 
