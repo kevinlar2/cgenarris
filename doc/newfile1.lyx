@@ -517,6 +517,139 @@ Example
 
 \end_layout
 
+\begin_layout Subsection
+Molecule closeness check using specific radius proportion
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+int c_check_structure(xtal, sr)
+\end_layout
+
+\begin_layout Subsubsection*
+Description
+\end_layout
+
+\begin_layout Standard
+This function uses the built-in cgenarris structure checking function to
+ see if the molecules are unphysically close.
+ The treshold is controlled by specific radius proportion (sr).
+ See the genarris paper for its definition.
+\end_layout
+
+\begin_layout Subsubsection*
+Input
+\end_layout
+
+\begin_layout Standard
+First, you need to generate a SWIG object ( C structure called crystal internall
+y) of type crystal by:
+\end_layout
+
+\begin_layout Enumerate
+create an object by 
+\emph on
+xtal = crystal()
+\end_layout
+
+\begin_layout Enumerate
+Then assign values using the function
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+create_crystal_from_array(xtal, lattice_vector, Xc, Yc, Zc, atoms, Z, spg)
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+lattice vector 
+\emph default
+is a 3x3 numpy array which has the lattice vectors of the crystal in a row-wise
+ form.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Xc, Yc, Zc 
+\emph default
+are numpy arrays which the X, Y, and Z coordinates respectively.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+atoms 
+\emph default
+contain the atom type.
+ This is a string which defines the element at each coordinate.
+ If an atom is represented by a single character, add a trailing space.
+ Eg: for Carbon it should be 
+\begin_inset Quotes eld
+\end_inset
+
+C 
+\begin_inset Quotes erd
+\end_inset
+
+ , for Bromine it should be 
+\begin_inset Quotes eld
+\end_inset
+
+Br
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Z 
+\emph default
+is the number of molecules in the unit cell.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+spg 
+\emph default
+is the space group (Not used by structure checker!)
+\end_layout
+
+\begin_layout Itemize
+IMPORTANT: It is assumed that coo-dinates are specified in molecule blocks.
+ i.e, first molecule is first N coordinates, second molecule is from N+1
+ to 2N etc.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+sr 
+\emph default
+the specific radius proportion.
+\end_layout
+
+\begin_layout Subsubsection*
+Output
+\end_layout
+
+\begin_layout Standard
+Returns 0 if the structure is unphysical, returns 1 if the structure passes
+ the test.
+\end_layout
+
+\begin_layout Subsection
+Molecule closeness check using VdW matrix
+\end_layout
+
 \begin_layout Standard
 
 \end_layout
