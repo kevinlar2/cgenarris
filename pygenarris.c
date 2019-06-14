@@ -83,13 +83,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
     #pragma omp critical
 	{
         read_geometry(mol);
-        read_control(&num_structures,
-					 &Z,
-					 &Zp_max,
-					 &volume_mean, 
-					 &volume_std,
-					 &sr,
-					 &max_attempts);
+
         //printf("%d %d %f %f %f\n", num_structures, Z, sr, volume_mean, volume_std);
     }
 	
