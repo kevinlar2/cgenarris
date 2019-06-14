@@ -220,6 +220,10 @@ int check_pair( float T[3][3],
 	return 1;
 }
 
+/* convert the atoms char array into vdw radii information for structure checking
+ * uses Bondii radii 
+ */
+
 void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms)
 {
 
