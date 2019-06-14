@@ -233,8 +233,30 @@ void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms)
 		atom_vdw[i] = 1.55 ;
 		else if (atom[2*i] == 'O' && atom[2*i+1] == ' ')
 		atom_vdw[i] = 1.52;
+		else if (atom[2*i] == 'F' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.47;
+		else if (atom[2*i] == 'P' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.8;
+		else if (atom[2*i] == 'S' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.8;
+		else if (atom[2*i] == 'C' && atom[2*i+1] == 'l')
+		atom_vdw[i] = 1.75;
+		else if (atom[2*i] == 'B' && atom[2*i+1] == 'r')
+		atom_vdw[i] = 1.85;
+		else if (atom[2*i] == 'I' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.98;
+		else if (atom[2*i] == 'B' && atom[2*i+1] == ' ')
+		atom_vdw[i] = 1.92;
+		else if (atom[2*i] == 'H' && atom[2*i+1] == 'e')
+		atom_vdw[i] = 1.40;
+		else if (atom[2*i] == 'N' && atom[2*i+1] == 'e')
+		atom_vdw[i] = 1.54;
+		else if (atom[2*i] == 'K' && atom[2*i+1] == 'r')
+		atom_vdw[i] = 2.02;
+		else if (atom[2*i] == 'S' && atom[2*i+1] == 'i')
+		atom_vdw[i] = 2.10;		
 		else
-			{printf("error atom not found : %c\n", atom[2*i]);exit(0);}
+			{printf("***ERROR: atom not found -> %c%c\n", atom[2*i], atom[2*i+1]);exit(0);}
 	//	printf("%d --> %f \n", i, atom_vdw[i]);
 	}
 }
