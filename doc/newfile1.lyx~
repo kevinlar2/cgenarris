@@ -586,8 +586,8 @@ are numpy arrays which the X, Y, and Z coordinates respectively.
 atoms 
 \emph default
 contain the atom type.
- This is a character array.
- If an atom is represented by a single character, add a trailing space character.
+ This is a string which defines the element at each coordinate.
+ If an atom is represented by a single character, add a trailing space.
  Eg: for Carbon it should be 
 \begin_inset Quotes eld
 \end_inset
@@ -596,6 +596,61 @@ C
 \begin_inset Quotes erd
 \end_inset
 
+ , for Bromine it should be 
+\begin_inset Quotes eld
+\end_inset
+
+Br
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Z 
+\emph default
+is the number of molecules in the unit cell.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+spg 
+\emph default
+is the space group (Not used by structure checker!)
+\end_layout
+
+\begin_layout Itemize
+IMPORTANT: It is assumed that coo-dinates are specified in molecule blocks.
+ i.e, first molecule is first N coordinates, second molecule is from N+1
+ to 2N etc.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+sr 
+\emph default
+the specific radius proportion.
+\end_layout
+
+\begin_layout Subsubsection*
+Output
+\end_layout
+
+\begin_layout Standard
+Returns 0 if the structure is unphysical, returns 1 if the structure passes
+ the test.
+\end_layout
+
+\begin_layout Subsection
+Molecule closeness check using VdW matrix
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
