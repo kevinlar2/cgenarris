@@ -260,7 +260,7 @@ void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms)
 		else if (atom[2*i] == 'S' && atom[2*i+1] == 'i')
 		atom_vdw[i] = 2.10;		
 		else
-			{printf("***ERROR: atom not found -> %c%c\n", atom[2*i], atom[2*i+1]);exit(0);}
+			{printf("***ERROR: atom2atom_vdw: atom not found -> %c%c\n", atom[2*i], atom[2*i+1]);exit(0);}
 	//	printf("%d --> %f \n", i, atom_vdw[i]);
 	}
 }

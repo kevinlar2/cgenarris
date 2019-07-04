@@ -570,6 +570,7 @@ int detect_spg_using_spglib(crystal* xtal)
 	int num_atoms_in_cell = xtal->Z * xtal-> num_atoms_in_molecule ;
 	int types[num_atoms_in_cell];
 	double positions[num_atoms_in_cell][3];
+	char atom[num_atoms_in_cell*2];
 	char symbol[21];
 	int num_spg;
 	double lattice_vector[3][3];
@@ -579,17 +580,52 @@ int detect_spg_using_spglib(crystal* xtal)
 		positions[i][0] = xtal->Xcord[i]; 
 		positions[i][1] = xtal->Ycord[i];
 		positions[i][2] = xtal->Zcord[i];
+		atom[2*i] = xtal->atoms[2*i];
+		atom[2*i+1] = xtal->atoms[2*i+1];
 		
-		if (xtal->atoms[2*i] == 'C' && xtal->atoms[2*i+1] == ' ' )
-		types[i] = 12;
-		else if (xtal->atoms[2*i]== 'H' && xtal->atoms[2*i+1] == ' ')
+		// if (xtal->atoms[2*i] == 'C' && xtal->atoms[2*i+1] == ' ' )
+		// types[i] = 12;
+		// else if (xtal->atoms[2*i]== 'H' && xtal->atoms[2*i+1] == ' ')
+		// types[i] = 1;
+		// else if (xtal->atoms[2*i] == 'N' && xtal->atoms[2*i+1] == ' ')
+		// types[i] = 7;
+		// else if (xtal->atoms[2*i] == 'O' && xtal->atoms[2*i+1] == ' ')
+		// types[i] = 8;
+		// else
+		// {printf("error atom not found : %c\n", xtal->atoms[2*i]);exit(0);}
+
+		if      (atom[2*i] == 'C' && atom[2*i+1] == ' ')
+		types[i] = 6; 
+		else if (atom[2*i] == 'H' && atom[2*i+1] == ' ')
 		types[i] = 1;
-		else if (xtal->atoms[2*i] == 'N' && xtal->atoms[2*i+1] == ' ')
+		else if (atom[2*i] == 'N' && atom[2*i+1] == ' ')
 		types[i] = 7;
-		else if (xtal->atoms[2*i] == 'O' && xtal->atoms[2*i+1] == ' ')
+		else if (atom[2*i] == 'O' && atom[2*i+1] == ' ')
 		types[i] = 8;
+		else if (atom[2*i] == 'F' && atom[2*i+1] == ' ')
+		types[i] = 9;
+		else if (atom[2*i] == 'P' && atom[2*i+1] == ' ')
+		types[i] = 15;
+		else if (atom[2*i] == 'S' && atom[2*i+1] == ' ')
+		types[i] = 16;
+		else if (atom[2*i] == 'C' && atom[2*i+1] == 'l')
+		types[i] = 17;
+		else if (atom[2*i] == 'B' && atom[2*i+1] == 'r')
+		types[i] = 35;
+		else if (atom[2*i] == 'I' && atom[2*i+1] == ' ')
+		types[i] = 53;
+		else if (atom[2*i] == 'B' && atom[2*i+1] == ' ')
+		types[i] = 5;
+		else if (atom[2*i] == 'H' && atom[2*i+1] == 'e')
+		types[i] = 2;
+		else if (atom[2*i] == 'N' && atom[2*i+1] == 'e')
+		types[i] = 10;
+		else if (atom[2*i] == 'K' && atom[2*i+1] == 'r')
+		types[i] = 36;
+		else if (atom[2*i] == 'S' && atom[2*i+1] == 'i')
+		types[i] = 14;		
 		else
-		{printf("error atom not found : %c\n", xtal->atoms[2*i]);exit(0);}
+		{printf("***ERROR: spglib detector: atom not found -> %c%c\n", atom[2*i], atom[2*i+1]);exit(0);}
 		
 		
 	}
