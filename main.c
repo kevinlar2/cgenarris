@@ -129,6 +129,7 @@ int main(int argc, char **argv)
 	//printf("allowed %d \n", num_compatible_spg);
 	*/
 	
+	
 	while( spg_rand < num_compatible_spg )
 	{
 		//counter counts the number of structures generated

@@ -1,22 +1,22 @@
 #molecule is read from geometry.in
 
 #number of atoms in the cell
-Z                       4 
+Z                       2 
 
 #this is the number of structures per space group
-number_of_structures    10 
+number_of_structures    100 
 
 #specific radius proportion
-sr                      0.8
+sr                      0.7
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             1200
+volume_mean             480
 
 #standard deviation of the gaussian distribution
-volume_std              100
+volume_std              40
 
 #numerical tolerance. important for special positions
-tolerance               0.1
+tolerance               0.0001
 
 #number of attempts before moving to next space group
 max_attempts            200000000

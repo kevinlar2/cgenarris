@@ -8,6 +8,12 @@
 #include "check_structure.h"
 #include "algebra.h"
 
+static inline int int_floor(float x)
+{
+  int i = (int)x; /* truncate */
+  return i - ( i > x ); /* convert trunc to floor */
+}
+
 
 
 //probably should get rid of this. used by pdist()
@@ -26,6 +32,223 @@ void vector_cpy(float A[], float B[][3], int index)
  * returns the shortest distance as a float.
  */
 float pdist(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3  )
+{
+	float p_dist = 0.0;
+	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
+	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
+						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
+	//vector3_subtract(x,y,cartesian_distance);
+    /*computes tthe distance in fractinal space and reduces it 
+     * inside first unit cube
+     * #TODO: make this outside pdist().
+     *  Needs to be done only once per crystal
+     */
+    float fractional_distance[3];
+	for (int i = 0; i < 3; i++)
+	{	
+		float sum = 0;
+		for (int j = 0; j < 3; j++)
+			sum = sum + T_inv[j][i] * cartesian_distance[j];	
+
+		float frac_part = sum - ((long)sum); //if -ve add one
+		if (frac_part < 0)
+			fractional_distance[i] = frac_part + 1;	
+		else
+			fractional_distance[i] = frac_part;
+	}
+	
+	for (int z = 0; z < 8; z++)
+	{
+		float A[3];
+		float dist_corner[3];
+		vector_cpy(A, Q, z);
+
+        dist_corner[0] = fractional_distance[0] - A[0];
+		dist_corner[1] = fractional_distance[1] - A[1];
+        dist_corner[2] = fractional_distance[2] - A[2];
+
+		//distance vector to 8 corners in cartesian.
+		float dist_z = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			float sum = 0;
+			for (int j = 0; j < 3 ;j++)
+				sum = sum + dist_corner[j] * T[j][i];	
+			dist_z += sum*sum;
+		}
+        // length odistnce vector to the zth corner 
+        // for finding the minimum distance (min dist_z)
+		if (z == 0)
+			p_dist = dist_z;
+		else if (p_dist > dist_z)
+			p_dist = dist_z;
+	}
+	
+	//find cartesian distance vector in the bounding box
+	//reduced cartesian distance vector
+	float red_cart_distance[3];
+	for(int i = 0; i < 3; i++)
+		red_cart_distance[i] = T[0][i] * fractional_distance[0] + 
+							   T[1][i] * fractional_distance[1] +
+							   T[2][i] * fractional_distance[2];
+	
+	//use pdist as radius of sphere are search
+	int search_safety = 2;
+	int limx = abs( int_floor ( p_dist/ T[0][0] ) ) + 1 + search_safety;
+	int limy = abs( int_floor ( p_dist/ T[1][1] ) ) + 1 + search_safety;
+	int limz = abs( int_floor ( p_dist/ T[2][2] ) ) + 1 + search_safety;
+	
+	float test_dist[3] = {0,0,0};
+	
+	for (int i = -limx; i <= limx; i++)
+	for (int j = -limy; j <= limy; j++)
+	for (int k = -limz; k <= limz; k++)
+	{
+		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2];
+		test_dist[1] = j*T[1][1] + k*T[2][1];
+		test_dist[2] = k*T[2][2];
+		
+		if (vector3_norm(test_dist) < p_dist )
+			p_dist = vector3_norm(test_dist);
+	}
+	return p_dist;
+}
+
+/* Almost the same as p_dist, but returns the shortest and the second
+ * shortest distance. return value is in argument. used for self image 
+ * check
+ */
+void pdist_2(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3,
+			float *p_dist,
+			float *p_dist_2  )
+{
+	*p_dist = 0.0;
+	*p_dist_2 = 0.0;
+	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
+	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
+						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
+	//vector3_subtract(x,y,cartesian_distance);
+    /*computes tthe distance in fractinal space and reduces it 
+     * inside first unit cube
+     * #TODO: make this outside pdist().
+     *  Needs to be done only once per crystal
+     */
+    float fractional_distance[3];
+	for (int i = 0; i < 3; i++)
+	{	
+		float sum = 0;
+		for (int j = 0; j < 3; j++)
+			sum = sum + T_inv[j][i] * cartesian_distance[j];	
+
+		float frac_part = sum - ((long)sum); //if -ve add one
+		if (frac_part < 0)
+			fractional_distance[i] = frac_part + 1;	
+		else
+			fractional_distance[i] = frac_part;
+	}
+	
+	for (int z = 0; z < 8; z++)
+	{
+		float A[3];
+		float dist_corner[3];
+		vector_cpy(A, Q, z);
+
+        dist_corner[0] = fractional_distance[0] - A[0];
+		dist_corner[1] = fractional_distance[1] - A[1];
+        dist_corner[2] = fractional_distance[2] - A[2];
+
+		//distance vector to 8 corners in cartesian.
+		float dist_z = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			float sum = 0;
+			for (int j = 0; j < 3 ;j++)
+				sum = sum + dist_corner[j] * T[j][i];	
+			dist_z += sum*sum;
+		}
+        // length odistnce vector to the zth corner 
+        // for finding the minimum distance (min dist_z)
+		if (z == 0)
+		{
+			*p_dist = dist_z;
+		}
+		else if (z == 1)
+		{
+			if (*p_dist > dist_z)
+				{*p_dist_2 = *p_dist; *p_dist = dist_z;}
+			else
+				*p_dist_2 = dist_z;
+		}
+		else if (*p_dist > dist_z)
+		{
+			*p_dist_2 = *p_dist;
+			*p_dist = dist_z;
+		}
+		else if (*p_dist_2 > dist_z)
+		{
+			*p_dist_2 = dist_z;
+		}
+		
+	}
+	
+	*p_dist = sqrt(*p_dist);
+	*p_dist_2 = sqrt(*p_dist_2);
+	
+	//find cartesian distance vector in the bounding box
+	//reduced cartesian distance vector
+	float red_cart_distance[3];
+	for(int i = 0; i < 3; i++)
+		red_cart_distance[i] = T[0][i] * fractional_distance[0] + 
+							   T[1][i] * fractional_distance[1] +
+							   T[2][i] * fractional_distance[2];
+	
+	//use pdist as radius of sphere are search
+	int search_safety = 2;
+	int limx = abs( int_floor ( *p_dist/ T[0][0] ) ) + 1 + search_safety;
+	int limy = abs( int_floor ( *p_dist/ T[1][1] ) ) + 1 + search_safety;
+	int limz = abs( int_floor ( *p_dist/ T[2][2] ) ) + 1 + search_safety;
+	
+	float test_dist[3] = {0,0,0};
+	
+	for (int i = -limx; i <= limx; i++)
+	for (int j = -limy; j <= limy; j++)
+	for (int k = -limz; k <= limz; k++)
+	{
+		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2];
+		test_dist[1] = j*T[1][1] + k*T[2][1];
+		test_dist[2] = k*T[2][2];
+		
+		float norm = vector3_norm(test_dist);
+		if ( norm < *p_dist )
+		{
+			*p_dist_2 = *p_dist;
+			*p_dist = vector3_norm(test_dist);
+		}
+		else if ( norm < *p_dist_2)
+			*p_dist_2 = norm;
+	}
+	
+}
+
+
+
+/*aproximate version of pdist()
+ */ 
+float pdist_appx(float T[3][3],
 			float T_inv[3][3],
 			float x1, 
 			float x2,
@@ -95,7 +318,7 @@ float pdist(float T[3][3],
  * shortest distance. return value is in argument. used for self image 
  * check
  */
-void pdist_2(float T[3][3],
+void pdist_2_appx(float T[3][3],
 			float T_inv[3][3],
 			float x1, 
 			float x2,
@@ -202,7 +425,7 @@ int check_pair( float T[3][3],
 		for (int l = j; l < j + N; l++)
 		{
 		//	printf("k=%d \t l= %d  \n", k, l);
-			if (pdist(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+			if (pdist_appx(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
 				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
 			{
 				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
@@ -295,7 +518,7 @@ int check_self(float T[3][3], float T_inv[3][3],float *X,float *Y,
 		for (k = j ; k < i + N; k++)
 		{
 			modk = k % N;
-			pdist_2(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
+			pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
 			
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 				return 0;
@@ -326,19 +549,22 @@ int check_structure(crystal random_crystal, float sr)
 	int total_atoms = m*N;
 	float *atom_vdw= malloc (N*m*sizeof(float));
 	//convert atoms array to atom_vdw distance. this array has vdw informtion of each atom
+	
 	convert_atom2atom_vdw(random_crystal.atoms, atom_vdw, N*m);
+	
+	//tier 1 check 
 	if( fast_screener(random_crystal, sr, atom_vdw) == 0)
 		{ free (atom_vdw); return 0;}
+	//end tier 1 check
 	
+	
+	// tier 2 check
 	float *bond_length = malloc (N*N*sizeof(float));
-
-
 	int final_verdict =1;
 	int check_val=1;
 	float T_inv[3][3];
 	int i,j;
 	inverse_mat3b3(T_inv, random_crystal.lattice_vectors);
-
 
 	//start checking each pair of molecule
 	for (i = 0; i < total_atoms; i = i + N)
@@ -357,7 +583,7 @@ int check_structure(crystal random_crystal, float sr)
 			{
 				i = N*m + 1; //to break out of both loops if the check failed
 				j = N*m + 1;
-				final_verdict = 0;
+				return final_verdict = 0;
 			}
 		}
 	}
@@ -381,7 +607,7 @@ int check_structure(crystal random_crystal, float sr)
 		}
 	}
 	if (check_val == 0)
-		final_verdict = 0;
+		return final_verdict = 0;
 
 	//decide if the structure is feasible
 	//if (check_val == 1)
@@ -393,6 +619,14 @@ int check_structure(crystal random_crystal, float sr)
 	else
 	printf("Verdict : fail \n");
 	*/
+	
+	//end of tier-2 check
+	 
+	//start tier-3 check
+	 
+	 
+	
+	
 	free(atom_vdw);
 	free(bond_length);
 

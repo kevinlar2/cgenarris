@@ -17,5 +17,7 @@ void generate_lattice(float lattice_vector[3][3], int spg,
  float max_angle, float min_angle, float target_volume);
 void generate_fake_lattice(float lattice_vector[3][3], int spg);
 
+void standardise_lattice(float lattice[3][3], int spg);
+
 #endif
 

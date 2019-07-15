@@ -209,6 +209,8 @@ void generate_lattice(float lattice_vector[3][3], int spg,
 
 	else if (spg <= 230)
 	gen_cubic_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	
+	standardise_lattice(lattice_vector, spg);
 
 	return;
 }
@@ -313,7 +315,50 @@ void generate_fake_lattice(float lattice_vector[3][3], int spg)
 	}
 }
 
+static inline float fmodulo (float n, float d)
+{
+	long q =n/d;
+	float r = n - q*d ;
+	return r;	
+}
 
+void standardise_lattice( float lattice[3][3], int spg)
+{
+	//triclinic
+	if (spg == 1 || spg == 2)
+	{
+		float bx = lattice[1][0];
+		float ax = lattice[0][0];
+		float bx_new = fmodulo (bx, ax);
+		lattice[1][0] = bx_new;
+		
+		float by = lattice[1][1];
+		float cy = lattice[2][1];
+		float cy_new = fmodulo(cy, by);
+		lattice[2][1] = cy_new;
+		
+		float cx = lattice[2][0];
+		float cx_new = fmodulo(cx, ax);
+		lattice[2][0] = cx_new;
+	}
+	
+	else if (spg > 2 && spg < 16)
+	{
+		float bx = lattice[1][0];
+		float ax = lattice[0][0];
+		float bx_new = fmodulo (bx, ax);
+		lattice[1][0] = bx_new;
+		
+		float cx = lattice[2][0];
+		float cx_new = fmodulo(cx, ax);
+		lattice[2][0] = cx_new;
+		
+	}
+	
+	else if (spg <= 0 || spg > 230)
+		printf("***ERROR: lattice_generator: standardise_lattice invalid spg");
+	
+}
 
 
 

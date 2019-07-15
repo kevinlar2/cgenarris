@@ -298,7 +298,7 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 				float com[3];
 				compute_molecule_COM(xtal, com, i);
 	
-				if ( pdist(xtal.lattice_vectors,
+				if ( pdist_appx(xtal.lattice_vectors,
 						inverse_lattice_vectors,
 						com[0],
 						com[1],
@@ -866,7 +866,7 @@ int check_overlap_xtal(crystal* xtal,
 				float atom2[3] = { xtal->Xcord[k], \
 								   xtal->Ycord[k], \
 								   xtal->Zcord[k]	};
-				float dist = pdist(lattice_vectors,		\
+				float dist = pdist_appx(lattice_vectors,		\
 								   inv_lattice_vectors,	\
 								   atom1[0],
 								   atom1[1],

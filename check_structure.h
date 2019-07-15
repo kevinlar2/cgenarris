@@ -11,6 +11,15 @@ float pdist(float T[3][3],
 			float y1,
 			float y2,
 			float y3  );
+			
+float pdist_appx(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3  );
 
 void pdist_2(float T[3][3],
 			float T_inv[3][3],
@@ -22,6 +31,18 @@ void pdist_2(float T[3][3],
 			float y3,
 			float *p_dist,
 			float *p_dist_2  );
+			
+void pdist_2_appx(float T[3][3],
+			float T_inv[3][3],
+			float x1, 
+			float x2,
+			float x3,
+			float y1,
+			float y2,
+			float y3,
+			float *p_dist,
+			float *p_dist_2  );
+			
 int check_pair( float T[3][3],
 				float T_inv[3][3],
 				float *X,

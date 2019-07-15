@@ -207,7 +207,7 @@ void remove_close_molecules(crystal* xtal)
 			/*if(fabs(com1[0] - com2[0]) < tol && fabs(com1[1] - com2[1]) < tol 
 				&& fabs(com1[2] - com2[2]) < tol )
 			*/
-			if ( pdist(lattice_vectors, inv_lattice_vectors, com1[0],
+			if ( pdist_appx(lattice_vectors, inv_lattice_vectors, com1[0],
 					com1[1], com1[2], com2[0], com2[1], com2[2]) < TOL )	
 			{
 				same = 1;
@@ -318,7 +318,7 @@ void combine_close_molecules(crystal* xtal)
 			float com2[3] = {0,0,0};
 			compute_molecule_COM(*xtal, com2, j);
 			//if two molecules are overlapping
-			if ( pdist(lattice_vectors,
+			if ( pdist_appx(lattice_vectors,
 					   inv_lattice_vectors,
 					   com1[0],
 					   com1[1],
