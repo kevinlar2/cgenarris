@@ -86,7 +86,7 @@ float pdist(float T[3][3],
         // for finding the minimum distance (min dist_z)
 
 		//debug
-        printf("distz[%d] = %f\n", z, dist_z);
+        //printf("distz[%d] = %f\n", z, dist_z);
 
 		if (z == 0)
 			p_dist = dist_z;
@@ -662,7 +662,7 @@ int check_structure(crystal random_crystal, float sr)
 			{
 				i = N*m + 1; //to break out of both loops if the check failed
 				j = N*m + 1;
-				return final_verdict = 0;
+				final_verdict = 0;
 			}
 		}
 	}
@@ -685,8 +685,12 @@ int check_structure(crystal random_crystal, float sr)
 			}
 		}
 	}
+
 	if (check_val == 0)
+	{	free(atom_vdw);
+		free(bond_length);
 		return final_verdict = 0;
+	}
 
 
 	/*
@@ -696,12 +700,9 @@ int check_structure(crystal random_crystal, float sr)
 	printf("Verdict : fail \n");
 	*/	
 	//end of tier-2 check
-	
-	//different molecules in the cell 
-
-
 
 														//start tier-3 check
+	/*
 	
 	for (i = 0; i < total_atoms; i = i + N)
 	{
@@ -715,7 +716,7 @@ int check_structure(crystal random_crystal, float sr)
 			{
 				i = N*m + 1; //to break out of both loops if the check failed
 				j = N*m + 1;
-				return final_verdict = 0;
+				final_verdict = 0;
 			}
 		}
 	} 
@@ -731,14 +732,14 @@ int check_structure(crystal random_crystal, float sr)
 			if (check_val == 0)
 			{
 				i = total_atoms+ 1;
-				return final_verdict = 0;
+				final_verdict = 0;
 			}
 		}
 	}
 														//end tier-3
+	*/
 	free(atom_vdw);
 	free(bond_length);
-
 	return final_verdict;
 } 
 

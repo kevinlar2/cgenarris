@@ -10,7 +10,7 @@ number_of_structures    100
 sr                      0.7
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             480
+volume_mean             700
 
 #standard deviation of the gaussian distribution
 volume_std              40
