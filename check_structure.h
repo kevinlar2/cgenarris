@@ -43,7 +43,7 @@ void pdist_2_appx(float T[3][3],
 			float *p_dist,
 			float *p_dist_2  );
 			
-int check_pair( float T[3][3],
+int check_pair_tier2( float T[3][3],
 				float T_inv[3][3],
 				float *X,
 				float *Y,
@@ -54,13 +54,26 @@ int check_pair( float T[3][3],
 				int N,
 				float sr);
 
+int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length);
+
+int check_pair_tier3( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *atom_vdw,
+				int i,
+				int j,
+				int N,
+				float sr);
+
+int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length);
+
 void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms);
 
 void calc_bond_length(float *bond_length,float *X, float *Y, float *Z, int N);
-
-
-int check_self(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length);
 
 
 int fast_screener(crystal xtal, float sr, float *atom_vdw);

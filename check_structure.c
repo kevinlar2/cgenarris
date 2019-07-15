@@ -40,6 +40,7 @@ float pdist(float T[3][3],
 			float y2,
 			float y3  )
 {
+
 	float p_dist = 0.0;
 	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
 	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
@@ -47,8 +48,6 @@ float pdist(float T[3][3],
 	//vector3_subtract(x,y,cartesian_distance);
     /*computes tthe distance in fractinal space and reduces it 
      * inside first unit cube
-     * #TODO: make this outside pdist().
-     *  Needs to be done only once per crystal
      */
     float fractional_distance[3];
 	for (int i = 0; i < 3; i++)
@@ -85,12 +84,19 @@ float pdist(float T[3][3],
 		}
         // length odistnce vector to the zth corner 
         // for finding the minimum distance (min dist_z)
+
+		//debug
+        printf("distz[%d] = %f\n", z, dist_z);
+
 		if (z == 0)
 			p_dist = dist_z;
 		else if (p_dist > dist_z)
 			p_dist = dist_z;
 	}
 	
+	p_dist = sqrt(p_dist);
+
+
 	//find cartesian distance vector in the bounding box
 	//reduced cartesian distance vector
 	float red_cart_distance[3];
@@ -111,13 +117,14 @@ float pdist(float T[3][3],
 	for (int j = -limy; j <= limy; j++)
 	for (int k = -limz; k <= limz; k++)
 	{
-		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2];
-		test_dist[1] = j*T[1][1] + k*T[2][1];
-		test_dist[2] = k*T[2][2];
+		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2] - red_cart_distance[0];
+		test_dist[1] = j*T[1][1] + k*T[2][1] - red_cart_distance[1];
+		test_dist[2] = k*T[2][2] - red_cart_distance[2];
 		
 		if (vector3_norm(test_dist) < p_dist )
 			p_dist = vector3_norm(test_dist);
 	}
+
 	return p_dist;
 }
 
@@ -228,9 +235,9 @@ void pdist_2(float T[3][3],
 	for (int j = -limy; j <= limy; j++)
 	for (int k = -limz; k <= limz; k++)
 	{
-		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2];
-		test_dist[1] = j*T[1][1] + k*T[2][1];
-		test_dist[2] = k*T[2][2];
+		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2] - red_cart_distance[0];
+		test_dist[1] = j*T[1][1] + k*T[2][1] -red_cart_distance[1];
+		test_dist[2] = k*T[2][2] -red_cart_distance[2];
 		
 		float norm = vector3_norm(test_dist);
 		if ( norm < *p_dist )
@@ -406,42 +413,7 @@ void pdist_2_appx(float T[3][3],
 
 }
 
-/*checks the distance between two pair of molecules
- */
-int check_pair( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *atom_vdw,
-				int i,
-				int j,
-				int N,
-				float sr)
-{
-	
-	for (int k = i; k < i + N; k++)
-	{
-		for (int l = j; l < j + N; l++)
-		{
-		//	printf("k=%d \t l= %d  \n", k, l);
-			if (pdist_appx(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
-				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
-			{
-				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
-				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
-				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
-				//printf("failed at %d atom and %d atom with distance %f,
-				// expected %f \n", k+1%N, l+1%N,
-				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
-				//sr*(atom_vdw[k]+atom_vdw[l]) );
-				return 0;
-			}
-		}
-	}
-//	printf("yes");
-	return 1;
-}
+
 
 /* convert the atoms char array into vdw radii information for structure checking
  * uses Bondii radii 
@@ -506,7 +478,82 @@ void calc_bond_length(float *bond_length,float *X, float *Y, float *Z, int N)
 	}
 }
 
-int check_self(float T[3][3], float T_inv[3][3],float *X,float *Y,
+/*checks the distance between two pair of molecules
+ */
+//approximate
+int check_pair_tier2( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *atom_vdw,
+				int i,
+				int j,
+				int N,
+				float sr)
+{
+	
+	for (int k = i; k < i + N; k++)
+	{
+		for (int l = j; l < j + N; l++)
+		{
+		//	printf("k=%d \t l= %d  \n", k, l);
+			if (pdist_appx(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
+			{
+				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
+				//printf("failed at %d atom and %d atom with distance %f,
+				// expected %f \n", k+1%N, l+1%N,
+				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
+				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				return 0;
+			}
+		}
+	}
+//	printf("yes");
+	return 1;
+}
+
+//rigorous
+int check_pair_tier3( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *atom_vdw,
+				int i,
+				int j,
+				int N,
+				float sr)
+{
+	
+	for (int k = i; k < i + N; k++)
+	{
+		for (int l = j; l < j + N; l++)
+		{
+		//	printf("k=%d \t l= %d  \n", k, l);
+			if (pdist(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
+			{
+				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
+				//printf("failed at %d atom and %d atom with distance %f,
+				// expected %f \n", k+1%N, l+1%N,
+				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
+				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				return 0;
+			}
+		}
+	}
+//	printf("yes");
+	return 1;
+}
+
+//approximate
+int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
 	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length)
 {
 
@@ -519,6 +566,42 @@ int check_self(float T[3][3], float T_inv[3][3],float *X,float *Y,
 		{
 			modk = k % N;
 			pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
+			
+			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+				return 0;
+				
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			{
+				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
+				{
+					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n", k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					return 0 ;
+				}
+			}
+			
+			if(pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+				return 0;
+			
+		}
+	}
+	return 1;
+}
+
+
+//rigourous
+int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length)
+{
+
+	int j,k, modj,modk;
+	float pdist_kj, pdist_kj_2;
+	for (j = i; j < i+N; j++)
+	{
+		modj = j % N;
+		for (k = j ; k < i + N; k++)
+		{
+			modk = k % N;
+			pdist_2(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
 			
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 				return 0;
@@ -571,13 +654,9 @@ int check_structure(crystal random_crystal, float sr)
 	{
 		for(j= i + N; j < total_atoms; j = j + N)
 		{
-			check_val = check_pair(random_crystal.lattice_vectors,T_inv,
+			check_val = check_pair_tier2(random_crystal.lattice_vectors,T_inv,
 			random_crystal.Xcord,random_crystal.Ycord, random_crystal.Zcord,
 			atom_vdw, i, j, N, sr);
-			
-			//if(i == 0)
-			//printf("check val = %d \n", check_val );
-			
 			
 			if (check_val == 0) // 0 if check failed , 1 if it is ok
 			{
@@ -595,7 +674,7 @@ int check_structure(crystal random_crystal, float sr)
     {
 		for (i = 0; i < total_atoms; i = i + N)
 		{
-			check_val = check_self(random_crystal.lattice_vectors, T_inv,
+			check_val = check_self_tier2(random_crystal.lattice_vectors, T_inv,
 				random_crystal.Xcord, random_crystal.Ycord, random_crystal.Zcord,
 				atom_vdw, i, N, sr, bond_length);
 				
@@ -609,24 +688,54 @@ int check_structure(crystal random_crystal, float sr)
 	if (check_val == 0)
 		return final_verdict = 0;
 
-	//decide if the structure is feasible
-	//if (check_val == 1)
-	//printf("intermolecular distance check pass \n");	
 
 	/*
 	if (final_verdict == 1)
 	printf("Verdict : Pass \n");
 	else
 	printf("Verdict : fail \n");
-	*/
-	
+	*/	
 	//end of tier-2 check
-	 
-	//start tier-3 check
-	 
-	 
 	
+	//different molecules in the cell 
+
+
+
+														//start tier-3 check
 	
+	for (i = 0; i < total_atoms; i = i + N)
+	{
+		for(j= i + N; j < total_atoms; j = j + N)
+		{
+			check_val = check_pair_tier3(random_crystal.lattice_vectors,T_inv,
+			random_crystal.Xcord,random_crystal.Ycord, random_crystal.Zcord,
+			atom_vdw, i, j, N, sr);
+			
+			if (check_val == 0) // 0 if check failed , 1 if it is ok
+			{
+				i = N*m + 1; //to break out of both loops if the check failed
+				j = N*m + 1;
+				return final_verdict = 0;
+			}
+		}
+	} 
+	
+    if (final_verdict == 1)
+    {
+		for (i = 0; i < total_atoms; i = i + N)
+		{
+			check_val = check_self_tier3(random_crystal.lattice_vectors, T_inv,
+				random_crystal.Xcord, random_crystal.Ycord, random_crystal.Zcord,
+				atom_vdw, i, N, sr, bond_length);
+				
+			if (check_val == 0)
+			{
+				i = total_atoms+ 1;
+				return final_verdict = 0;
+			}
+		}
+	}
+														//end tier-3
 	free(atom_vdw);
 	free(bond_length);
 

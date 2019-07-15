@@ -25,6 +25,20 @@ unsigned int *seed2;
 
 int main(int argc, char **argv)
 {
+	//Testing
+	float T[3][3] = {1,0,0, 0,1,0, 0, 0, 1};
+	float T_inv[3][3] = {1,0,0, 0,1,0, 0, 0, 1};
+	float x[3] = {1.2, 1.8, 9.3};
+	float y[3] = {1.9, 4.5 , 3.3};
+	float p_dist, p_dist_2;
+
+	pdist_2(T, T_inv, x[0], x[1], x[2], y[0], y[1], y[2], &p_dist, &p_dist_2);
+	printf("%f %f\n", p_dist, p_dist_2);
+
+	exit(0);
+
+	//end testing
+
 	//random number seeding
 	srand((unsigned int)time(NULL));
 	int seed_shift = rand()% 1061 + 7 ;
