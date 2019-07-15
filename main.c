@@ -26,6 +26,7 @@ unsigned int *seed2;
 int main(int argc, char **argv)
 {
 	//Testing
+	/*
 	float T[3][3] = {1,0,0, 0,1,0, 0, 0, 1};
 	float T_inv[3][3] = {1,0,0, 0,1,0, 0, 0, 1};
 	float x[3] = {1.2, 1.8, 9.3};
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 	printf("%f %f\n", p_dist, p_dist_2);
 
 	exit(0);
-
+	*/
 	//end testing
 
 	//random number seeding
