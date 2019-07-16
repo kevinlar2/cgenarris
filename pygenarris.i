@@ -55,3 +55,15 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	float *vdw_matrix,
 	int dim1,
 	int dim2);
+
+void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
+	float *vdw_matrix,
+	int dim1,
+	int dim2,
+	int num_structures,
+	int Z,
+	double volume_mean1,
+	double volume_std1,
+	double tol1, 
+	int max_attempts);
+

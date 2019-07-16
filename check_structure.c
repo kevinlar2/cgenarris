@@ -8,7 +8,7 @@
 #include "check_structure.h"
 #include "algebra.h"
 
-extern float TOL;
+float CONSTANT_TOL = 0.001;
 
 static inline int int_floor(float x)
 {
@@ -242,12 +242,12 @@ void pdist_2(float T[3][3],
 		test_dist[2] = k*T[2][2] -red_cart_distance[2];
 		
 		float norm = vector3_norm(test_dist);
-		if ( norm + 0.001 < *p_dist )
+		if ( norm + CONSTANT_TOL < *p_dist )
 		{
 			*p_dist_2 = *p_dist;
 			*p_dist = norm;
 		}
-		else if ( norm + 0.001 < *p_dist_2 && *p_dist > norm + 0.001)
+		else if ( norm + CONSTANT_TOL < *p_dist_2 && *p_dist > norm + CONSTANT_TOL)
 			*p_dist_2 = norm;
 	}
 	
@@ -580,7 +580,8 @@ int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
-					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n", k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n"
+					//, k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
 					return 0 ;
 				}
 			}
@@ -649,6 +650,66 @@ int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 	}
 	return 1;
 }
+
+/* Precheck if intermolecular distances are too close.
+ * Doesn't take into account of periodic boundary condition, but is 
+ * much faster than rigourous checking.
+ * Doesn't check molecule with its own periodic image
+ */
+int fast_screener(crystal xtal, float sr, float *atom_vdw)
+{
+	//number of atoms in a molecule
+	int N = xtal.num_atoms_in_molecule;	
+	int m = xtal.Z;	//number of molecules in a unit cell;
+	// numberof atom in a unit cell = N*m
+	int total_atoms = N*m;	
+
+	float mol_len = 11.6;
+	float small_number = 0.1;
+	
+	for(int i = 0; i < total_atoms; i += N)
+	{
+		float com1[3];
+		compute_molecule_COM( xtal, com1, i);
+		for(int j = i + N; j < total_atoms; j += N)
+		{
+			//check if the molecule COM are far. if they are, dont 
+			//bother checking distances
+			if (j == i + N)
+			{	float com2[3];
+				compute_molecule_COM( xtal, com2, j);
+				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
+						  (com1[1] - com2[1])*(com1[1] - com2[1])+
+						  (com1[2] - com2[2])*(com1[2] - com2[2]))
+					<     (mol_len + small_number)                  )
+					continue;
+			}
+			
+			//molecule COM are close than molecule length
+			else
+			{
+				for(int k = i; k < i + N; k++)
+				{	
+					for (int z = j; z < j + N; z++ )
+					{
+						if(		(xtal.Xcord[k] - xtal.Xcord[z])*
+							   (xtal.Xcord[k] - xtal.Xcord[z])+
+							   (xtal.Ycord[k] - xtal.Ycord[z])*
+							   (xtal.Ycord[k] - xtal.Ycord[z])+
+							   (xtal.Zcord[k] - xtal.Zcord[z])*
+							   (xtal.Zcord[k] - xtal.Zcord[z])
+							   <sr * (atom_vdw[k]+atom_vdw[z])*
+								sr * (atom_vdw[k]+atom_vdw[z])		)
+						    return 0;
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
 
 //void main()
 int check_structure(crystal random_crystal, float sr)
@@ -730,24 +791,26 @@ int check_structure(crystal random_crystal, float sr)
 
 														//start tier-3 check
 	
-	
-	for (i = 0; i < total_atoms; i = i + N)
+	if (final_verdict == 1)
 	{
-		for(j= i + N; j < total_atoms; j = j + N)
+		for (i = 0; i < total_atoms; i = i + N)
 		{
-			check_val = check_pair_tier3(random_crystal.lattice_vectors,T_inv,
-			random_crystal.Xcord,random_crystal.Ycord, random_crystal.Zcord,
-			atom_vdw, i, j, N, sr);
-			
-			if (check_val == 0) // 0 if check failed , 1 if it is ok
+			for(j= i + N; j < total_atoms; j = j + N)
 			{
-				i = N*m + 1; //to break out of both loops if the check failed
-				j = N*m + 1;
-				final_verdict = 0;
+				check_val = check_pair_tier3(random_crystal.lattice_vectors,T_inv,
+				random_crystal.Xcord,random_crystal.Ycord, random_crystal.Zcord,
+				atom_vdw, i, j, N, sr);
+				
+				if (check_val == 0) // 0 if check failed , 1 if it is ok
+				{
+					i = N*m + 1; //to break out of both loops if the check failed
+					j = N*m + 1;
+					final_verdict = 0;
+				}
 			}
 		}
 	} 
-	
+		
     if (final_verdict == 1)
     {
 		for (i = 0; i < total_atoms; i = i + N)
@@ -770,65 +833,8 @@ int check_structure(crystal random_crystal, float sr)
 	return final_verdict;
 } 
 
-
-/* Precheck if intermolecular distances are too close.
- * Doesn't take into account of periodic boundary condition, but is 
- * much faster than rigourous checking.
- * Doesn't check molecule with its own periodic image
- */
-int fast_screener(crystal xtal, float sr, float *atom_vdw)
-{
-	//number of atoms in a molecule
-	int N = xtal.num_atoms_in_molecule;	
-	int m = xtal.Z;	//number of molecules in a unit cell;
-	// numberof atom in a unit cell = N*m
-	int total_atoms = N*m;	
-
-	float mol_len = 11.6;
-	float small_number = 0.1;
-	
-	for(int i = 0; i < total_atoms; i += N)
-	{
-		float com1[3];
-		compute_molecule_COM( xtal, com1, i);
-		for(int j = i + N; j < total_atoms; j += N)
-		{
-			//check if the molecule COM are far. if they are, dont 
-			//bother checking distances
-			if (j == i + N)
-			{	float com2[3];
-				compute_molecule_COM( xtal, com2, j);
-				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
-						  (com1[1] - com2[1])*(com1[1] - com2[1])+
-						  (com1[2] - com2[2])*(com1[2] - com2[2]))
-					<     (mol_len + small_number)                  )
-					continue;
-			}
-			
-			//molecule COM are close than molecule length
-			else
-			{
-				for(int k = i; k < i + N; k++)
-				{	
-					for (int z = j; z < j + N; z++ )
-					{
-						if(		(xtal.Xcord[k] - xtal.Xcord[z])*
-							   (xtal.Xcord[k] - xtal.Xcord[z])+
-							   (xtal.Ycord[k] - xtal.Ycord[z])*
-							   (xtal.Ycord[k] - xtal.Ycord[z])+
-							   (xtal.Zcord[k] - xtal.Zcord[z])*
-							   (xtal.Zcord[k] - xtal.Zcord[z])
-							   <sr * (atom_vdw[k]+atom_vdw[z])*
-								sr * (atom_vdw[k]+atom_vdw[z])		)
-						    return 0;
-					}
-				}
-			}
-		}
-	}
-
-	return 1;
-}
+/*            			END OF STRUCTURE CHECKS 				*/
+/*						BEGIN STRUCTURE CHECKS WTIH VDW DISTANCE CUTOFF  */
 
 
 
@@ -838,14 +844,15 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int dim2)
 {
 	int N = random_crystal.num_atoms_in_molecule;	//number of atoms in a molecule
-	int m = random_crystal.Z;						//number of molecules in a unit cell; numberof atom in a unit cell = N*m	
+	int m = random_crystal.Z;						//number of molecules in a unit cell;
+													// numberof atom in a unit cell = N*m	
 	int total_atoms = m*N;
 	
 	if (dim1 != dim2)
-		{printf("matrix not square\n"); return 0;}
+		{printf("matrix not square\n"); return 0; exit(0);}
 
 	if (dim1 != total_atoms)
-		{printf("matrix size doesnt match total atoms\n"); return 0;}
+		{printf("matrix size doesnt match total atoms\n"); return 0; exit(0);}
 
 	if( fast_screener_vdw(random_crystal, vdw_matrix) == 0)
 		{return 0;}
@@ -856,12 +863,13 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int i,j;
 	inverse_mat3b3(T_inv, random_crystal.lattice_vectors);
 
+	//tier2 checks
 	//start checking each pair of molecule
 	for (i = 0; i < total_atoms; i = i + N)
 	{
 		for(j= i + N; j < total_atoms; j = j + N)
 		{
-			check_val = check_pair_vdw(random_crystal.lattice_vectors,
+			check_val = check_pair_vdw_tier2(random_crystal.lattice_vectors,
 									   T_inv,
 									   random_crystal.Xcord,
 									   random_crystal.Ycord,
@@ -895,7 +903,7 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
     {
 		for (i = 0; i < total_atoms; i = i + N)
 		{
-			check_val = check_self_vdw(random_crystal.lattice_vectors,
+			check_val = check_self_vdw_tier2(random_crystal.lattice_vectors,
 									T_inv,
 									random_crystal.Xcord,
 								   random_crystal.Ycord,
@@ -916,16 +924,58 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	if (check_val == 0)
 		final_verdict = 0;
 
-	//decide if the structure is feasible
-	//if (check_val == 1)
-	//printf("intermolecular distance check pass \n");	
-
-	/*
+														//start tier-3 check
+	
 	if (final_verdict == 1)
-	printf("Verdict : Pass \n");
-	else
-	printf("Verdict : fail \n");
-	*/
+	{
+		for (i = 0; i < total_atoms; i = i + N)
+		{
+			for(j= i + N; j < total_atoms; j = j + N)
+			{
+				check_val = check_pair_vdw_tier3(random_crystal.lattice_vectors,
+									   T_inv,
+									   random_crystal.Xcord,
+									   random_crystal.Ycord,
+									   random_crystal.Zcord,
+									   vdw_matrix,
+									   i, 
+									   j,
+									   N,
+									   total_atoms);
+				
+				if (check_val == 0) // 0 if check failed , 1 if it is ok
+				{
+					i = N*m + 1; //to break out of both loops if the check failed
+					j = N*m + 1;
+					final_verdict = 0;
+				}
+			}
+		}
+	} 
+	
+    if (final_verdict == 1)
+    {
+		for (i = 0; i < total_atoms; i = i + N)
+		{
+			check_val = check_self_vdw_tier3(random_crystal.lattice_vectors,
+									T_inv,
+									random_crystal.Xcord,
+								   random_crystal.Ycord,
+								   random_crystal.Zcord,
+								   vdw_matrix,
+								   i,
+								   N,
+								   total_atoms,
+								   bond_length);
+				
+			if (check_val == 0)
+			{
+				i = total_atoms+ 1;
+				final_verdict = 0;
+			}
+		}
+	}
+														//end tier-3
 
 	free(bond_length);
 
@@ -988,7 +1038,80 @@ int fast_screener_vdw(crystal xtal, float *vdw_matrix)
 
 /*checks the distance between two pair of molecules
  */
-int check_pair_vdw( float T[3][3],
+int check_pair_vdw_tier2( float T[3][3],
+				float T_inv[3][3],
+				float *X,
+				float *Y,
+				float *Z,
+				float *vdw_matrix,
+				int i,
+				int j,
+				int N,
+				int total_atoms)
+{
+	
+	for (int k = i; k < i + N; k++)
+	{
+		for (int l = j; l < j + N; l++)
+		{
+		//	printf("k=%d \t l= %d  \n", k, l);
+			if (pdist_appx(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
+				 *(vdw_matrix + k*total_atoms + l) 					)
+			{
+				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
+				//printf("failed at %d atom and %d atom with distance %f,
+				// expected %f \n", k+1%N, l+1%N,
+				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
+				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				return 0;
+			}
+		}
+	}
+//	printf("yes");
+	return 1;
+}
+
+/*check with periodic image of one molecule: approximate but faster
+*/
+int check_self_vdw_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
+	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length)
+{
+
+	int j,k, modj,modk;
+	float pdist_kj, pdist_kj_2;
+	for (j = i; j < i+N; j++)
+	{
+		modj = j % N;
+		for (k = j ; k < i + N; k++)
+		{
+			modk = k % N;
+			pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
+			
+			if (k == j && pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
+				return 0;
+				
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			{
+				if (pdist_kj < *(vdw_matrix + k*total_atoms + j) )
+				{
+					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n",
+					// k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					return 0 ;
+				}
+			}
+			
+			if(pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
+				return 0;
+			
+		}
+	}
+	return 1;
+}
+
+
+int check_pair_vdw_tier3( float T[3][3],
 				float T_inv[3][3],
 				float *X,
 				float *Y,
@@ -1023,7 +1146,9 @@ int check_pair_vdw( float T[3][3],
 	return 1;
 }
 
-int check_self_vdw(float T[3][3], float T_inv[3][3],float *X,float *Y,
+/*check with periodic image of one molecule: rigourous and slow
+*/
+int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length)
 {
 
