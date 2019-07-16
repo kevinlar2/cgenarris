@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	{}
    
     //inititalise volume
-    do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume > 0.1);
+    do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 	int N = mol->num_of_atoms;
 	allocate_xtal(random_crystal, ZMAX, N); //allcate memory
 	random_crystal->num_atoms_in_molecule = mol->num_of_atoms;
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 								volume);
 						fflush(stdout);
 						detect_spg_using_spglib(random_crystal);
-						volume = normal_dist_ab(volume_mean, volume_std);
+						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						i = 0;
 						verdict = 0;
 					}
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 				//reset volume after volume attempts
 				if(i % VOL_ATTEMPT == 0 && i != 0)
 				{
-					do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume > 0.1);
+					do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 					if(thread_num == 1)
 						printf("#thread1:completed %d attempts\n",
 							i*total_threads);
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 					{stop_flag = 1;}
 				#pragma omp barrier
 				{}
-				do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume > 0.1);
+				do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 				if(thread_num == 1)
 				{	
 					printf("**WARNING: generation failed for spg = %d "
