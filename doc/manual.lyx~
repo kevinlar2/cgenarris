@@ -481,11 +481,7 @@ float32
 
  (single precision) and size 
 \emph on
-total_atoms 
-\emph default
-x
-\emph on
- total_atoms
+total_atoms x total_atoms
 \emph default
 \SpecialChar endofsentence
 
