@@ -7,10 +7,10 @@ Z                       2
 number_of_structures    100 
 
 #specific radius proportion
-sr                      0.7
+sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             700
+volume_mean             480
 
 #standard deviation of the gaussian distribution
 volume_std              40

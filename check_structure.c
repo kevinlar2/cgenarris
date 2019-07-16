@@ -8,6 +8,8 @@
 #include "check_structure.h"
 #include "algebra.h"
 
+extern float TOL;
+
 static inline int int_floor(float x)
 {
   int i = (int)x; /* truncate */
@@ -117,7 +119,7 @@ float pdist(float T[3][3],
 	for (int j = -limy; j <= limy; j++)
 	for (int k = -limz; k <= limz; k++)
 	{
-		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2] - red_cart_distance[0];
+		test_dist[0] = i*T[0][0] + j*T[1][0] + k*T[2][0] - red_cart_distance[0];
 		test_dist[1] = j*T[1][1] + k*T[2][1] - red_cart_distance[1];
 		test_dist[2] = k*T[2][2] - red_cart_distance[2];
 		
@@ -235,17 +237,17 @@ void pdist_2(float T[3][3],
 	for (int j = -limy; j <= limy; j++)
 	for (int k = -limz; k <= limz; k++)
 	{
-		test_dist[0] = i*T[0][0] + j*T[0][1] + k*T[0][2] - red_cart_distance[0];
+		test_dist[0] = i*T[0][0] + j*T[1][0] + k*T[2][0] - red_cart_distance[0];
 		test_dist[1] = j*T[1][1] + k*T[2][1] -red_cart_distance[1];
 		test_dist[2] = k*T[2][2] -red_cart_distance[2];
 		
 		float norm = vector3_norm(test_dist);
-		if ( norm < *p_dist )
+		if ( norm + 0.001 < *p_dist )
 		{
 			*p_dist_2 = *p_dist;
-			*p_dist = vector3_norm(test_dist);
+			*p_dist = norm;
 		}
-		else if ( norm < *p_dist_2)
+		else if ( norm + 0.001 < *p_dist_2 && *p_dist > norm + 0.001)
 			*p_dist_2 = norm;
 	}
 	
@@ -537,13 +539,17 @@ int check_pair_tier3( float T[3][3],
 			if (pdist(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]) <
 				sr * ( atom_vdw[k]+atom_vdw[l] )					   )
 			{
-				//printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
-				//printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
-				//printf("%f  %f  %f", sr , atom_vdw[k], atom_vdw[l]);
-				//printf("failed at %d atom and %d atom with distance %f,
-				// expected %f \n", k+1%N, l+1%N,
-				// pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),
-				//sr*(atom_vdw[k]+atom_vdw[l]) );
+				/*
+				printf("atom1 = %f %f %f \n", X[k], Y[k], Z[k]);
+				printf("atom2 = %f %f %f \n", X[l], Y[l], Z[l]);
+				printf("sr = %f  %f  %f\n", sr , atom_vdw[k], atom_vdw[l]);
+				printf("failed at %d atom and %d atom with distance %f expected %f \n", k+1%N, l+1%N,\
+				 pdist(T,T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]),\
+				sr*(atom_vdw[k]+atom_vdw[l]) );
+
+				float p_dist_app = pdist_appx(T, T_inv, X[k], Y[k], Z[k], X[l], Y[l], Z[l]);
+				printf("pdist_appx = %f\n", p_dist_app);
+				*/
 				return 0;
 			}
 		}
@@ -604,20 +610,41 @@ int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			pdist_2(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &pdist_kj, &pdist_kj_2);
 			
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+			{	
+				/*	printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
+					 k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					float p_dist1, p_dist2;
+					pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
+					printf("appx = %f, %f \n", p_dist1, p_dist2 );
+				*/
 				return 0;
-				
+			}	
 			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
-					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n", k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					/*
+					printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
+					 k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					float p_dist1, p_dist2;
+					pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
+					printf("appx = %f, %f \n", p_dist1, p_dist2 );
+					*/
 					return 0 ;
 				}
 			}
 			
 			if(pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
+			{
+				/*
+				printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
+					 k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					float p_dist1, p_dist2;
+					pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
+					printf("appx = %f, %f \n", p_dist1, p_dist2 );
+				*/
 				return 0;
-			
+			}
 		}
 	}
 	return 1;
@@ -702,7 +729,7 @@ int check_structure(crystal random_crystal, float sr)
 	//end of tier-2 check
 
 														//start tier-3 check
-	/*
+	
 	
 	for (i = 0; i < total_atoms; i = i + N)
 	{
@@ -737,7 +764,7 @@ int check_structure(crystal random_crystal, float sr)
 		}
 	}
 														//end tier-3
-	*/
+	
 	free(atom_vdw);
 	free(bond_length);
 	return final_verdict;
