@@ -431,7 +431,60 @@ Output
 \end_layout
 
 \begin_layout Enumerate
-A file with all the generated structures in FHI-aims geometry format.
+A file with all the generated structures in FHI-aims geometry format
+\end_layout
+
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Generate a pool of random molecular crystals with VdW cutoff matrix
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+generate_molecular_crystals_with_vdw_cutoff_matrix(filename, vdw_matrix,
+ num_structures, Z, volume_mean, volume_std, tol, max_attempts)
+\end_layout
+
+\begin_layout Subsubsection*
+Description
+\end_layout
+
+\begin_layout Standard
+Almost the same as the previous function.
+ Uses a van der Waal cutoff matrix instead of sr.
+\end_layout
+
+\begin_layout Subsubsection*
+Input
+\end_layout
+
+\begin_layout Enumerate
+All keywords same as before.
+\end_layout
+
+\begin_layout Enumerate
+vdw_matrix is a numpy array.
+ Type: 2D numpy array of type 
+\begin_inset Quotes eld
+\end_inset
+
+float32
+\begin_inset Quotes erd
+\end_inset
+
+ (single precision) and size 
+\emph on
+total_atoms x total_atoms
+\emph default
+\SpecialChar endofsentence
+
 \end_layout
 
 \begin_layout Subsection
@@ -696,7 +749,15 @@ xtal is an object of type crystal.
 
 \begin_layout Enumerate
 vdw_matrix is a numpy array.
- Type: 2D numpy array of size 
+ Type: 2D numpy array of type 
+\begin_inset Quotes eld
+\end_inset
+
+float32
+\begin_inset Quotes erd
+\end_inset
+
+ (single precision) and size 
 \emph on
 total_atoms x total_atoms
 \emph default
