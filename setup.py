@@ -4,6 +4,7 @@ setup.py file
 """
 
 from distutils.core import setup, Extension
+import numpy
 
 sources_spglib = ['arithmetic.c',
            'cell.c',
@@ -32,7 +33,7 @@ for i, s in enumerate(sources_spglib):
     sources_spglib[i] = "%s/%s" % (source_dir, s)
 
 
-pygenarris = Extension('_pygenarris',include_dirs= ['./'], sources=['pygenarris.i', 'pygenarris.c', 
+pygenarris = Extension('_pygenarris',include_dirs= ['./', numpy.get_include()], sources=['pygenarris.i', 'pygenarris.c', 
 'combinatorics.c', 'molecule_placement.c', 'algebra.c', 'molecule_utils.c',
 'spg_generation.c', 'lattice_generator.c', 'crystal_utils.c', 'check_structure.c', 'read_input.c', 'randomgen.c']+sources_spglib,
 extra_compile_args=["-fopenmp", "-std=gnu99"], extra_link_args=['-lgomp'])
