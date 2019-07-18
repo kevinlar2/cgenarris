@@ -217,6 +217,7 @@ int main(int argc, char **argv)
 						printf("#thread1:completed %d attempts\n",
 							i*total_threads);
 					*seed = *seed2 + thread_num*rand_r(seed2);
+					fflush(stdout);
 				}
 				
 			}//end of attempt loop	

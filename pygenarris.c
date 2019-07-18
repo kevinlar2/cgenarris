@@ -198,6 +198,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 					if(thread_num == 1)
 						printf("#thread 1: completed %d attempts\n", i*total_threads);
 					*seed = *seed2 + thread_num*rand_r(seed2);
+					fflush(stdout);
 				}
 				
 			}//end of attempt loop	
@@ -444,6 +445,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 					if(thread_num == 1)
 						printf("#thread 1: completed %d attempts\n", i*total_threads);
 					*seed = *seed2 + thread_num*rand_r(seed2);
+					fflush(stdout);
 				}
 				
 			}//end of attempt loop	
