@@ -238,6 +238,7 @@ int main(int argc, char **argv)
 							max_attempts);
 					printf("#counter reset...\n\n");
 					counter = num_structures + 1;
+					fflush(stdout);
 					//print_crystal(random_crystal);
 				}
 				#pragma omp barrier
@@ -255,6 +256,7 @@ int main(int argc, char **argv)
 			 spg_rand++;
 			 stop_flag = 0;
 			 printf("#counter reset...\n\n");
+			 fflush(stdout);
 		} 
 		#pragma omp barrier
 		{}

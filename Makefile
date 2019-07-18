@@ -1,5 +1,5 @@
 #CC=gcc
-CFLAGS=-std=gnu99 -fopenmp -O3 -fPIC  
+CFLAGS=-std=gnu99 -fopenmp -O3  -fPIC  
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 
 swig:

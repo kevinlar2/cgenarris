@@ -166,6 +166,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 																	spg, volume);
 						
 						detect_spg_using_spglib(random_crystal);
+						fflush(stdout);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 					}
 									
@@ -217,6 +218,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 					printf("#counter reset...\n\n");
 					counter = num_structures + 1;
 					print_crystal(random_crystal);
+					fflush(stdout);
 				}
 				#pragma omp barrier
 				{}
@@ -232,6 +234,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
          spg_rand++;
          stop_flag = 0;
          printf("#counter reset...\n\n");
+         fflush(stdout);
          //sleep(1);
          //usleep(90000);
     } 
@@ -409,6 +412,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 																	spg, volume);
 						
 						detect_spg_using_spglib(random_crystal);
+						fflush(stdout);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 					}
 									
@@ -459,7 +463,8 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	after %d attempts \n\n", spg, max_attempts);
 					printf("#counter reset...\n\n");
 					counter = num_structures + 1;
-					print_crystal(random_crystal);
+					//print_crystal(random_crystal);
+					fflush(stdout);
 				}
 				#pragma omp barrier
 				{}
@@ -475,6 +480,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
          spg_rand++;
          stop_flag = 0;
          printf("#counter reset...\n\n");
+         fflush(stdout);
          //sleep(1);
          //usleep(90000);
     } 

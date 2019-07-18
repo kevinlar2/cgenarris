@@ -57,6 +57,7 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i]);
 	}
 	
+	fflush(out_file);
 	counter++;
 }
 
