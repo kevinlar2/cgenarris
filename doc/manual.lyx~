@@ -481,7 +481,11 @@ float32
 
  (single precision) and size 
 \emph on
-total_atoms x total_atoms
+total_atoms 
+\emph default
+x
+\emph on
+ total_atoms
 \emph default
 \SpecialChar endofsentence
 
@@ -776,6 +780,70 @@ Output
 \begin_layout Standard
 Returns 0 if the structure is unphysical, returns 1 if the structure passes
  the test.
+\end_layout
+
+\begin_layout Subsection
+Number of space groups compatible with molecule's symmetry
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+int num_compatible_spacegroups(Z, tolerance)
+\end_layout
+
+\begin_layout Subsubsection*
+Description
+\end_layout
+
+\begin_layout Standard
+Function to get information about the allowed space groups and Wyckoff positions
+ for a given molecule.
+\end_layout
+
+\begin_layout Subsubsection*
+Input
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+Z
+\emph default
+ is the number of molecules in the unit cell.
+ Type: int.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+tolerance 
+\emph default
+is the tolerance for compatibility check.
+ Type: float.
+\end_layout
+
+\begin_layout Enumerate
+Molecule geometry is read from 
+\emph on
+geometry.in
+\emph default
+ file from the present working directory.
+\end_layout
+
+\begin_layout Subsubsection*
+Output
+\end_layout
+
+\begin_layout Enumerate
+Returns the allowed space groups as an integer.
+\end_layout
+
+\begin_layout Enumerate
+Prints the detailed output on stdout which includes Wyckoff positions available
+ for given 
+\emph on
+Z .
 \end_layout
 
 \end_body

@@ -249,6 +249,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 	fclose(out_file);
 	
 	printf("Generation completed!\n");
+//	free(mol_axes);
 }
 
 
@@ -496,6 +497,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	fclose(out_file);
 	
 	printf("Generation completed!\n");
+	//free(mol_axes);
 }
 
 
@@ -566,4 +568,32 @@ crystal generate_one_molecular_crystal(int Z, int spg, double volume1, double sr
 }
 */
 
+int num_compatible_spacegroups(int Z, double tolerance)
+{
+	//set global variable tolerance
+	TOL = tolerance;
+
+	COMPATIBLE_SPG compatible_spg[230]; 
+	int num_compatible_spg = 0;
+	int num_axes;
+	float *mol_axes;
+	int thread_num = 1; 
+	molecule *mol = (molecule*)malloc(sizeof(molecule));
+
+	//read geometry from geometry.in
+	read_geometry(mol);
+
+	find_compatible_spg_positions(mol,
+								  Z,
+								  compatible_spg,
+								  &num_compatible_spg,
+								  &mol_axes,
+								  &num_axes,
+								  thread_num);
+
+	free(mol_axes);
+	free(mol);
+	return num_compatible_spg;
+
+}
 

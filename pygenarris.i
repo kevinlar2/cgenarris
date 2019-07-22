@@ -67,3 +67,5 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	double tol1, 
 	int max_attempts);
 
+int num_compatible_spacegroups(int Z, double tolerance);
+
