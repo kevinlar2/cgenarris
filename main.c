@@ -182,7 +182,9 @@ int main(int argc, char **argv)
 								spg,
 								volume);
 						fflush(stdout);
-						detect_spg_using_spglib(random_crystal);
+						int spglib_spg = detect_spg_using_spglib(random_crystal);
+						printf("#SPGLIB detected space group = %d\n",
+												                     spglib_spg);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						i = 0;
 						verdict = 0;

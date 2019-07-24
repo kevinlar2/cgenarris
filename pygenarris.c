@@ -165,7 +165,9 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 																	counter, 
 																	spg, volume);
 						
-						detect_spg_using_spglib(random_crystal);
+						int spglib_spg = detect_spg_using_spglib(random_crystal);
+						printf("#SPGLIB detected space group = %d\n",
+												                     spglib_spg);
 						fflush(stdout);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 					}
@@ -409,11 +411,13 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 																		 thread_num,
 																		 i*total_threads);
 									
-						printf("#Structure number = %d  spg = %d vol = %f\n", 
+						printf("#Structure number = %d,  attempted spg = %d, volume = %f\n", 
 																	counter, 
 																	spg, volume);
 						
-						detect_spg_using_spglib(random_crystal);
+						int spglib_spg = detect_spg_using_spglib(random_crystal);
+						printf("#SPGLIB detected space group = %d\n",
+												                     spglib_spg);
 						fflush(stdout);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 					}

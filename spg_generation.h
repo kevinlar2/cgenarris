@@ -24,6 +24,7 @@ typedef struct
 	float *Zcord;
 	char *atoms;
 	int spg;
+	int wyckoff_position;
 	
 }crystal;
 

@@ -6,8 +6,16 @@
 #include "algebra.h"
 #include "check_structure.h"
 #include "spglib.h"
+#include "combinatorics.h"
 
 extern float TOL;
+
+float get_crystal_volume(crystal *xtal)
+{
+	return xtal->lattice_vectors[0][0]*
+		   xtal->lattice_vectors[1][1]*
+		   xtal->lattice_vectors[2][2];
+}
 
 void print_crystal(crystal* xtal)
 {
@@ -40,10 +48,25 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 	int N = xtal->num_atoms_in_molecule;
 	int m = xtal->Z;
 	 
-	 fprintf(out_file,"#structure number = %d\n", counter);
-	 fprintf(out_file,"#Z = %d , spg = %d\n", xtal->Z, xtal->spg);
-	// fprintf(out_file,"#napm = %d \n", xtal->num_atoms_in_molecule);
+	fprintf(out_file, "####### BEGIN STRUCTURE #######\n");
+	fprintf(out_file, "#structure number = %d\n", counter);
+	fprintf(out_file, "#Z = %d\n", xtal->Z);
+	fprintf(out_file, "#number_of_atoms_in_molecule = %d \n",
+	 xtal->num_atoms_in_molecule);
+    
+    fprintf(out_file, "#unit_cell_volume = %f cubic Angstrom\n", get_crystal_volume(xtal));
+	fprintf(out_file, "#attempted spacegroup = %d\n", xtal->spg);
 	
+	char letter = spg_positions[xtal->spg - 1].wyckoff_letter[xtal->wyckoff_position];
+	fprintf(out_file, "#attempted Wyckoff position = %d%c\n", xtal->Z, letter);
+	fprintf(out_file, "#site_symmetry_group = %s\n",
+	 spg_positions[xtal->Z - 1].site_symmetry[xtal->wyckoff_position]);
+	
+	int spglib_spg = detect_spg_using_spglib(xtal);
+	fprintf(out_file, "#SPGLIB detected spacegroup = %d\n", spglib_spg);
+	
+	fprintf(out_file, "#\"All distances in Angstroms and using Cartesian coordinate system\"\n");
+		
 	for(int i = 0; i < 3; i++)
 	{
 		fprintf(out_file,"lattice_vector %12f %12f %12f \n",
@@ -56,6 +79,7 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 		fprintf(out_file,"atom %12f %12f %12f %4c \n", xtal->Xcord[i],
 			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i]);
 	}
+	fprintf(out_file, "#######  END  STRUCTURE #######\n\n");
 	
 	fflush(out_file);
 	counter++;
@@ -646,8 +670,8 @@ int detect_spg_using_spglib(crystal* xtal)
 	//SpglibError error;
 	//error = spg_get_error_code();
 	//printf("#SPGLIB says %s\n", spg_get_error_message(error));
-	printf("#SPGLIB detected space group = %d\n",
-												num_spg);
+	//printf("#SPGLIB detected space group = %d\n",
+	//											num_spg);
 	convert_xtal_to_cartesian(xtal);
 	return num_spg;
 
