@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "read_input.h"
 #include "spg_generation.h"
 #include "crystal_utils.h"
@@ -49,21 +50,24 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 	int m = xtal->Z;
 	 
 	fprintf(out_file, "####### BEGIN STRUCTURE #######\n");
-	fprintf(out_file, "#structure number = %d\n", counter);
+	fprintf(out_file, "#structure_number = %d\n", counter);
 	fprintf(out_file, "#Z = %d\n", xtal->Z);
 	fprintf(out_file, "#number_of_atoms_in_molecule = %d \n",
 	 xtal->num_atoms_in_molecule);
     
     fprintf(out_file, "#unit_cell_volume = %f cubic Angstrom\n", get_crystal_volume(xtal));
-	fprintf(out_file, "#attempted spacegroup = %d\n", xtal->spg);
+	fprintf(out_file, "#attempted_spacegroup = %d\n", xtal->spg);
 	
 	char letter = spg_positions[xtal->spg - 1].wyckoff_letter[xtal->wyckoff_position];
-	fprintf(out_file, "#attempted Wyckoff position = %d%c\n", xtal->Z, letter);
+	fprintf(out_file, "#attempted_wyckoff_position = %d%c\n", xtal->Z, letter);
+
+	char site_symm[6];
+	strcpy(site_symm, spg_positions[xtal->spg - 1].site_symmetry[xtal->wyckoff_position]);
 	fprintf(out_file, "#site_symmetry_group = %s\n",
-	 spg_positions[xtal->Z - 1].site_symmetry[xtal->wyckoff_position]);
+	 site_symm);
 	
 	int spglib_spg = detect_spg_using_spglib(xtal);
-	fprintf(out_file, "#SPGLIB detected spacegroup = %d\n", spglib_spg);
+	fprintf(out_file, "#SPGLIB_detected_spacegroup = %d\n", spglib_spg);
 	
 	fprintf(out_file, "#\"All distances in Angstroms and using Cartesian coordinate system\"\n");
 		
