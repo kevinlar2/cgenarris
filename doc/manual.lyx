@@ -448,8 +448,8 @@ Generate a pool of random molecular crystals with VdW cutoff matrix
 \begin_layout Standard
 
 \emph on
-generate_molecular_crystals_with_vdw_cutoff_matrix(filename, vdw_matrix,
- num_structures, Z, volume_mean, volume_std, tol, max_attempts)
+generate_molecular_crystals_with_vdw_cutoff_matrix(filename, seedstate,
+ vdw_matrix, num_structures, Z, volume_mean, volume_std, tol, max_attempts)
 \end_layout
 
 \begin_layout Subsubsection*
@@ -467,6 +467,15 @@ Input
 
 \begin_layout Enumerate
 All keywords same as before.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+seedstate 
+\emph default
+is the seed for random number generator.
+ Type: int.
 \end_layout
 
 \begin_layout Enumerate

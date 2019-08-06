@@ -840,7 +840,7 @@ Returns the allowed space groups as an integer.
 \end_layout
 
 \begin_layout Enumerate
-Prints the detailed output on stdout which includes Wyckoff positions available
+Prints the detailed output to stdout which includes Wyckoff positions available
  for given 
 \emph on
 Z .

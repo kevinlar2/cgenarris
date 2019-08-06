@@ -57,6 +57,7 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int dim2);
 
 void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
+	int seedstate,
 	float *vdw_matrix,
 	int dim1,
 	int dim2,

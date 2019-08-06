@@ -257,6 +257,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 
 //Generator with van der waal cutoff distance matrix
 void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
+	int seedstate,
 	float *vdw_matrix,
 	int dim1,
 	int dim2,
@@ -293,7 +294,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	//random number seeding
 	//random number seeding
 	srand((unsigned int)time(NULL));
-	int seed_shift = rand()% 1061 + 7 ;
+	int seed_shift = rand() % 1061 + 7*seedstate;
 	
 	int counter = 0 ;
 	int spg_rand = 0;

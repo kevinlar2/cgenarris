@@ -4,19 +4,19 @@
 Z                       4 
 
 #this is the number of structures per space group
-number_of_structures    10 
+number_of_structures    41
 
 #specific radius proportion
 sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             1200
+volume_mean             481
 
 #standard deviation of the gaussian distribution
-volume_std              160
+volume_std              36
 
 #numerical tolerance. important for special positions
-tolerance               0.001
+tolerance               0.01
 
 #number of attempts before moving to next space group
-max_attempts            200000000
+max_attempts            20000000

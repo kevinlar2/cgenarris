@@ -18,6 +18,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 
 //Generator with van der waal cutoff distance matrix
 void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
+	int seedstate,
 	float *vdw_matrix,
 	int dim1,
 	int dim2,
