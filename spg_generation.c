@@ -28,8 +28,6 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 	float max_angle = 30 * PI/180;
 	float min_angle = 150 * PI/180;
 
-	//recenter molecule to origin
-	recenter_molecule(mol);
 	random_crystal->Z = Z;
 	int N = mol->num_of_atoms;
 

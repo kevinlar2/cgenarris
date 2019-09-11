@@ -88,6 +88,9 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 
         //printf("%d %d %f %f %f\n", num_structures, Z, sr, volume_mean, volume_std);
     }
+
+    //recenter molecule to origin
+	recenter_molecule(mol);
 	
 	#pragma omp barrier
 	{}
@@ -340,6 +343,9 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
         //printf("%d %d %f %f %f\n", num_structures, Z, sr, volume_mean, volume_std);
     }
 	
+    //recenter molecule to origin
+	recenter_molecule(mol);
+
 	#pragma omp barrier
 	{}
    

@@ -10,10 +10,10 @@ number_of_structures    41
 sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             481
+volume_mean             534
 
 #standard deviation of the gaussian distribution
-volume_std              36
+volume_std              40
 
 #numerical tolerance. important for special positions
 tolerance               0.01
