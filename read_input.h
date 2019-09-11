@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 typedef struct
 { 
 	char *atoms;
@@ -17,5 +18,12 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	float* volume_mean, float* volume_std, float *sr, int* max_attempts);
 
 void read_geometry(molecule* mol);
+
+void print_input_geometry(molecule* mol);
+
+void print_molecule(molecule *mol);
+
+void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
+	float* volume_mean, float* volume_std, float *sr, int *max_attempts);
 
 #endif 

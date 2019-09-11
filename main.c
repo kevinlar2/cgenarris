@@ -88,6 +88,23 @@ int main(int argc, char **argv)
 	int max_attempts;	//max attempts per space group
 
 	//read input from file, read molecular structure from geometry,Z, Zp
+
+	if(thread_num == 1)
+	{
+		int len = 100;
+		char name[len];
+		gethostname(name, len);
+		printf("PARALLELIZATION INFO:\n");
+		printf("---------------------------\n");
+		printf("Using OpenMP for parallelization.\n");
+		printf("cgenarris created %d threads on %s. \n", total_threads, name);
+		printf("NOTE: Number of threads can be changed using the environment variable OMP_NUM_THREADS.\n");
+		printf("---------------------------\n");
+		printf("\n");
+	}
+
+
+
     #pragma omp critical
 	{
         read_geometry(mol);				//read molecule from geometry.in
@@ -100,6 +117,22 @@ int main(int argc, char **argv)
 					 &max_attempts);	//get settings
     }
 	
+	//recenter molecule to origin
+	recenter_molecule(mol);
+
+	if (thread_num == 1)
+	{
+		print_input_geometry(mol);
+		print_input_settings(&num_structures,
+							 &Z,
+							 &Zp_max,
+							 &volume_mean, 
+							 &volume_std,
+							 &sr,
+							 &max_attempts);
+	}
+
+
 	#pragma omp barrier //wait to get the settings
 	{}
    
@@ -111,7 +144,9 @@ int main(int argc, char **argv)
 	
 	if(thread_num == 1)
 	{
-		printf("Detecting compatible spacegroups"
+		printf("COMPATIBLE SPACE GROUP INFO:\n");
+		printf("-----------------------------------------------------\n");
+		printf("Detecting compatible space groups"
 			   " from molecule symmetries...\n");
 	}
 
@@ -128,9 +163,11 @@ int main(int argc, char **argv)
 			
 	if(thread_num == 1)
 	{
-		printf("\nTotal compatible space groups = %d\n", num_compatible_spg);
-		printf("Number of mol axes = %d \n", num_axes);
-		printf("Starting generator ...\n\n");
+		printf("\n");
+		printf("Total compatible space groups = %d\n", num_compatible_spg);
+		printf("Number of molecular axes = %d \n", num_axes);
+		printf("-----------------------------------------------------\n\n");
+		printf("Starting generation...\n\n");
 		sleep(1);
 	}
 	
@@ -150,6 +187,11 @@ int main(int argc, char **argv)
 	{
 		//counter counts the number of structures generated
 		spg = compatible_spg[spg_rand].spg; //pick a spg 
+
+		//print attempted space group 
+		if (thread_num == 1)
+			{printf("Attempting to generate spacegroup number %d....\n", spg);}
+
 		while( counter < num_structures )
 		{
 			int verdict = 0; //for structure check
@@ -177,13 +219,15 @@ int main(int argc, char **argv)
 								thread_num,
 								i*total_threads);
 									
-						printf("#Structure number = %d  spg = %d vol = %f\n", 
-								counter, 
-								spg,
-								volume);
+						printf("#Structure number = %d ,\n"
+							   "#attempted space group = %d,\n"
+							   "#unit cell volume (cubic Angstrom)= %f\n", 
+							   counter, 
+							   spg,
+							   volume);
 						fflush(stdout);
 						int spglib_spg = detect_spg_using_spglib(random_crystal);
-						printf("#SPGLIB detected space group = %d\n",
+						printf("#SPGLIB detected space group = %d\n\n",
 												                     spglib_spg);
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						i = 0;
@@ -235,11 +279,10 @@ int main(int argc, char **argv)
 				do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 				if(thread_num == 1)
 				{	
-					printf("**WARNING: generation failed for spg = %d "
-							"after %d attempts \n\n",
+					printf("**WARNING: generation failed for space group = %d "
+							"after %d attempts. \n",
 							spg,
 							max_attempts);
-					printf("#counter reset...\n\n");
 					counter = num_structures + 1;
 					fflush(stdout);
 					//print_crystal(random_crystal);
@@ -258,7 +301,7 @@ int main(int argc, char **argv)
 			 counter = 0;
 			 spg_rand++;
 			 stop_flag = 0;
-			 printf("#counter reset...\n\n");
+			 printf("#space group counter reset. Moving to next space group...\n\n");
 			 fflush(stdout);
 		} 
 		#pragma omp barrier

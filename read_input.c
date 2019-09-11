@@ -192,3 +192,32 @@ void read_geometry(molecule* mol)
 	
 
 }
+
+
+void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
+	float* volume_mean, float* volume_std, float *sr, int *max_attempts)
+{
+	printf("INPUT SETTINGS:\n");
+	printf("-----------------------------\n");
+	printf("Number of structures per space group:         %d \n", *num_structures);
+	printf("Number of molecules in the cell:              %d\n", *Z);
+	printf("Mean volume of unit cell:                     %f\n", *volume_mean);
+	printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
+	printf("Specific radius proportion:                   %f\n", *sr );
+	printf("Maximum attempts per space group:             %d\n", *max_attempts);
+	printf("Tolerance:                                    %f\n", TOL);
+	printf("-----------------------------\n\n");
+
+}
+
+
+void print_input_geometry(molecule* mol)
+{
+	printf("MOLECULAR GEOMETRY:\n");
+	printf("-----------------------------\n");
+	print_molecule(mol);
+	printf("-----------------------------\n");
+	printf("\n");
+}
+
+

@@ -37,11 +37,11 @@ void recenter_molecule(molecule* mol)
 void print_molecule(molecule *mol)
 {
 	int N = (*mol).num_of_atoms;
-	printf("#total atoms = %d \n", N);
+	printf("#total atoms in the molecule = %d \n\n", N);
 	
 	for(int i =0; i < N; i++)
 	{
-		printf("atom \t %f \t %f \t %f \t %c%c \n",
+		printf("atom %12f %12f %12f %4c%c \n",
 			(*mol).X[i], (*mol).Y[i], (*mol).Z[i], (*mol).atoms[2*i],(*mol).atoms[2*i+1]);
 	}
 }
