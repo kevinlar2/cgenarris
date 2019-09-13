@@ -17,7 +17,6 @@
 #define ZMAX 192
 #define VOL_ATTEMPT  100000
 
-//seeds are private to threads and initialised diffrently
 int *seed;
 unsigned int *seed2;
 
