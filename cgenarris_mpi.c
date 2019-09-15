@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
 	//read input from file, read molecular structure from geometry,Z, Zp
 
-	if(my_rank == 1)
+	if(my_rank == 0)
 	{
 		int len = 100;
 		char name[len];
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	//recenter molecule to origin
 	recenter_molecule(mol);
 
-	if (my_rank == 1)
+	if (my_rank == 0)
 	{
 		print_input_geometry(mol);
 		print_input_settings(&num_structures,
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	MPI_Datatype XTAL_TYPE;
 	create_mpi_xtal_type(XTAL_TYPE, mol->num_of_atoms*Z);
 	
-	if(my_rank == 1)
+	if(my_rank == 0)
 	{
 		printf("COMPATIBLE SPACE GROUP INFO:\n");
 		printf("-----------------------------------------------------\n");
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 								  &num_axes,
 								  my_rank);
 			
-	if(my_rank == 1)
+	if(my_rank == 0)
 	{
 		printf("\n");
 		printf("Total compatible space groups = %d\n", num_compatible_spg);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 		spg = compatible_spg[spg_index].spg; //pick a spg 
 
 		//print attempted space group 
-		if (my_rank == 1)
+		if (my_rank == 0)
 			{printf("Attempting to generate spacegroup number %d....\n", spg);}
 
 		while( counter < num_structures )
@@ -248,17 +248,25 @@ int main(int argc, char **argv)
 					if(i % VOL_ATTEMPT == 0 && i != 0)
 					{
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
-						if(my_rank == 1)
+						if(my_rank == 0)
 							printf("#Rank 1: Completed %d attempts\n", i*total_ranks);
 						*seed = *seed2 + my_rank*rand_r(seed2);
 						fflush(stdout);
 					}
+
+
+				}//end of GRAIN loop
+
+				if (my_rank == 0)
+				{
+					
+				}
+				else
+				{
+					
 				}
 
-
-
-
-				
+	
 			}//end of attempt loop	
 			
 			//if max limit is reached or if some thread hit the limit
@@ -270,7 +278,7 @@ int main(int argc, char **argv)
 				#pragma omp barrier
 				{}
 				do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
-				if(my_rank== 1)
+				if(my_rank== 0)
 				{	
 					printf("**WARNING: generation failed for space group = %d "
 							"after %d attempts. \n",
@@ -287,7 +295,7 @@ int main(int argc, char **argv)
 	
 		//move to next spacegroup
 		MPI_Barrier(MPI_COMM_WORLD);
-		if(my_rank == 1 )
+		if(my_rank == 0 )
 		{	
 			 counter = 0;
 			 spg_index++;
