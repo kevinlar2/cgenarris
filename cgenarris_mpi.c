@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <stddef.h>
 #include "mpi.h"
 #include "read_input.h"
 #include "spg_generation.h"
@@ -16,29 +17,18 @@
 //maximum mulipicity possible
 #define ZMAX 192
 #define VOL_ATTEMPT  100000
+#define GRAIN_SIZE 10
 
 int *seed;
 unsigned int *seed2;
 
 
+void create_mpi_xtal_type(MPI_Datatype XTAL_TYPE, int total_atoms);
+
+
 int main(int argc, char **argv)
 {
 	MPI_Init(&argc, &argv);
-	//Testing
-	/*
-	float T[3][3] = {27.67178 ,   0.00000 ,   0.00000,  2.56691  ,  7.12630  ,  0.00000 ,4.92891 ,   4.40403   , 3.24262};
-	float T_inv[3][3] = { 0.03614   ,0.00000  , 0.00000, -0.01302 ,  0.14033,   0.00000, -0.03725 , -0.19059  , 0.30839};
-	float x[3] = { 13.80239 ,   8.44218  ,  0.44715};
-	float y[3] = {21.3550   , 4.0151 ,   3.7916};
-	float p_dist, p_dist_2;
-
-	//pdist_2(T, T_inv, x[0], x[1], x[2], y[0], y[1], y[2], &p_dist, &p_dist_2);
-	p_dist = pdist(T, T_inv, x[0], x[1], x[2], y[0], y[1], y[2]);
-	printf("%f \n", p_dist);
-
-	exit(0);
-	*/
-	//end testing
 	int total_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &total_ranks);
     int my_rank;
@@ -53,12 +43,17 @@ int main(int argc, char **argv)
 	int counter = 0;	//counts number of structures
 	int spg_index = 0;	//space group to be generated
 	FILE *out_file;		//file to output geometries
-	out_file = fopen("geometry.out","w");
-	if(!out_file)		//check permissions
+	if (my_rank == 0)
 	{
-		printf("***ERROR: cannot create geometry.out \n");
-		exit(0);
+		out_file = fopen("geometry.out","w");
+		if(!out_file)		//check permissions
+		{
+			printf("***ERROR: cannot create geometry.out \n");
+			exit(0);
+		}
+		//fprintf(out_file, "my_rank=%d\n", my_rank);
 	}
+
 
 	//random number seeding, different seeds for different threads
 	seed = (int*)malloc(sizeof(int)); //seed for uniform gen
@@ -135,6 +130,10 @@ int main(int argc, char **argv)
 	int N = mol->num_of_atoms;
 	allocate_xtal(random_crystal, ZMAX, N); //allcate memory
 	random_crystal->num_atoms_in_molecule = mol->num_of_atoms;
+
+	//create xtal type structure for MPI
+	MPI_Datatype XTAL_TYPE;
+	create_mpi_xtal_type(XTAL_TYPE, mol->num_of_atoms*Z);
 	
 	if(my_rank == 1)
 	{
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
 								  &num_compatible_spg,
 								  &mol_axes,
 								  &num_axes,
-								  thread_num);
+								  my_rank);
 			
 	if(my_rank == 1)
 	{
@@ -190,31 +189,27 @@ int main(int argc, char **argv)
 			int verdict = 0; //for structure check
 			int i = 0; 		 //counts attempts for spg
 			//attempts for an spg. Assume all threads run equally fast
-			for(; i < max_attempts/total_threads; i++) 
+			for(; i < max_attempts/total_ranks; i = i + GRAIN_SIZE) 
 			{
-				if(counter >= num_structures)
-					break;
-				
-				if(stop_flag)
-					break;
-					
-				//if generation is successful
-				if (verdict == 1 )
+				for(int j = 0; j < GRAIN_SIZE; j++)
 				{
-					#pragma omp critical //one at a time please
-					if(counter < num_structures)
+						
+					//if generation is successful
+					if (verdict == 1 )
 					{
 						random_crystal->spg = spg;
 						//print_crystal(random_crystal);
-						print_crystal2file(random_crystal, out_file);
+						//print_crystal2file(random_crystal, out_file);
+						//fprintf(out_file, "my_rank = %d\n", my_rank);
+						/*
 						counter++; //one less structure to generate
-						printf("#thread %d:Generation Successful after %d attempts\n",
-								thread_num,
-								i*total_threads);
+						printf("#Rank %d:Generation successful after %d attempts.\n",
+								my_rank,
+								i*total_ranks);
 									
-						printf("#Structure number = %d ,\n"
+						printf("#Structure number = %d,\n"
 							   "#attempted space group = %d,\n"
-							   "#unit cell volume (cubic Angstrom)= %f\n", 
+							   "#unit cell volume (cubic Angstrom)= %f.\n", 
 							   counter, 
 							   spg,
 							   volume);
@@ -222,47 +217,52 @@ int main(int argc, char **argv)
 						int spglib_spg = detect_spg_using_spglib(random_crystal);
 						printf("#SPGLIB detected space group = %d\n\n",
 												                     spglib_spg);
+						*/
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
-						i = 0;
+						j = GRAIN_SIZE+1;
 						verdict = 0;
+
 					}
-					break;
+				
+					// else generate again
+					int result = generate_crystal(random_crystal,
+									 mol,
+									 volume,
+									 Z,
+									 Zp_max,
+									 spg,
+									 compatible_spg,
+									 num_compatible_spg,
+									 spg_index,
+									 mol_axes,
+									 num_axes);
+					
+					//alignment failure
+					if(!result)
+						continue;
+					
+					//check if molecules are too close with sr	    
+					verdict = check_structure(*random_crystal, sr);    
+					
+					//reset volume after volume attempts
+					if(i % VOL_ATTEMPT == 0 && i != 0)
+					{
+						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
+						if(my_rank == 1)
+							printf("#Rank 1: Completed %d attempts\n", i*total_ranks);
+						*seed = *seed2 + my_rank*rand_r(seed2);
+						fflush(stdout);
+					}
 				}
-				// else generate again
-				int result = generate_crystal(random_crystal,
-								 mol,
-								 volume,
-								 Z,
-								 Zp_max,
-								 spg,
-								 compatible_spg,
-								 num_compatible_spg,
-								 spg_index,
-								 mol_axes,
-								 num_axes);
-				
-				//alignment failure
-				if(!result)
-					continue;
-				
-				//check if molecules are too close with sr	    
-				verdict = check_structure(*random_crystal, sr);    
-				
-				//reset volume after volume attempts
-				if(i % VOL_ATTEMPT == 0 && i != 0)
-				{
-					do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
-					if(thread_num == 1)
-						printf("#thread1:completed %d attempts\n",
-							i*total_threads);
-					*seed = *seed2 + thread_num*rand_r(seed2);
-					fflush(stdout);
-				}
+
+
+
+
 				
 			}//end of attempt loop	
 			
 			//if max limit is reached or if some thread hit the limit
-			if (i >= max_attempts/total_threads || stop_flag == 1)
+			if (i >= max_attempts/total_ranks || stop_flag == 1)
 			{	
 				//stop other threads
 				#pragma omp critical
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 				#pragma omp barrier
 				{}
 				do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
-				if(thread_num == 1)
+				if(my_rank== 1)
 				{	
 					printf("**WARNING: generation failed for space group = %d "
 							"after %d attempts. \n",
@@ -280,16 +280,14 @@ int main(int argc, char **argv)
 					fflush(stdout);
 					//print_crystal(random_crystal);
 				}
-				#pragma omp barrier
-				{}
+				MPI_Barrier(MPI_COMM_WORLD);
 			}	
 			
 		}//end of numof structures whileloop
 	
 		//move to next spacegroup
-		#pragma omp barrier
-		{}
-		if(thread_num == 1 )
+		MPI_Barrier(MPI_COMM_WORLD);
+		if(my_rank == 1 )
 		{	
 			 counter = 0;
 			 spg_index++;
@@ -297,15 +295,71 @@ int main(int argc, char **argv)
 			 printf("#space group counter reset. Moving to next space group...\n\n");
 			 fflush(stdout);
 		} 
-		#pragma omp barrier
-		{}
+		MPI_Barrier(MPI_COMM_WORLD);
 		
 	}//end of spg while loop
 
-																	   } //omp block ends here.
+																	    //omp block ends here.
 	fclose(out_file);
+	MPI_Type_free(&XTAL_TYPE);
 	MPI_Finalize();
 	printf("Generation completed!\n");
 
 }
 
+
+void create_mpi_xtal_type(MPI_Datatype XTAL_TYPE, int total_atoms)
+{
+	const int struct_len = 10;
+	int block_lengths[ ] = {9, total_atoms, total_atoms, total_atoms, 
+						   2*total_atoms, 1, 1, 1, 1, 1};
+	MPI_Datatype types[ ] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT,
+							 MPI_CHAR, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
+							 MPI_INT};
+
+	//Create a fake crystal to get the memory displacements
+	crystal xtal;
+	allocate_xtal(&xtal, total_atoms, 1);
+
+	for(int i = 0; i < 3; i++)
+		for(int j = 0; j < 3; j++)
+			xtal.lattice_vectors[i][j] = 1.0;
+
+	for(int i = 0; i < total_atoms; i++)
+	{
+		xtal.Xcord[i] = 1.0;
+		xtal.Ycord[i] = 1.0;
+		xtal.Zcord[i] = 1.0;
+		xtal.atoms[2*i] ='C';
+		xtal.atoms[2*i + 1] ='C';
+	}
+	xtal.spg = 1;
+	xtal.wyckoff_position = 1;
+	xtal.num_atoms_in_molecule = 1;
+	xtal.Z = 1;
+	xtal.Zp = 1;
+
+	//Now find the displacements
+	MPI_Aint displacements[struct_len];
+	MPI_Get_address(&xtal.lattice_vectors, &displacements[0]);
+	MPI_Get_address(&xtal.Xcord, &displacements[1]);
+	MPI_Get_address(&xtal.Ycord, &displacements[2]);
+	MPI_Get_address(&xtal.Zcord, &displacements[3]);
+	MPI_Get_address(&xtal.atoms, &displacements[4]);
+	MPI_Get_address(&xtal.spg, &displacements[5]);
+	MPI_Get_address(&xtal.wyckoff_position, &displacements[6]);
+	MPI_Get_address(&xtal.num_atoms_in_molecule, &displacements[7]);
+	MPI_Get_address(&xtal.Z, &displacements[8]);
+	MPI_Get_address(&xtal.Zp, &displacements[9]);
+
+	//make it relative to the first
+	for(int i = 0; i < struct_len; i++)
+		displacements[i] -= displacements[0];
+
+	//create and commit the new MPI datatype
+	MPI_Type_create_struct(struct_len, block_lengths, displacements,
+						   types, &XTAL_TYPE);
+    MPI_Type_commit(&XTAL_TYPE);
+
+	free_xtal(&xtal);
+}

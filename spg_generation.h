@@ -16,15 +16,15 @@ typedef struct
 typedef struct
 {
 	float lattice_vectors[3][3];
-	int num_atoms_in_molecule;
-	int Z;
-	int Zp;
 	float *Xcord;
 	float *Ycord;
 	float *Zcord;
 	char *atoms;
 	int spg;
 	int wyckoff_position;
+    int num_atoms_in_molecule;
+	int Z;
+	int Zp;
 	
 }crystal;
 

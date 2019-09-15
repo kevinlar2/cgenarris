@@ -1,5 +1,5 @@
-#CC=gcc
-CFLAGS=-std=gnu99 -fopenmp -O3  -fPIC  
+CC=mpicc
+CFLAGS=-std=gnu99  -O3  
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 
 swig:
@@ -17,6 +17,15 @@ cgenarris:  main.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
 		   molecule_placement.o randomgen.o spglib.o
 	$(CC) ${CFLAGS} *.o -o cgenarris.x -lm 
+
+cgenarris_mpi: cgenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+               molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
+               molecule_placement.o randomgen.o spglib.o
+	$(CC) ${CFLAGS} *.o -o cgenarris_mpi.x -lm 
+
+cgenarris_mpi.o:cgenarris_mpi.c
+	${CC} ${CFLAGS} -c cgenarris_mpi.c
+
 
 pygenarris.o: pygenarris.c
 	${CC} ${CFLAGS} -c pygenarris.c
