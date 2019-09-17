@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 					{
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						if(my_rank == 0)
-							printf("#Rank 0: Completed %d attempts\n", (i+j)*total_ranks);
+							printf("#Rank 0: Completed %d attempts.\n", (i+j)*total_ranks);
 						*seed = *seed2 + my_rank*rand_r(seed2);
 						fflush(stdout);
 					}
@@ -259,7 +259,7 @@ int main(int argc, char **argv)
 					{
 						if (counter < num_structures)
 						{
-							printf("#Rank %d:Generation successful.\n",
+							printf("#Rank %d: Generation successful.\n",
 									my_rank);					
 							/*printf("#Structure number = %d,\n"
 									"#attempted space group = %d,\n"
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 							if(counter < num_structures)
 							{	
 								print_crystal2file(random_crystal, out_file);
-								printf("#Rank %d:Generation successful.\n", rank);
+								printf("#Rank %d: Generation successful.\n", rank);
 								counter++;
 							}
 							else
@@ -359,7 +359,6 @@ int main(int argc, char **argv)
 		
 	}//end of spg while loop
 
-																	    //omp block ends here.
 	if(my_rank == 0)
 		fclose(out_file);
 	//MPI_Type_free(&XTAL_TYPE);
