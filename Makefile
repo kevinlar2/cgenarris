@@ -1,5 +1,5 @@
 CC=mpicc
-CFLAGS=-std=gnu99  -O3  
+CFLAGS=-std=gnu99 -O3 
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 
 swig:
