@@ -18,7 +18,7 @@
 #define ZMAX 192
 #define VOL_ATTEMPT  100000
 
-int *seed;
+unsigned int *seed;
 unsigned int *seed2;
 #pragma omp threadprivate(seed)
 #pragma omp threadprivate(seed2)
@@ -66,8 +66,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 	int total_threads = omp_get_num_threads();
 	*seed += thread_num*7 + seed_shift*13;
 	*seed2 = thread_num*17 + seed_shift*11;
-	
-	
+	init_genrand(*seed);
 	
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
@@ -77,10 +76,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 	molecule *mol = (molecule*)malloc(sizeof(molecule));
 	crystal *random_crystal = (crystal*)malloc(sizeof(crystal));
 	float volume;
-
 	int spg;
-
-
 	//read input from file, read molecular structure from geometry,Z, Zp
     #pragma omp critical
 	{
@@ -320,8 +316,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	int total_threads = omp_get_num_threads();
 	*seed += thread_num*7 + seed_shift*13;
 	*seed2 = thread_num*17 + seed_shift*11;
-	
-	
+	init_genrand(*seed);
 	
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
@@ -333,8 +328,6 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 	float volume;
 
 	int spg;
-
-
 	//read input from file, read molecular structure from geometry,Z, Zp
     #pragma omp critical
 	{

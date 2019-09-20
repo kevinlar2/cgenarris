@@ -3,205 +3,145 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <time.h>
- #include <stdbool.h>
-
+# include <stdbool.h>
 # include "randomgen.h"
 
-extern int *seed;
-#pragma omp threadprivate(seed)
-extern int *seed2;
-#pragma omp threadprivate(seed2)
 
-float uniform_dist_01 ()
+/* Period parameters */  
+#define N 624
+#define M 397
+#define MATRIX_A 0x9908b0dfUL   /* constant vector a */
+#define UPPER_MASK 0x80000000UL /* most significant w-r bits */
+#define LOWER_MASK 0x7fffffffUL /* least significant r bits */
+static unsigned long mt[N]; /* the array for the state vector  */
+#pragma omp threadprivate(mt)
+static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
+#pragma omp threadprivate(mti)
 
-/******************************************************************************/
-/*
-  Purpose:
 
-    R4_UNIFORM_01 returns a unit pseudorandom R4.
+#define PI 3.141592653589793
 
-  Discussion:
+/* 
+   A C-program for MT19937, with initialization improved 2002/1/26.
+   Coded by Takuji Nishimura and Makoto Matsumoto.
 
-    This routine implements the recursion
+   Before using, initialize the state by using init_genrand(seed)  
+   or init_by_array(init_key, key_length).
 
-      seed = 16807 * seed mod ( 2^31 - 1 )
-      r4_uniform_01 = seed / ( 2^31 - 1 )
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.                          
 
-    The integer arithmetic never requires more than 32 bits,
-    including a sign bit.
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
 
-    If the initial seed is 12345, then the first three computations are
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
 
-      Input     Output      R4_UNIFORM_01
-      SEED      SEED
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
 
-         12345   207482415  0.096616
-     207482415  1790989824  0.833995
-    1790989824  2035175616  0.947702
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
 
-  Licensing:
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    This code is distributed under the GNU LGPL license. 
 
-  Modified:
-
-    16 November 2004
-
-  Author:
-
-    John Burkardt
-
-  Reference:
-
-    Paul Bratley, Bennett Fox, Linus Schrage,
-    A Guide to Simulation,
-    Second Edition,
-    Springer, 1987,
-    ISBN: 0387964673,
-    LC: QA76.9.C65.B73.
-
-    Bennett Fox,
-    Algorithm 647:
-    Implementation and Relative Efficiency of Quasirandom
-    Sequence Generators,
-    ACM Transactions on Mathematical Software,
-    Volume 12, Number 4, December 1986, pages 362-376.
-
-    Pierre L'Ecuyer,
-    Random Number Generation,
-    in Handbook of Simulation,
-    edited by Jerry Banks,
-    Wiley, 1998,
-    ISBN: 0471134031,
-    LC: T57.62.H37.
-
-    Peter Lewis, Allen Goodman, James Miller,
-    A Pseudo-Random Number Generator for the System/360,
-    IBM Systems Journal,
-    Volume 8, Number 2, 1969, pages 136-143.
-
-  Parameters:
-
-    Input/output, int *SEED, the "seed" value.  Normally, this
-    value should not be 0.  On output, SEED has been updated.
-
-    Output, float R4_UNIFORM_01, a new pseudorandom variate, strictly between
-    0 and 1.
+   Any feedback is very welcome.
+   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
+   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
+
+/* initializes mt[N] with a seed */
+void init_genrand(unsigned int s)
 {
-  const int i4_huge = 2147483647;
-  int k;
-  float value;
+    mt[0]= s & 0xffffffffUL;
+    for (mti=1; mti<N; mti++) {
+        mt[mti] = 
+	    (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30)) + mti); 
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt[].                        */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        mt[mti] &= 0xffffffffUL;
+        /* for >32 bit machines */
+    }
+}
 
-  if ( *seed == 0 )
-  {
-    fprintf ( stderr, "\n" );
-    fprintf ( stderr, "R4_UNIFORM_01 - Fatal error!\n" );
-    fprintf ( stderr, "  Input value of SEED = 0.\n" );
-    exit ( 1 );
-  }
+/* generates a random number on [0,0xffffffff]-interval */
+unsigned long genrand_int32(void)
+{
+    unsigned long y;
+    static unsigned long mag01[2]={0x0UL, MATRIX_A};
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
 
-  k = *seed / 127773;
+    if (mti >= N) { /* generate N words at one time */
+        int kk;
 
-  *seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
+        if (mti == N+1)   /* if init_genrand() has not been called, */
+            init_genrand(5489UL); /* a default initial seed is used */
 
-  if ( *seed < 0 )
-  {
-    *seed = *seed + i4_huge;
-  }
-  value = ( float ) ( *seed ) * 4.656612875E-10;
+        for (kk=0;kk<N-M;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        for (;kk<N-1;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
+        mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
 
-  return value;
+        mti = 0;
+    }
+  
+    y = mt[mti++];
+
+    /* Tempering */
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680UL;
+    y ^= (y << 15) & 0xefc60000UL;
+    y ^= (y >> 18);
+
+    return y;
 }
 
 
+/* generates a random number on [0,1]-real-interval */
+float uniform_dist_01(void)
+{
+    float retval = genrand_int32()*(1.0/4294967295.0); 
+    /* divided by 2^32-1 */ 
+    return retval;
+}
+
+
+/*Box-Mueller transform to get normal distribution*/
 float normal_dist_01 ()
-
-/******************************************************************************/
-/*
-  Purpose:
-
-    R4_NORMAL_01 returns a unit pseudonormal R4.
-
-  Discussion:
-
-    The standard normal probability distribution function (PDF) has 
-    mean 0 and standard deviation 1.
-
-    The Box-Muller method is used, which is efficient, but 
-    generates two values at a time.
-
-  Licensing:
-
-    This code is distributed under the GNU LGPL license. 
-
-  Modified:
-
-    05 June 2013
-
-  Author:
-
-    John Burkardt
-
-  Parameters:
-
-    Input/output, int *SEED, a seed for the random number generator.
-
-    Output, float R4_NORMAL_01, a normally distributed random value.
-*/
 {
-  float r1;
-  float r2;
-  const double r4_pi = 3.141592653589793;
-  float x;
-
-  r1 = uniform_dist_01 ( );
-  r2 = uniform_dist_01 ( );
-  x = sqrt ( - 2.0 * log ( r1 ) ) * cos ( 2.0 * r4_pi * r2 );
-
-  return x;
+  float ran1 = uniform_dist_01();
+  float ran2 = uniform_dist_01();
+  float retval;
+  retval = sqrt(-2.0*log(ran1))*cos(2.0*PI*ran2);
+  return retval;
 }
 
+/*scaled normal*/
 float normal_dist_ab ( float mean, float stdev )
-
-/******************************************************************************/
-/*
-  Purpose:
-
-    R4_NORMAL_AB returns a scaled pseudonormal R4.
-
-  Discussion:
-
-    The normal probability distribution function (PDF) is sampled,
-    with mean A and standard deviation B.
-
-  Licensing:
-
-    This code is distributed under the GNU LGPL license. 
-
-  Modified:
-
-    29 June 2006
-
-  Author:
-
-    John Burkardt
-
-  Parameters:
-
-    Input, float A, the mean of the PDF.
-
-    Input, float B, the standard deviation of the PDF.
-
-    Input/output, int *SEED, a seed for the random number generator.
-
-    Output, float R4_NORMAL_AB, a sample of the normal PDF.
-*/
 {
-  float value;
-
-  value = mean + stdev * normal_dist_01 (  );
-
-  return value;
+  float retval = mean + stdev*normal_dist_01();
+  return retval;
 }
 

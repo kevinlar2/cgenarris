@@ -18,7 +18,7 @@
 #define VOL_ATTEMPT  100000
 
 //seeds are private to threads and initialised diffrently
-int *seed;
+unsigned int *seed;
 unsigned int *seed2;
 #pragma omp threadprivate(seed)
 #pragma omp threadprivate(seed2)
@@ -60,13 +60,14 @@ int main(int argc, char **argv)
 		out_file, stop_flag, stdout) default(none)						//omp block starts here
 																		{
 	//random number seeding, different seeds for different threads
-	seed = (int*)malloc(sizeof(int)); //seed for uniform gen
+	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
 	seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
 	int thread_num = omp_get_thread_num() + 1; //get threads
 	int total_threads = omp_get_num_threads();
 	*seed += thread_num*7 + seed_shift*13; //some random seed private for each threads
 	*seed2 = thread_num*17 + seed_shift*11;
-	
+	init_genrand(*seed);
+
 	//storing information for compatible space groups
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
