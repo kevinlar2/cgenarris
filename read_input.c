@@ -17,7 +17,7 @@ float TOL;
 
 
 void read_control(int* num_structures, int* Z, float* Zp_max, 
-	float* volume_mean, float* volume_std, float *sr, int *max_attempts)
+	float* volume_mean, float* volume_std, float *sr, long *max_attempts)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -195,7 +195,7 @@ void read_geometry(molecule* mol)
 
 
 void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
-	float* volume_mean, float* volume_std, float *sr, int *max_attempts)
+	float* volume_mean, float* volume_std, float *sr, long *max_attempts)
 {
 	printf("INPUT SETTINGS:\n");
 	printf("-----------------------------\n");

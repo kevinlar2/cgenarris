@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	int Z;				//multiplicity of general position
 	int num_structures;	//num of structures
 	int spg;			//space group attempted
-	int max_attempts;	//max attempts per space group
+	long max_attempts;	//max attempts per space group
 
 	//read input from file, read molecular structure from geometry,Z, Zp
 

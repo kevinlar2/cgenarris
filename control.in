@@ -4,13 +4,13 @@
 Z                       4 
 
 #this is the number of structures per space group
-number_of_structures    5
+number_of_structures    41
 
 #specific radius proportion
 sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             250
+volume_mean             150
 
 #standard deviation of the gaussian distribution
 volume_std              40
