@@ -297,6 +297,149 @@ newpage
 \end_layout
 
 \begin_layout Section
+Cgenarris
+\end_layout
+
+\begin_layout Standard
+Cgenarris is the structure generator written in pure C.
+ It can be compiled into a binary and can run without installing the full
+ genarris python package.
+ If you are interested in only random crystal structures, you can compile
+ and run Cgenarris.
+ It is parallelised using OpenMP and therefore can run only in one node.
+ (An MPI version is under development).
+ The settings for generation are read from control.in file and molecule geometry
+ is read from geometry.in file found in the working directory.
+ The output is printed in file named geometry.out file.
+ 
+\end_layout
+
+\begin_layout Standard
+First, the generator first identifies space groups that are compatible with
+ molecular symmetry and given number of molecules in the unit cell.
+ Structures are generated sequentially from lowest space group to the highest.
+ Cell volumes are sampled from a normal distribution.
+ The attempted structures are checked for closeness of molecules.
+ If an atom of a molecule is too close to its own periodic image or another
+ atom of a different molecule in a cell, the structure is discarded.
+ The closeness checks are controlled by the specific radius proportion (sr).
+ If the generation of a space group fails after max_attempts times, the
+ generator moves to the next higher space group.
+ The generated structures are printed to the file in FHI-aims geometry.in.
+ format.
+\end_layout
+
+\begin_layout Subsubsection*
+Input
+\end_layout
+
+\begin_layout Standard
+Geometry of the molecule is read from the file 
+\emph on
+geometry.in 
+\emph default
+from the working directory.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+num_structures 
+\emph default
+is the number of structures from each space group.
+ Type: integer
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+Z 
+\emph default
+number of molecules in the conventional cell.
+ Type: integer
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+volume_mean 
+\emph default
+is the mean of the normal distribution from which volume is sampled.
+ Type: float
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+volume_std 
+\emph default
+is the standard deviation of the volume distribution.
+ Type: float
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+sr 
+\emph default
+is specific radius proportion.
+ See Genarris paper for definition.
+ Type: float
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+tol
+\emph default
+ is the tolerance for special position generation and space group detection.
+ Type: float
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+max_attempts 
+\emph default
+is the maximum number of attempts before moving to the next space group.
+ Type: integer
+\end_layout
+
+\begin_layout Enumerate
+The number of threads can be set by using the environment variable 
+\emph on
+OMP_NUM_THREADS.
+\end_layout
+
+\begin_layout Subsubsection*
+Output
+\end_layout
+
+\begin_layout Enumerate
+A file named 
+\emph on
+geometry.out 
+\emph default
+with all the generated structures in FHI-aims geometry format.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+newpage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 Pygenarris
 \end_layout
 
@@ -331,7 +474,7 @@ Generate random molecular crystals by space groups.
  The closeness checks are controlled by the specific radius proportion (sr).
  If the generation of a space group fails after max_attempts times, the
  generator moves to the next higher space group.
- The generated structures are printed to the file in FHI-aims geometry.in
+ The generated structures are printed to the file in FHI-aims geometry.in.
  format.
 \end_layout
 
