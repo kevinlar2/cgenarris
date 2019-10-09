@@ -392,18 +392,18 @@ void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
 
 void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
 {
-	MPI_Status *status;
+	MPI_Status status;
 	float temp[9];
-	MPI_Recv(temp, 9, MPI_FLOAT, source, 1, comm, status);
-	MPI_Recv(xtal->Xcord, total_atoms, MPI_FLOAT, source, 2, comm, status);
-	MPI_Recv(xtal->Ycord, total_atoms, MPI_FLOAT, source, 3, comm, status);
-	MPI_Recv(xtal->Zcord, total_atoms, MPI_FLOAT, source, 4, comm, status);
-	MPI_Recv(xtal->atoms, 2*total_atoms, MPI_CHAR, source, 5, comm, status);
-	MPI_Recv(&(xtal->spg), 1, MPI_INT, source, 6, comm, status);
-	MPI_Recv(&(xtal->wyckoff_position), 1, MPI_INT, source, 7, comm, status);
-	MPI_Recv(&(xtal->num_atoms_in_molecule), 1, MPI_INT, source, 8, comm, status);
-	MPI_Recv(&(xtal->Z), 1, MPI_INT, source, 9, comm, status);
-	MPI_Recv(&(xtal->Zp), 1, MPI_INT, source, 10, comm, status);
+	MPI_Recv(temp, 9, MPI_FLOAT, source, 1, comm, &status);
+	MPI_Recv(xtal->Xcord, total_atoms, MPI_FLOAT, source, 2, comm, &status);
+	MPI_Recv(xtal->Ycord, total_atoms, MPI_FLOAT, source, 3, comm, &status);
+	MPI_Recv(xtal->Zcord, total_atoms, MPI_FLOAT, source, 4, comm, &status);
+	MPI_Recv(xtal->atoms, 2*total_atoms, MPI_CHAR, source, 5, comm, &status);
+	MPI_Recv(&(xtal->spg), 1, MPI_INT, source, 6, comm, &status);
+	MPI_Recv(&(xtal->wyckoff_position), 1, MPI_INT, source, 7, comm, &status);
+	MPI_Recv(&(xtal->num_atoms_in_molecule), 1, MPI_INT, source, 8, comm, &status);
+	MPI_Recv(&(xtal->Z), 1, MPI_INT, source, 9, comm, &status);
+	MPI_Recv(&(xtal->Zp), 1, MPI_INT, source, 10, comm, &status);
 
 	xtal->lattice_vectors[0][0] = temp[0];
 	xtal->lattice_vectors[0][1] = temp[1];
