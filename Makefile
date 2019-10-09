@@ -1,19 +1,8 @@
 CC=mpicc
-CFLAGS=-std=gnu99 -O3 
+CFLAGS=-std=gnu99 -O3 -fPIC 
 OMP=fopenmp
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 
-
-swig:
-	swig -python pygenarris.i
-
-pygenarris:pygenarris.o read_input.o spg_generation.o lattice_generator.o algebra.o\
-		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
-		   molecule_placement.o randomgen.o swig pywrap spglib.o
-	${CC} ${CFLAGS} -shared  *.o -o _pygenarris.so -lm 
-	
-pywrap: swig
-	${CC} ${CFLAGS} -I${PYTHON_H} -c pygenarris.c pygenarris_wrap.c  -lpython3
 
 cgenarris:  main.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
@@ -25,9 +14,34 @@ cgenarris_mpi: cgenarris_mpi.o read_input.o spg_generation.o lattice_generator.o
                molecule_placement.o randomgen.o spglib.o
 	$(CC) ${CFLAGS} *.o -o cgenarris_mpi.x -lm 
 
+swig:
+	swig -python pygenarris.i
+
+swig_pygenarris_mpi:
+	swig -python pygenarris_mpi.i
+
+pygenarris:pygenarris.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
+		   molecule_placement.o randomgen.o swig pywrap spglib.o
+	${CC} ${CFLAGS} -shared  *.o -o _pygenarris.so -lm 
+
+pygenarris_mpi:pygenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
+		   molecule_placement.o randomgen.o  cgenarris_mpi.o swig_pygenarris_mpi\
+		   pywrap_pygenarris_mpi spglib.o
+	${CC} ${CFLAGS} -shared  *.o -o _pygenarris_mpi.so -lm 
+
+pywrap: swig
+	${CC} ${CFLAGS} -I${PYTHON_H} -c pygenarris.c pygenarris_wrap.c  -lpython3
+
+pywrap_pygenarris_mpi:swig_pygenarris_mpi
+	${CC} ${CFLAGS} -I${PYTHON_H} -c pygenarris_mpi.c pygenarris_mpi_wrap.c  -lpython3
+
 cgenarris_mpi.o:cgenarris_mpi.c
 	${CC} ${CFLAGS} -c cgenarris_mpi.c
 
+pygenarris_mpi.o:pygenarris_mpi.c
+	${CC} ${CFLAGS} -c pygenarris_mpi.c
 
 pygenarris.o: pygenarris.c
 	${CC} ${CFLAGS} -c pygenarris.c
@@ -70,6 +84,6 @@ spglib.o:
 	${CC} ${CFLAGS} -c spglib_src/*.c -lm
 
 clean: 
-	rm -rf *.o *.x *pygenarris.so __pycache__ pygenarris.py *wrap.c *.pyc _pygenarris.* build spglib_src/*.o
+	rm -rf *.o *.x *pygenarris.so __pycache__ pygenarris.py *wrap.c *.pyc _pygenarris.* build spglib_src/*.o *pygenarris_mpi.py
 
 

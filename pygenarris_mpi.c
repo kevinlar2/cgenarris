@@ -14,28 +14,58 @@
 #include "randomgen.h"
 #include "algebra.h"
 #include "cgenarris_mpi.h"
+#include "pygenarris_mpi.h"
 
-//maximum mulipicity possible
 #define ZMAX 192
 #define VOL_ATTEMPT  100000
 #define GRAIN_SIZE 10000
 
-int *seed;
+unsigned int *seed;
 unsigned int *seed2;
+#pragma omp threadprivate(seed)
+#pragma omp threadprivate(seed2)
+extern float TOL;
 
 
 //void create_mpi_xtal_type(MPI_Datatype* XTAL_TYPE, int total_atoms);
 
 
-int main(int argc, char **argv)
+void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+	float *vdw_matrix,
+	int dim1,
+	int dim2,
+	int num_structures,
+	int Z,
+	double volume_mean1,
+	double volume_std1,
+	double tol1, 
+	long max_attempts, 
+	MPI_Comm world_comm)
 {
+	float Zp_max=1;
+    float volume_mean = volume_mean1;
+    float volume_std = volume_std1;
+    TOL = tol1;
+
+    if (dim1 != dim2)
+	{printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
+
+    printf("The vdw distance cutoff matrix is :\n");
+    for (int i = 0; i < dim1; i++)
+    {
+    	for (int j= 0; j < dim2; j++)
+    	{
+    		printf("%f ", *(vdw_matrix + i*dim1 + j) );
+    	}
+    	printf("\n");
+    }
+
 	//Initialise MPI 
-	MPI_Init(&argc, &argv);
 	int total_ranks;
-    MPI_Comm_size(MPI_COMM_WORLD, &total_ranks);
+    MPI_Comm_size(world_comm, &total_ranks);
     int my_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Status *status;
+    MPI_Comm_rank(world_comm, &my_rank);
+
 
 	//random number seeding
 	srand((unsigned int)time(NULL));
@@ -59,7 +89,7 @@ int main(int argc, char **argv)
 
 
 	//random number seeding, different seeds for different threads
-	seed = (int*)malloc(sizeof(int)); //seed for uniform gen
+	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
 	seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
 	*seed += my_rank*7 + seed_shift*13; //some random seed private for each threads
 	*seed2 = my_rank*17 + seed_shift*11;
@@ -74,19 +104,18 @@ int main(int argc, char **argv)
 	//variable declarartion	
 	molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
 	crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
-	float volume_std;	//standard dev for volumes
-	float volume_mean;	//mean volume
-	float sr;			//specific radius proportion for structure checks
+	//float volume_std;	//standard dev for volumes
+	//float volume_mean;	//mean volume
+	float sr = -1;			//specific radius proportion for structure checks
 						//see paper for definition
-	float Zp_max;		//Z'' . not implemented
+	//float Zp_max;		//Z'' . not implemented
 	float volume;		//random volume used of generation
-	int Z;				//multiplicity of general position
-	int num_structures;	//num of structures
+	//int Z;				//multiplicity of general position
+	//int num_structures;	//num of structures
 	int spg;			//space group attempted
-	long max_attempts;	//max attempts per space group
+	//long max_attempts;	//max attempts per space group
 
 	//read input from file, read molecular structure from geometry,Z, Zp
-
 	if(my_rank == 0)
 	{
 		int len = 100;
@@ -98,12 +127,12 @@ int main(int argc, char **argv)
 		printf("cgenarris is running on %d processes. \n", total_ranks);
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(world_comm);
 	for(int i = 0; i < total_ranks; i++)
 	{	
 		if(i == my_rank)
 			printf("Rank number %d out of %d reporting.\n", my_rank+1, total_ranks);
-    	MPI_Barrier(MPI_COMM_WORLD);
+    	MPI_Barrier(world_comm);
     }
 
 	if(my_rank == 0)
@@ -113,8 +142,8 @@ int main(int argc, char **argv)
 	}
 
 
-
     read_geometry(mol);				//read molecule from geometry.in
+    /*
     read_control(&num_structures,
 				 &Z,
 				 &Zp_max,
@@ -122,7 +151,7 @@ int main(int argc, char **argv)
 				 &volume_std,
 				 &sr,
 				 &max_attempts);	//get settings
-
+	*/
 	
 	//recenter molecule to origin
 	recenter_molecule(mol);
@@ -139,7 +168,7 @@ int main(int argc, char **argv)
 							 &max_attempts);
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(world_comm);
 
     //inititalise volume
     do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
@@ -183,7 +212,7 @@ int main(int argc, char **argv)
 		sleep(1);
 	}
 	
-	MPI_Barrier(MPI_COMM_WORLD); // wait for other friends to join
+	MPI_Barrier(world_comm); // wait for other friends to join
 	
 	/*deprecated
 	//find allowed space groups for general position (deprecated)
@@ -196,7 +225,7 @@ int main(int argc, char **argv)
 	
 	while( spg_index < num_compatible_spg )
 	{
-		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(world_comm);
 		//counter counts the number of structures generated
 		spg = compatible_spg[spg_index].spg; //pick a spg 
 
@@ -234,7 +263,7 @@ int main(int argc, char **argv)
 						continue;
 					
 					//check if molecules are too close with sr	    
-					verdict = check_structure(*random_crystal, sr);    
+					verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);    
 					
 					//reset volume after volume attempts
 					if( (i+j) % VOL_ATTEMPT == 0 && i+j != 0)
@@ -252,13 +281,12 @@ int main(int argc, char **argv)
 						printf("#Rank %d: Generation successful.\n",
 							my_rank);					
 						printf("#attempted space group = %d,\n"
-								"#unit cell volume (cubic Angstrom)= %f.\n", 	
+								"#unit cell volume (cubic Angstrom)= %f.\n",  
 								spg,
 								volume);
 						int spglib_spg = detect_spg_using_spglib(random_crystal);
 						printf("#SPGLIB detected space group = %d\n\n",
 											                     spglib_spg);
-						fflush(stdout);
 						break;
 						//verdict = 1;
 					}
@@ -268,15 +296,14 @@ int main(int argc, char **argv)
 
 				int found_poll[total_ranks];
 				//printf("verdict = %d\n", verdict);
-				MPI_Gather(&verdict, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, MPI_COMM_WORLD);
+				MPI_Gather(&verdict, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, world_comm);
 				if (my_rank == 0)
 				{
 					//print the structure generated by root first to outfile
 					if(verdict)
 					{
 						if (counter < num_structures)
-						{
-						
+						{							
 							print_crystal2file(random_crystal, out_file);
 							counter++;
 							success_flag = 1;
@@ -290,12 +317,13 @@ int main(int argc, char **argv)
 					{
 						if (found_poll[rank] == 1)
 						{
-							receive_xtal(MPI_COMM_WORLD, rank, random_crystal, total_atoms);
+							receive_xtal(world_comm, rank, random_crystal, total_atoms);
 							//print_crystal(random_crystal);
 							success_flag = 1; 
 							if(counter < num_structures)
 							{	
 								print_crystal2file(random_crystal, out_file);
+								printf("#Rank %d: Generation successful.\n", rank);
 								counter++;
 							}
 							else
@@ -308,13 +336,13 @@ int main(int argc, char **argv)
 				{
 					if (verdict == 1)
 					{
-						send_xtal(MPI_COMM_WORLD, 0, random_crystal, total_atoms);
+						send_xtal(world_comm, 0, random_crystal, total_atoms);
 						i = 0;
 					}	
 				}
 
-				MPI_Bcast(&success_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-				MPI_Bcast(&stop_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+				MPI_Bcast(&success_flag, 1, MPI_INT, 0, world_comm);
+				MPI_Bcast(&stop_flag, 1, MPI_INT, 0, world_comm);
 
 				if (success_flag)
 				{
@@ -341,7 +369,7 @@ int main(int argc, char **argv)
 					//print_crystal(random_crystal);
 				}
 				counter = num_structures + 1;
-				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Barrier(world_comm);
 			}
 
 			if(stop_flag)
@@ -357,68 +385,14 @@ int main(int argc, char **argv)
 			 printf("#space group counter reset. Moving to next space group...\n\n");
 			 fflush(stdout);
 		} 
-		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(world_comm);
 		
 	}//end of spg while loop
 
 	if(my_rank == 0)
 		fclose(out_file);
-	//MPI_Type_free(&XTAL_TYPE);
-	MPI_Finalize();
 
 	if(my_rank == 0)
 		printf("Generation completed.\nHave a nice day!!\n");
 
 }
-
-
-void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
-{
-	//2d array memory need not be continous. copy to 1d then send.
-	float temp[9] = {xtal->lattice_vectors[0][0], xtal->lattice_vectors[0][1],
-					 xtal->lattice_vectors[0][2], xtal->lattice_vectors[1][0],
-					 xtal->lattice_vectors[1][1], xtal->lattice_vectors[1][2],
-					 xtal->lattice_vectors[2][0], xtal->lattice_vectors[2][1],
-					 xtal->lattice_vectors[2][2] };
-	MPI_Send(temp, 9, MPI_FLOAT , destination, 1, comm);
-	MPI_Send(xtal->Xcord, total_atoms, MPI_FLOAT , destination, 2, comm);
-	MPI_Send(xtal->Ycord, total_atoms, MPI_FLOAT , destination, 3, comm);
-	MPI_Send(xtal->Zcord, total_atoms, MPI_FLOAT , destination, 4, comm);
-	MPI_Send(xtal->atoms, 2*total_atoms, MPI_CHAR , destination, 5, comm);
-	MPI_Send(&(xtal->spg), 1, MPI_INT , destination, 6, comm);
-	MPI_Send(&(xtal->wyckoff_position), 1, MPI_INT , destination, 7, comm);
-	MPI_Send(&(xtal->num_atoms_in_molecule), 1, MPI_INT , destination, 8, comm);
-	MPI_Send(&(xtal->Z), 1, MPI_INT , destination, 9, comm);
-	MPI_Send(&(xtal->Zp), 1, MPI_INT , destination, 10, comm);
-}
-
-void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
-{
-	MPI_Status status;
-	float temp[9];
-	MPI_Recv(temp, 9, MPI_FLOAT, source, 1, comm, &status);
-	MPI_Recv(xtal->Xcord, total_atoms, MPI_FLOAT, source, 2, comm, &status);
-	MPI_Recv(xtal->Ycord, total_atoms, MPI_FLOAT, source, 3, comm, &status);
-	MPI_Recv(xtal->Zcord, total_atoms, MPI_FLOAT, source, 4, comm, &status);
-	MPI_Recv(xtal->atoms, 2*total_atoms, MPI_CHAR, source, 5, comm, &status);
-	MPI_Recv(&(xtal->spg), 1, MPI_INT, source, 6, comm, &status);
-	MPI_Recv(&(xtal->wyckoff_position), 1, MPI_INT, source, 7, comm, &status);
-	MPI_Recv(&(xtal->num_atoms_in_molecule), 1, MPI_INT, source, 8, comm, &status);
-	MPI_Recv(&(xtal->Z), 1, MPI_INT, source, 9, comm, &status);
-	MPI_Recv(&(xtal->Zp), 1, MPI_INT, source, 10, comm, &status);
-
-	xtal->lattice_vectors[0][0] = temp[0];
-	xtal->lattice_vectors[0][1] = temp[1];
-	xtal->lattice_vectors[0][2] = temp[2];
-
-	xtal->lattice_vectors[1][0] = temp[3];
-	xtal->lattice_vectors[1][1] = temp[4];
-	xtal->lattice_vectors[1][2] = temp[5];	
-
-	xtal->lattice_vectors[2][0] = temp[6];
-	xtal->lattice_vectors[2][1] = temp[7];
-	xtal->lattice_vectors[2][2] = temp[8];
-}
-
-
-

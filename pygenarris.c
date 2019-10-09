@@ -506,6 +506,16 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 
 
 
+
+
+
+
+
+
+
+
+
+
 /* atoms supported
  */
 void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,

@@ -1,4 +1,3 @@
-/* structure_gen.i */
 
 %module pygenarris
 %{
