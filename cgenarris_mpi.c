@@ -29,13 +29,13 @@ void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);
 
 int main(int argc, char **argv)
 {
+	//Initialise MPI 
 	MPI_Init(&argc, &argv);
 	int total_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &total_ranks);
     int my_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Status *status;
-
 
 	//random number seeding
 	srand((unsigned int)time(NULL));
@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 	seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
 	*seed += my_rank*7 + seed_shift*13; //some random seed private for each threads
 	*seed2 = my_rank*17 + seed_shift*11;
+	init_genrand(abs(*seed));
 	
 	//storing information for compatible space groups
 	COMPATIBLE_SPG compatible_spg[230]; 
@@ -332,7 +333,7 @@ int main(int argc, char **argv)
 				if (my_rank== 0)
 				{	
 					printf("**WARNING: generation failed for space group = %d "
-							"after %d attempts. \n",
+							"after %ld attempts. \n",
 							spg,
 							max_attempts);		
 					fflush(stdout);

@@ -8,7 +8,6 @@
 #define LOWB 2.5  //lower bound for length of lattice vector
 #define PI 3.141592653
 
-
 //****
 //
 //***

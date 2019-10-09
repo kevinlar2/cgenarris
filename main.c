@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	int Z;				//multiplicity of general position
 	int num_structures;	//num of structures
 	int spg;			//space group attempted
-	int max_attempts;	//max attempts per space group
+	long max_attempts;	//max attempts per space group
 
 	//read input from file, read molecular structure from geometry,Z, Zp
 
@@ -263,7 +263,6 @@ int main(int argc, char **argv)
 					if(thread_num == 1)
 						printf("#thread1:completed %d attempts\n",
 							i*total_threads);
-					*seed = *seed2 + thread_num*rand_r(seed2);
 					fflush(stdout);
 				}
 				
@@ -281,7 +280,7 @@ int main(int argc, char **argv)
 				if(thread_num == 1)
 				{	
 					printf("**WARNING: generation failed for space group = %d "
-							"after %d attempts. \n",
+							"after %ld attempts. \n",
 							spg,
 							max_attempts);
 					counter = num_structures + 1;
