@@ -4,9 +4,25 @@ setup.py file
 """
 
 from distutils.core import setup, Extension
-import numpy
 import os
+
+
+package = 'numpy'
+try:
+    __import__(package)
+except ImportError:
+    print("Please install numpy python package")
+    exit()
+import numpy
+
+package = 'mpi4py'
+try:
+    __import__(package)
+except ImportError:
+    print("Please install mpi4py python package")
+    exit()
 import mpi4py
+
 
 sources_spglib = ['arithmetic.c',
            'cell.c',
@@ -36,10 +52,12 @@ for i, s in enumerate(sources_spglib):
 
 os.environ["CC"] = "mpicc" 
 
-pygenarris_mpi = Extension('_pygenarris_mpi',include_dirs= ['./', numpy.get_include(), mpi4py.get_include()], sources=['pygenarris_mpi.i',
- 'pygenarris_mpi.c', 'combinatorics.c', 'molecule_placement.c', 'algebra.c', 'molecule_utils.c',
-'spg_generation.c', 'lattice_generator.c', 'crystal_utils.c', 'check_structure.c', 'read_input.c', 'randomgen.c']+sources_spglib,
- extra_compile_args=["-std=gnu99"])
+pygenarris_mpi = Extension('_pygenarris_mpi',
+                           include_dirs= ['./', numpy.get_include(), mpi4py.get_include()],
+                           sources=['pygenarris_mpi.i', 'pygenarris_mpi.c', 'combinatorics.c', 'molecule_placement.c',
+                           'algebra.c', 'molecule_utils.c','spg_generation.c', 'lattice_generator.c', 'crystal_utils.c',
+                           'check_structure.c', 'read_input.c', 'randomgen.c']+sources_spglib,
+                           extra_compile_args=["-std=gnu99"])
 
 setup (name = 'pygenarris_mpi',
        version = '0.1',

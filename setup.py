@@ -4,6 +4,15 @@ setup.py file
 """
 
 from distutils.core import setup, Extension
+
+
+package = 'numpy'
+try:
+    __import__(package)
+except ImportError:
+    print("Please install numpy python package")
+    exit()
+
 import numpy
 
 sources_spglib = ['arithmetic.c',
