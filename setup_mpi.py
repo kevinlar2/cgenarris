@@ -4,7 +4,14 @@ setup.py file
 """
 
 from distutils.core import setup, Extension
+from distutils import sysconfig
 import os
+
+os.environ["CC"] = "mpicc" 
+ldshared = sysconfig.get_config_var('LDSHARED')
+#remove gcc or icc and paste mpicc for linker
+ldshared = "mpicc " + ldshared.partition(' ')[2]
+os.environ["LDSHARED"] = ldshared
 
 
 package = 'numpy'
@@ -50,7 +57,7 @@ include_dirs = [source_dir, ]
 for i, s in enumerate(sources_spglib):
     sources_spglib[i] = "%s/%s" % (source_dir, s)
 
-os.environ["CC"] = "mpicc" 
+
 
 pygenarris_mpi = Extension('_pygenarris_mpi',
                            include_dirs= ['./', numpy.get_include(), mpi4py.get_include()],

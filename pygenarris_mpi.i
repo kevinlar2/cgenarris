@@ -38,3 +38,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	double tol1, 
 	long max_attempts, 
 	MPI_Comm world_comm);
+
+void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);
+void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);

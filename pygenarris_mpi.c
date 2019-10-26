@@ -13,7 +13,6 @@
 #include "lattice_generator.h"
 #include "randomgen.h"
 #include "algebra.h"
-#include "cgenarris_mpi.h"
 #include "pygenarris_mpi.h"
 
 #define ZMAX 192
@@ -26,8 +25,6 @@ unsigned int *seed2;
 #pragma omp threadprivate(seed2)
 extern float TOL;
 
-
-//void create_mpi_xtal_type(MPI_Datatype* XTAL_TYPE, int total_atoms);
 
 
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
@@ -395,4 +392,52 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	if(my_rank == 0)
 		printf("Generation completed.\nHave a nice day!!\n");
 
+}
+
+void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
+{
+	//2d array memory need not be continous. copy to 1d then send.
+	float temp[9] = {xtal->lattice_vectors[0][0], xtal->lattice_vectors[0][1],
+					 xtal->lattice_vectors[0][2], xtal->lattice_vectors[1][0],
+					 xtal->lattice_vectors[1][1], xtal->lattice_vectors[1][2],
+					 xtal->lattice_vectors[2][0], xtal->lattice_vectors[2][1],
+					 xtal->lattice_vectors[2][2] };
+	MPI_Send(temp, 9, MPI_FLOAT , destination, 1, comm);
+	MPI_Send(xtal->Xcord, total_atoms, MPI_FLOAT , destination, 2, comm);
+	MPI_Send(xtal->Ycord, total_atoms, MPI_FLOAT , destination, 3, comm);
+	MPI_Send(xtal->Zcord, total_atoms, MPI_FLOAT , destination, 4, comm);
+	MPI_Send(xtal->atoms, 2*total_atoms, MPI_CHAR , destination, 5, comm);
+	MPI_Send(&(xtal->spg), 1, MPI_INT , destination, 6, comm);
+	MPI_Send(&(xtal->wyckoff_position), 1, MPI_INT , destination, 7, comm);
+	MPI_Send(&(xtal->num_atoms_in_molecule), 1, MPI_INT , destination, 8, comm);
+	MPI_Send(&(xtal->Z), 1, MPI_INT , destination, 9, comm);
+	MPI_Send(&(xtal->Zp), 1, MPI_INT , destination, 10, comm);
+}
+
+void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
+{
+	MPI_Status status;
+	float temp[9];
+	MPI_Recv(temp, 9, MPI_FLOAT, source, 1, comm, &status);
+	MPI_Recv(xtal->Xcord, total_atoms, MPI_FLOAT, source, 2, comm, &status);
+	MPI_Recv(xtal->Ycord, total_atoms, MPI_FLOAT, source, 3, comm, &status);
+	MPI_Recv(xtal->Zcord, total_atoms, MPI_FLOAT, source, 4, comm, &status);
+	MPI_Recv(xtal->atoms, 2*total_atoms, MPI_CHAR, source, 5, comm, &status);
+	MPI_Recv(&(xtal->spg), 1, MPI_INT, source, 6, comm, &status);
+	MPI_Recv(&(xtal->wyckoff_position), 1, MPI_INT, source, 7, comm, &status);
+	MPI_Recv(&(xtal->num_atoms_in_molecule), 1, MPI_INT, source, 8, comm, &status);
+	MPI_Recv(&(xtal->Z), 1, MPI_INT, source, 9, comm, &status);
+	MPI_Recv(&(xtal->Zp), 1, MPI_INT, source, 10, comm, &status);
+
+	xtal->lattice_vectors[0][0] = temp[0];
+	xtal->lattice_vectors[0][1] = temp[1];
+	xtal->lattice_vectors[0][2] = temp[2];
+
+	xtal->lattice_vectors[1][0] = temp[3];
+	xtal->lattice_vectors[1][1] = temp[4];
+	xtal->lattice_vectors[1][2] = temp[5];	
+
+	xtal->lattice_vectors[2][0] = temp[6];
+	xtal->lattice_vectors[2][1] = temp[7];
+	xtal->lattice_vectors[2][2] = temp[8];
 }
