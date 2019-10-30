@@ -80,8 +80,8 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 	
 	for(int i = 0; i < N*m; i++)
 	{
-		fprintf(out_file,"atom %12f %12f %12f %4c \n", xtal->Xcord[i],
-			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i]);
+		fprintf(out_file,"atom %12f %12f %12f  %c%c \n", xtal->Xcord[i],
+			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i], xtal->atoms[2*i+1]);
 	}
 	fprintf(out_file, "#######  END  STRUCTURE #######\n\n");
 	
