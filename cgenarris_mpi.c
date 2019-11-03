@@ -199,7 +199,10 @@ int main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD);
 		//counter counts the number of structures generated
 		spg = compatible_spg[spg_index].spg; //pick a spg 
-
+		
+		//time information
+		time_t start_time = time(NULL);
+		
 		//print attempted space group 
 		if (my_rank == 0)
 			{printf("Attempting to generate spacegroup number %d....\n", spg);}
@@ -354,10 +357,21 @@ int main(int argc, char **argv)
 		spg_index++;
 		if (my_rank == 0)
 		{
-			 printf("#space group counter reset. Moving to next space group...\n\n");
+			 printf("#space group counter reset. Moving to next space group...\n");
 			 fflush(stdout);
 		} 
 		MPI_Barrier(MPI_COMM_WORLD);
+		
+		//timing informatino
+		time_t end_time = time(NULL);
+		double elapsed = difftime (end_time, start_time);
+		if (my_rank == 0)
+		{	
+			printf("\nTIMING INFO:\n");
+			printf("-----------------------------------------------------\n");
+			printf("Time spent on space group %d: ~ %.0lf seconds \n", spg, elapsed);
+			printf("-----------------------------------------------------\n\n");
+		}
 		
 	}//end of spg while loop
 
