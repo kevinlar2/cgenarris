@@ -696,7 +696,7 @@ void free_xtal(crystal* xtal)
 	free(xtal->Xcord);
 	free(xtal->Ycord);
 	free(xtal->Zcord);
-	//free(xtal);
+	free(xtal);
 }
 
 void copy_xtal(crystal* xtal1, crystal* xtal2)
