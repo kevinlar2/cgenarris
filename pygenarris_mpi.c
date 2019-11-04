@@ -25,7 +25,13 @@ unsigned int *seed2;
 #pragma omp threadprivate(seed2)
 extern float TOL;
 
-
+void print_time()
+{
+	time_t current_time = time(NULL);
+	struct tm *loc_time;
+	loc_time = localtime (&current_time);
+	printf("The local time is now: %s", asctime (loc_time));
+}
 
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	float *vdw_matrix,
@@ -47,22 +53,11 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     if (dim1 != dim2)
 	{printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
 
-    printf("The vdw distance cutoff matrix is :\n");
-    for (int i = 0; i < dim1; i++)
-    {
-    	for (int j= 0; j < dim2; j++)
-    	{
-    		printf("%f ", *(vdw_matrix + i*dim1 + j) );
-    	}
-    	printf("\n");
-    }
-
 	//Initialise MPI 
 	int total_ranks;
     MPI_Comm_size(world_comm, &total_ranks);
     int my_rank;
     MPI_Comm_rank(world_comm, &my_rank);
-
 
 	//random number seeding
 	srand((unsigned int)time(NULL));
@@ -83,7 +78,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		}
 		//fprintf(out_file, "my_rank=%d\n", my_rank);
 	}
-
 
 	//random number seeding, different seeds for different threads
 	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
@@ -122,22 +116,16 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		printf("---------------------------\n");
 		printf("Using MPI for parallelization.\n");
 		printf("cgenarris is running on %d processes. \n", total_ranks);
+		printf("Master Rank host name: %s \n", name);
+		print_time();
 	}
-
-	MPI_Barrier(world_comm);
-	for(int i = 0; i < total_ranks; i++)
-	{	
-		if(i == my_rank)
-			printf("Rank number %d out of %d reporting.\n", my_rank+1, total_ranks);
-    	MPI_Barrier(world_comm);
-    }
 
 	if(my_rank == 0)
 	{	
 		printf("---------------------------\n");
 		printf("\n");
 	}
-
+	MPI_Barrier(world_comm);
 
     read_geometry(mol);				//read molecule from geometry.in
     /*
@@ -205,7 +193,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		printf("Total compatible space groups = %d\n", num_compatible_spg);
 		printf("Number of molecular axes = %d \n", num_axes);
 		printf("-----------------------------------------------------\n\n");
-		printf("Starting generation...\n\n");
+		printf("Starting generation...\n");
+		print_time();
+		printf("\n");
 		sleep(1);
 	}
 	
@@ -225,6 +215,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		MPI_Barrier(world_comm);
 		//counter counts the number of structures generated
 		spg = compatible_spg[spg_index].spg; //pick a spg 
+		
+		//time information
+		time_t start_time = time(NULL);
 
 		//print attempted space group 
 		if (my_rank == 0)
@@ -275,17 +268,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 					if (verdict == 1 )
 					{
 						random_crystal->spg = spg;
-						printf("#Rank %d: Generation successful.\n",
-							my_rank);					
-						printf("#attempted space group = %d,\n"
-								"#unit cell volume (cubic Angstrom)= %f.\n",  
-								spg,
-								volume);
-						int spglib_spg = detect_spg_using_spglib(random_crystal);
-						printf("#SPGLIB detected space group = %d\n\n",
-											                     spglib_spg);
 						break;
-						//verdict = 1;
 					}
 
 
@@ -302,6 +285,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 						if (counter < num_structures)
 						{							
 							print_crystal2file(random_crystal, out_file);
+							printf("#Rank %d: Generation successful.\n", my_rank);
 							counter++;
 							success_flag = 1;
 						}
@@ -384,14 +368,28 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		} 
 		MPI_Barrier(world_comm);
 		
+		//timing informatino
+		time_t end_time = time(NULL);
+		double elapsed = difftime (end_time, start_time);
+		if (my_rank == 0)
+		{	
+			printf("\nTIMING INFO:\n");
+			printf("-----------------------------------------------------\n");
+			print_time();
+			printf("Time spent on space group %d: ~ %.0lf seconds \n", spg, elapsed);
+			printf("-----------------------------------------------------\n\n");
+		}
+		
 	}//end of spg while loop
 
 	if(my_rank == 0)
 		fclose(out_file);
 
 	if(my_rank == 0)
+	{
+		print_time();
 		printf("Generation completed.\nHave a nice day!!\n");
-
+	}
 }
 
 void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)

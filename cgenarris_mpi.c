@@ -14,6 +14,7 @@
 #include "randomgen.h"
 #include "algebra.h"
 #include "cgenarris_mpi.h"
+#include "pygenarris_mpi.h"
 
 //maximum mulipicity possible
 #define ZMAX 192
@@ -22,11 +23,99 @@
 
 int *seed;
 unsigned int *seed2;
+extern float TOL;
+
+void create_vdw_matrix_from_sr(molecule *mol,
+								float *vdw_matrix,
+								float sr,
+								int Z);
 
 
-//void create_mpi_xtal_type(MPI_Datatype* XTAL_TYPE, int total_atoms);
+int main(int argc, char **argv)
+{
+	//Initialise MPI 
+	MPI_Init(&argc, &argv);
+	int total_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &total_ranks);
+    int my_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm world_comm = MPI_COMM_WORLD;
+    
+    //variable declarartion	
+	molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
+	crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
+	float volume_std;	//standard dev for volumes
+	float volume_mean;	//mean volume
+	float sr;			//specific radius proportion for structure checks
+						//see paper for definition
+	float Zp_max;		//Z'' . not implemented
+	float volume;		//random volume used of generation
+	int Z;				//multiplicity of general position
+	int num_structures;	//num of structures per spg
+	int spg;			//space group attempted
+	long max_attempts;	//max attempts per space group
+    float tol;
+    
+    read_geometry(mol);				//read molecule from geometry.in
+    read_control(&num_structures,
+				 &Z,
+				 &Zp_max,
+				 &volume_mean, 
+				 &volume_std,
+				 &sr,
+				 &max_attempts);	//get settings
+	tol = TOL;
+	
+	int num_atoms_in_molecule = mol->num_of_atoms;
+	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
+	float *vdw_cutoff_matrix = (float *) malloc( dim_vdw_matrix * 
+								dim_vdw_matrix *
+								sizeof(float) ); //square matrix
+	
+	create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
+	
+		//call the generator from pygenarris_mpi
+	mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+		vdw_cutoff_matrix,
+		dim_vdw_matrix,
+		dim_vdw_matrix,
+		num_structures,
+		Z,
+		volume_mean,
+		volume_std,
+		tol, 
+		max_attempts, 
+		world_comm);
+	
+	
+	return 0;
+}
 
+void create_vdw_matrix_from_sr(molecule *mol,
+								float *vdw_matrix,
+								float sr,
+								int Z)
+{	int num_atoms_in_molecule = mol->num_of_atoms;
+	float *atom_vdw_vector = (float *) malloc( num_atoms_in_molecule*
+							sizeof(float) );
+	//create vector with vdw radii of size num of atoms in mol
+	convert_atom2atom_vdw( mol->atoms, atom_vdw_vector,
+							num_atoms_in_molecule);
+							
+	//now create matrix
+	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
+	for(int i = 0; i < dim_vdw_matrix; i++)
+		for(int j = 0; j < dim_vdw_matrix; j++)
+			{
+				*(vdw_matrix + i*dim_vdw_matrix +j)
+					=  (*(atom_vdw_vector + i%num_atoms_in_molecule) +
+						*(atom_vdw_vector + j%num_atoms_in_molecule) ) *
+						sr;
+			}
+	free(atom_vdw_vector);
+}
 
+/*
 int main(int argc, char **argv)
 {
 	//Initialise MPI 
@@ -185,13 +274,13 @@ int main(int argc, char **argv)
 	
 	MPI_Barrier(MPI_COMM_WORLD); // wait for other friends to join
 	
-	/*deprecated
+	//deprecated
 	//find allowed space groups for general position (deprecated)
 	//int allowed_spg[230];
 	//int num_allowed_spg = 0;
 	//find_allowed_spg(allowed_spg, &num_allowed_spg, Z);
 	//printf("allowed %d \n", num_compatible_spg);
-	*/
+	
 	
 	
 	while( spg_index < num_compatible_spg )
@@ -384,7 +473,9 @@ int main(int argc, char **argv)
 		printf("Generation completed.\nHave a nice day!!\n");
 
 }
+*/
 
+/*
 
 void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
 {
@@ -433,6 +524,6 @@ void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
 	xtal->lattice_vectors[2][1] = temp[7];
 	xtal->lattice_vectors[2][2] = temp[8];
 }
-
+*/
 
 

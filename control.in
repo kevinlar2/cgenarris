@@ -1,16 +1,16 @@
 #molecule is read from geometry.in
 
 #number of atoms in the cell
-Z                       4 
+Z                       2 
 
 #this is the number of structures per space group
-number_of_structures    41
+number_of_structures    40
 
 #specific radius proportion
 sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             400
+volume_mean             300
 
 #standard deviation of the gaussian distribution
 volume_std              40
