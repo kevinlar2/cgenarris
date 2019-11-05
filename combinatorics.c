@@ -56,25 +56,24 @@ const int num_viewing_direction = 16;
 */
 
 
+/*
+ * Find compatible general positions. doesnot care about symmetry
+ */
+
 void find_allowed_spg(int allowed_spg[230], int* num_allowed_spg, int Z)
 {
-	//justo for calling spglib; not used
+	//just for calling spglib; not used
 	double translations[192][3];
 	int rotations[192][3][3];
 	*num_allowed_spg = 0;
 	int counter = 0;
-	
+	//loop over space groups
 	for(int i = 0; i < 230; i++)
 	{
 		int	hall_number; 
 		hall_number = hall_number_from_spg(i+1);
 		int num_of_operations = spg_get_symmetry_from_database(rotations,
 			translations, hall_number);
-		//	int num_of_operations = 0;
-		//debug
-		//printf("check 1  \t hall =%d \t num_op = %d  \n \t 
-		//	Z = ", hall_number, num_of_operations);
-	
 		if (num_of_operations == Z)
 		{
 			allowed_spg[counter] = i+1;
@@ -139,11 +138,14 @@ void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
  * of molecular symmetry
  */
 
-void find_compatible_spg_positions(molecule *mol, int Z,
- COMPATIBLE_SPG compatible_spg[], int *num_compatible_spg,
- float **mol_axes, int *num_axes, int thread_num)
+void find_compatible_spg_positions(molecule *mol,
+									int Z,
+									COMPATIBLE_SPG compatible_spg[],
+									int *num_compatible_spg,
+									float **mol_axes,
+									int *num_axes,
+									int thread_num)
 {
-	
 	crystal xtal;
 	int N = mol->num_of_atoms;
 	xtal.Xcord = (float *)malloc(ZMAX*N*sizeof(float));
@@ -153,21 +155,17 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 	xtal.num_atoms_in_molecule = mol->num_of_atoms;
 	
 	//for storing information of allowed position and spg
-	
 	unsigned int pos_list[47];
 	unsigned int len_pos_list = 0;
 	
+	//possibly equivalent atoms
 	int eq_atoms[N];
 	int len_eq_atoms = 0 ;
 	find_farthest_equivalent_atoms(mol, eq_atoms, &len_eq_atoms);
 	
 
 	//allocate memory for mol_axes
-	//float *mol_axes = (float *)malloc(3*len_eq_atoms*len_eq_atoms*sizeof(float));
-	//float mol_axes[len_eq_atoms*len_eq_atoms][3];
-	*mol_axes = (float *)malloc( 3*(len_eq_atoms*len_eq_atoms+3)*sizeof(float) );
-	//int num_axes;
-	
+	*mol_axes = (float *)malloc(3*(len_eq_atoms*len_eq_atoms+3)*sizeof(float));	
 	find_possible_mol_axis(mol, *mol_axes, num_axes, eq_atoms, len_eq_atoms);
 	//for (int i = 0; i < num_axes; i++)
 	//	printf("%f %f %f \n", *((*mol_axes)+3*i+0), *((*mol_axes)+3*i+1), *((*mol_axes)+3*i+2) );
@@ -181,8 +179,7 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 		int max = spg_positions[spg].num_of_positions; 
 		int hall_number = hall_number_from_spg(spg+1);
 		for(int pos = 0; pos < max; pos++ )
-		{
-				
+		{		
 			//check multiplicity
 			if (spg_positions[spg].multiplicity[pos] != Z)
 				{continue;}
@@ -214,20 +211,15 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 			float trans[3];
 			for(int i = 0; i < 3; i++)
 			{
-				trans[i] = spg_positions[spg].\
-					first_position_trans[pos][i];
+				trans[i] = spg_positions[spg].first_position_trans[pos][i];
 				for(int j = 0; j < 3; j++)
 				{
-					rot[i][j] = spg_positions[spg].\
-						first_position_rot[pos][i][j];
+					rot[i][j] = spg_positions[spg].first_position_rot[pos][i][j];
 				}
 			}
-			//float rand_frac_array[3] = {uniform_dist_01(),\
-										uniform_dist_01(),\
-										uniform_dist_01()};
+
 			float rand_frac_array[3]={0.19316, 0.74578, 0.26245};
-			
-			vector3_intmat3b3_multiply(rot,rand_frac_array,\
+			vector3_intmat3b3_multiply(rot,rand_frac_array,
 									rand_frac_array);
 			vector3_add(trans,
 						rand_frac_array,
@@ -236,9 +228,9 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 			//for converting to fractional coordinates and
 			// place the first molecule
 			float inverse_lattice_vectors[3][3];
-			inverse_mat3b3(inverse_lattice_vectors,\
+			inverse_mat3b3(inverse_lattice_vectors,
 						xtal.lattice_vectors);
-			mat3b3_transpose(inverse_lattice_vectors,\
+			mat3b3_transpose(inverse_lattice_vectors,
 							inverse_lattice_vectors);
 			float mol_Xfrac[N]; //stores fractional ...
 			float mol_Yfrac[N]; //coordinates of first mol
@@ -246,8 +238,8 @@ void find_compatible_spg_positions(molecule *mol, int Z,
 			
 			for(int i = 0; i < N; i++)
 			{
-				float atom_i[3] = {(*mol).X[i],\
-								(*mol).Y[i],\
+				float atom_i[3] = {(*mol).X[i],
+								(*mol).Y[i],
 								(*mol).Z[i]};
 				vector3_mat3b3_multiply(inverse_lattice_vectors,
 										atom_i,
@@ -1001,97 +993,3 @@ int compute_cross_axis(float axis1[3],float axis2[3], float avg[3])
 
 
 
-
-/*
-int find_average_orientation(crystal* xtal,			\
-							  molecule* mol,		\
-							  int hall_number,		\
-							  int overlap_list[],	\
-							  int len_overlap_list,	\
-							  int eq_atoms[],		\
-							  int len_eq_atoms		)
-{
-	//take two pairs
-	//rotate molecule to average position
-	int N = mol->num_of_atoms;
-	float rotation_matrix[3][3];
-	float mol_Xfrac[N]; //stores fractional ...
-	float mol_Yfrac[N]; //coordinates of first mol
-	float mol_Zfrac[N];
-	float lattice_vectors[3][3];
-	float inv_lattice_vectors[3][3];
-	copy_mat3b3_mat3b3(lattice_vectors, xtal->lattice_vectors);
-	inverse_mat3b3(inv_lattice_vectors, lattice_vectors);
-	mat3b3_transpose(inv_lattice_vectors, inv_lattice_vectors);
-	
-	for (int i = 1; i < len_overlap_list; i++)
-	{
-		int mol_index = overlap_list[i];
-		for(int j = 0; j < len_eq_atoms; j++)
-		{
-			int atom1_index = eq_atoms[j];
-			float atom1[3] = {xtal->Xcord[atom1_index], \
-							  xtal->Ycord[atom1_index], \
-							  xtal->Zcord[atom1_index]  };
-			for(int k = j; k < len_eq_atoms; k++)
-			{
-				int atom2_index = eq_atoms[k];
-
-				float atom2[3] = {xtal->Xcord[mol_index+atom2_index], \
-								  xtal->Ycord[mol_index+atom2_index], \
-								  xtal->Zcord[mol_index+atom2_index]  };
-				//find average vector
-				float avg[3] = { (atom1[0]+atom2[0])/2 ,\
-								 (atom1[1]+atom2[1])/2 ,\
-								 (atom1[2]+atom2[2])/2 };
-				//check if null
-				if( check_vec3_isNull(avg, 10*TOL) )
-					{continue;}
-				//else  rotate molecule to avg
-				normalise_vector3(avg);
-				normalise_vector3(atom1);
-				//create rotation matrix
-				rotation_matrix_from_vectors(rotation_matrix, atom1, avg);
-				//rotate first molecule
-				//move molecule to the origin; then rotate; then move back
-				
-				float com[3];
-				compute_molecule_COM(*xtal, com, 0);
-				
-				for(int z = 0; z < N;  z++)
-				{
-					float temp[3] = {xtal->Xcord[z] - com[0],
-									 xtal->Ycord[z] - com[1],
-									 xtal->Zcord[z] - com[2]};
-					vector3_mat3b3_multiply(rotation_matrix, temp, temp);
-					vector3_add(temp,com,temp);
-					//convert to frac
-					vector3_mat3b3_multiply(inv_lattice_vectors, temp, temp );
-					mol_Xfrac[z] = temp[0];
-					mol_Yfrac[z] = temp[1];
-					mol_Zfrac[z] = temp[2];
-				}
-				
-				apply_all_symmetry_ops(xtal,
-									   mol,
-									   mol_Xfrac,
-									   mol_Yfrac,
-									   mol_Zfrac,
-									   N,
-									   hall_number);
-				
-				int result = check_overlap_xtal(xtal,
-												overlap_list,
-												len_overlap_list,
-												N);
-				
-				if (result)
-					{ print_crystal(xtal); printf("result 1\n");return 1;}
-				
-			}	
-		}
-	}
-	
-	return 0;
-}
-*/
