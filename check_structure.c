@@ -18,15 +18,6 @@ static inline int int_floor(float x)
 
 
 
-//probably should get rid of this. used by pdist()
-void vector_cpy(float A[], float B[][3], int index)
-{
-	for (int k = 0; k < 3; k++)
-	{
-		A[k]=B[index][k];
-	} 
-}
-
 /* The most function of this file. returns the distance between
  * two points under periodic boundary. T and T_inv are lattice
  * vector matrix and its inverse. T is in row major form. x1,x2,x3 are
@@ -42,15 +33,16 @@ float pdist(float T[3][3],
 			float y2,
 			float y3  )
 {
-
-	float p_dist = 0.0;
+	float p_dist = pdist_appx(T,
+			T_inv,
+			x1, 
+			x2,
+			x3,
+			y1,
+			y2,
+			y3  );
+			
 	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
-	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
-						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
-	//vector3_subtract(x,y,cartesian_distance);
-    /*computes tthe distance in fractinal space and reduces it 
-     * inside first unit cube
-     */
     float fractional_distance[3];
 	for (int i = 0; i < 3; i++)
 	{	
@@ -64,40 +56,6 @@ float pdist(float T[3][3],
 		else
 			fractional_distance[i] = frac_part;
 	}
-	
-	for (int z = 0; z < 8; z++)
-	{
-		float A[3];
-		float dist_corner[3];
-		vector_cpy(A, Q, z);
-
-        dist_corner[0] = fractional_distance[0] - A[0];
-		dist_corner[1] = fractional_distance[1] - A[1];
-        dist_corner[2] = fractional_distance[2] - A[2];
-
-		//distance vector to 8 corners in cartesian.
-		float dist_z = 0;
-		for (int i = 0; i < 3; i++)
-		{
-			float sum = 0;
-			for (int j = 0; j < 3 ;j++)
-				sum = sum + dist_corner[j] * T[j][i];	
-			dist_z += sum*sum;
-		}
-        // length odistnce vector to the zth corner 
-        // for finding the minimum distance (min dist_z)
-
-		//debug
-        //printf("distz[%d] = %f\n", z, dist_z);
-
-		if (z == 0)
-			p_dist = dist_z;
-		else if (p_dist > dist_z)
-			p_dist = dist_z;
-	}
-	
-	p_dist = sqrt(p_dist);
-
 
 	//find cartesian distance vector in the bounding box
 	//reduced cartesian distance vector
@@ -147,15 +105,19 @@ void pdist_2(float T[3][3],
 {
 	*p_dist = 0.0;
 	*p_dist_2 = 0.0;
+	
+	pdist_2_appx(T,
+				T_inv,
+				x1,
+				x2,
+				x3,
+				y1,
+				y2,
+				y3,
+				p_dist,
+				p_dist_2);
+	
 	float cartesian_distance[3] = {x1 - y1, x2 - y2, x3 - y3};
-	static float Q[8][3]={ {0,0,0},{1,0,0},{0,1,0},{0,0,1},
-						   {1,1,0},{0,1,1},{1,0,1},{1,1,1}  };
-	//vector3_subtract(x,y,cartesian_distance);
-    /*computes tthe distance in fractinal space and reduces it 
-     * inside first unit cube
-     * #TODO: make this outside pdist().
-     *  Needs to be done only once per crystal
-     */
     float fractional_distance[3];
 	for (int i = 0; i < 3; i++)
 	{	
@@ -169,56 +131,7 @@ void pdist_2(float T[3][3],
 		else
 			fractional_distance[i] = frac_part;
 	}
-	
-	for (int z = 0; z < 8; z++)
-	{
-		float A[3];
-		float dist_corner[3];
-		vector_cpy(A, Q, z);
 
-        dist_corner[0] = fractional_distance[0] - A[0];
-		dist_corner[1] = fractional_distance[1] - A[1];
-        dist_corner[2] = fractional_distance[2] - A[2];
-
-		//distance vector to 8 corners in cartesian.
-		float dist_z = 0;
-		for (int i = 0; i < 3; i++)
-		{
-			float sum = 0;
-			for (int j = 0; j < 3 ;j++)
-				sum = sum + dist_corner[j] * T[j][i];	
-			dist_z += sum*sum;
-		}
-        // length odistnce vector to the zth corner 
-        // for finding the minimum distance (min dist_z)
-		if (z == 0)
-		{
-			*p_dist = dist_z;
-		}
-		else if (z == 1)
-		{
-			if (*p_dist > dist_z)
-				{*p_dist_2 = *p_dist; *p_dist = dist_z;}
-			else
-				*p_dist_2 = dist_z;
-		}
-		else if (*p_dist > dist_z)
-		{
-			*p_dist_2 = *p_dist;
-			*p_dist = dist_z;
-		}
-		else if (*p_dist_2 > dist_z)
-		{
-			*p_dist_2 = dist_z;
-		}
-		
-	}
-	
-	*p_dist = sqrt(*p_dist);
-	*p_dist_2 = sqrt(*p_dist_2);
-	
-	//find cartesian distance vector in the bounding box
-	//reduced cartesian distance vector
 	float red_cart_distance[3];
 	for(int i = 0; i < 3; i++)
 		red_cart_distance[i] = T[0][i] * fractional_distance[0] + 
@@ -296,9 +209,8 @@ float pdist_appx(float T[3][3],
 
 	for (int z = 0; z < 8; z++)
 	{
-		float A[3];
+		float A[3] = {Q[z][0], Q[z][1], Q[z][2]};
 		float dist_corner[3];
-		vector_cpy(A, Q, z);
 
         dist_corner[0] = fractional_distance[0] - A[0];
 		dist_corner[1] = fractional_distance[1] - A[1];
@@ -369,9 +281,8 @@ void pdist_2_appx(float T[3][3],
     //computes the distances to all the corners of the unit cube
 	for (int z = 0; z < 8; z++)
 	{
-		float A[3];
+		float A[3] = {Q[z][0], Q[z][1], Q[z][2]};
 		float dist_corner[3];
-		vector_cpy(A, Q, z);
 
         dist_corner[0] = fractional_distance[0] - A[0];
 		dist_corner[1] = fractional_distance[1] - A[1];
@@ -849,10 +760,10 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int total_atoms = m*N;
 	
 	if (dim1 != dim2)
-		{printf("matrix not square\n"); return 0; exit(0);}
+		{printf("ERROR:matrix not square\n"); exit(0);}
 
 	if (dim1 != total_atoms)
-		{printf("matrix size doesnt match total atoms\n"); return 0; exit(0);}
+		{printf("matrix size doesnt match total atoms\n"); exit(0);}
 
 	if( fast_screener_vdw(random_crystal, vdw_matrix) == 0)
 		{return 0;}

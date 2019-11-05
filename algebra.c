@@ -16,12 +16,18 @@ void vector3_add(float a[3], float b[3], float sum[3])
 	return;
 }
 
+/* Both b and c can be the same vector; hence a temporary variable
+ * is needed
+ */
 void vector3_mat3b3_multiply(float a[3][3], float b[3], float c[3])
 {
 	float temp[3];
-	for (int i = 0; i < 3; i++)
-		temp[i] = a[i][0] * b[0] + a[i][1] * b[1] + a[i][2] * b[2];
-	copy_vector3_vector3(c,temp);
+	temp[0] = a[0][0] * b[0] + a[0][1] * b[1] + a[0][2] * b[2];
+	temp[1] = a[1][0] * b[0] + a[1][1] * b[1] + a[1][2] * b[2];
+	temp[2] = a[2][0] * b[0] + a[2][1] * b[1] + a[2][2] * b[2];
+	c[0]  = temp[0];
+	c[1]  = temp[1];
+	c[2]  = temp[2];
 	return;
 }
 
