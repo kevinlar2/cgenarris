@@ -40,10 +40,7 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 
 	int hall_number;
 	hall_number = hall_number_from_spg(spg);
-	//printf("hall = %d \n", hall_number);
-	//printf("attempted spg = %d \n", spg);
-	//Z=4;
-	//returns lattice vector for given spg and volume 
+	
 	generate_lattice(random_crystal->lattice_vectors, spg, max_angle, min_angle, volume);
 	
 	//find a random pos
@@ -56,35 +53,12 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 		pos,mol_axes, num_axes, compatible_spg[compatible_spg_index].pos_overlap_list[pos_index]);
 	
 
-	
-	//random_crystal->Z = Z;
-	/*
-	random_crystal->lattice_vectors[0][0] =45;
-	random_crystal->lattice_vectors[0][1] =0;
-	random_crystal->lattice_vectors[0][2] =0;
-	
-	random_crystal->lattice_vectors[1][0] =0;
-	random_crystal->lattice_vectors[1][1] =30;
-	random_crystal->lattice_vectors[1][2] =0;
-	
-	random_crystal->lattice_vectors[2][0] =20;
-	random_crystal->lattice_vectors[2][1] =0;
-	random_crystal->lattice_vectors[2][2] = 20;
-	*/
-		//align_molecule_mirror_plane(random_crystal, mol,hall_number);
 
-	//place_molecule_at_inversion_center(random_crystal, mol, hall_number);
-	//place_molecule_at_mirror_plane(random_crystal, mol, hall_number);
-	//place_molecule_at_position(random_crystal, mol, hall_number,5,0);
 	copy_positions_to_mol(mol, Xm, Ym, Zm);
 	
 	if(result == 0)
 		return 0;
 	else
 		return 1;
-	//printf("hall =%d ,nmpc  = %d, napm = %d \n", hall_number, random_crystal->Z, random_crystal->num_atoms_in_molecule);
-
-	
-	
 }
 

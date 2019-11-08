@@ -16,7 +16,7 @@ volume_mean             300
 volume_std              40
 
 #numerical tolerance. important for special positions
-tolerance               0.01
+tolerance               0.1
 
 #number of attempts before moving to next space group
 max_attempts            2000000

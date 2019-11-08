@@ -326,7 +326,7 @@ void find_compatible_spg_positions(molecule *mol,
 									len_overlap_list);
 					
 			//not compatible? then skip
-			if( result != Z)
+			if( !result)
 				{continue;}
 			
 			//if compatible
@@ -436,6 +436,7 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 							  int len_overlap_list)
 {
 	int N = mol->num_of_atoms;
+	int is_compatible = 0;
 	float rotation_matrix[3][3];
 	float mol_Xfrac[N]; //stores fractional ...
 	float mol_Yfrac[N]; //coordinates of first mol
@@ -508,25 +509,36 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 			if (result)
 			{
 				int Z_gen = xtal->Z;
-				//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
-				//remove_close_molecules(xtal);
 				combine_close_molecules(xtal);
 				int Z_return = xtal->Z;
 				//len_overlap_list == order, Z/len = multiplicity
 				if(Z_return != Z_gen/len_overlap_list)
 					{continue;}
-
-				//detect_spg_using_spglib(xtal);
-				//print_crystal(xtal);
-				//printf("result 1\n");
-				free_xtal(xtal);
-				return Z_return;
+				
+				int comb = comp_axes.num_combinations;
+				comp_axes.usable_mol_axes = (float *) 
+						realloc(comp_axes.usable_mol_axes, 3*(comb+1)*sizeof(float));
+				comp_axes.usable_view_dir = (float *) 
+						realloc(comp_axes.usable_view_dir, 3*(comb+1)*sizeof(float));
+				
+				*(comp_axes.usable_mol_axes + 3*comb + 0) = mol_axes[0];
+				*(comp_axes.usable_mol_axes + 3*comb + 1) = mol_axes[1];
+				*(comp_axes.usable_mol_axes + 3*comb + 2) = mol_axes[2];
+				
+				*(comp_axes.usable_view_dir + 3*comb + 0) = view_dir[0];
+				*(comp_axes.usable_view_dir + 3*comb + 1) = view_dir[1];
+				*(comp_axes.usable_view_dir + 3*comb + 2) = view_dir[2];
+				
+				comp_axes.num_combinations++;
 			}
 		}
 	}
 	
 	free_xtal(xtal);
-	return 0;
+	if(comp_axes.num_combinations)
+		return 1;
+	else
+		return 0;
 }
 
 

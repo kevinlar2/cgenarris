@@ -15,15 +15,6 @@ void find_farthest_equivalent_atoms(molecule *mol,int atom_index[],\
 										int* len_atom_index);
 									
 
-int check_pos_compatibility(crystal* xtal_1,		\
-							  molecule* mol,		\
-							  int hall_number,		\
-							  int overlap_list[],	\
-							  int len_overlap_list,	\
-							  int eq_atoms[],		\
-							  int len_eq_atoms,		
-							  float first_com[3]);
-							  
 
 int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 							  COMPATIBLE_AXES comp_axes,

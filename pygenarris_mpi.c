@@ -288,6 +288,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 							printf("#Rank %d: Generation successful.\n", my_rank);
 							counter++;
 							success_flag = 1;
+							int spglib_spg = detect_spg_using_spglib(random_crystal);
+							printf("#SPGLIB detected space group = %d\n\n",
+											                     spglib_spg);
 						}
 						else
 							stop_flag = 1;
