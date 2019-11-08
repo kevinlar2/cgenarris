@@ -25,11 +25,12 @@ int check_pos_compatibility(crystal* xtal_1,		\
 							  float first_com[3]);
 							  
 
-int check_pos_compatibility_using_std_orientations(crystal* xtal_1,		\
-							  molecule* mol,		\
-							  int hall_number,		\
-							  float *mol_axes,	\
-							  int num_axes,	\
+int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
+							  COMPATIBLE_AXES comp_axes,
+							  molecule* mol,		
+							  int hall_number,		
+							  float *mol_axes,	
+							  int num_axes,	
 							  float first_com[3],
 							  int overlap_list[],
 							  int len_overlap_list);
@@ -50,6 +51,15 @@ void add_axis_to_mol_axes(float *mol_axes, int *num_axes, float axis[3]);
 
 void find_possible_mol_axis(molecule *mol, float *mol_axes, int* num_axes,\
 							int eq_atoms[], int len_eq_atoms);
+							
+
+void find_overlap_list (crystal xtal,
+						float first_com[3],
+						float inverse_lattice_vectors[3][3],
+						int overlap_list[],
+						int *len_overlap_list,
+						int Z_gen, 
+						int N);
 
 #define MAX_SIZE 47
 

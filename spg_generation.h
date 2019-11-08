@@ -1,15 +1,26 @@
 #ifndef SPG_GENERATOR_H
 #define SPG_GENERATOR_H
 
-
+#define POS_MAX 47
+#define MAX_ORDER 16
 
 //for storing allowed spacegroup and position
+
+typedef struct
+{
+	int *usable_mol_axes;
+	int *usable_view_dir;
+	int num_combinations;
+	
+}COMPATIBLE_AXES;
+
 typedef struct 
 {
 	unsigned int spg;
 	unsigned int num_allowed_pos;
 	unsigned int *allowed_pos;
-	int *pos_overlap_list[16];
+	int *pos_overlap_list[MAX_ORDER];
+	COMPATIBLE_AXES compatible_axes[POS_MAX];
 	
 }COMPATIBLE_SPG;
 

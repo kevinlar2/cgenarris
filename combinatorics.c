@@ -137,7 +137,6 @@ void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 /*find all compatible space groups and positions without any knowledge 
  * of molecular symmetry
  */
-
 void find_compatible_spg_positions(molecule *mol,
 									int Z,
 									COMPATIBLE_SPG compatible_spg[],
@@ -276,7 +275,7 @@ void find_compatible_spg_positions(molecule *mol,
 			int Z_gen = spg_positions[spg].multiplicity[0];
 			int order = Z_gen / Z;  
 			int overlap_list[order];
-			int count = 0;
+			int len_overlap_list = 0;
 			//com of first molecule in cartesian
 			float first_com[3];
 			vector3_mat3b3_multiply(lattice_vectors_trans,
@@ -285,71 +284,52 @@ void find_compatible_spg_positions(molecule *mol,
 			//transpose again to get back
 			mat3b3_transpose(inverse_lattice_vectors,\
 							inverse_lattice_vectors);
-			for(int i = 0; i < Z_gen * N; i = i + N)
-			{
-				float com[3];
-				compute_molecule_COM(xtal, com, i);
-	
-				if ( pdist_appx(xtal.lattice_vectors,
-						inverse_lattice_vectors,
-						com[0],
-						com[1],
-						com[2],
-						first_com[0],
-						first_com[1],
-						first_com[2]) < CONST_TOL)
-					{	overlap_list[count] = i;
-						count++;
-						//not tested; check if + or - !
-						if (cart_dist(com, first_com) > CONST_TOL) 
-						{
-							float displace[3];
-							vector3_subtract(com, first_com, displace);
-							for(int k = i; k < i + N; k++)
-							{
-								xtal.Xcord[k] -= displace[0];
-								xtal.Ycord[k] -= displace[1];
-								xtal.Zcord[k] -= displace[2];  
-							}
-						}
-					}
-					
-			}
+							
+			//find overlap list. The overlap list is not specfic to the 
+			//molecule. Hence, techically it needs to be calculated only 
+			//once and can be saved. However, it is calculated everytime
+			//cgenarris executes on the fly.
+			find_overlap_list (xtal,
+								first_com,
+								inverse_lattice_vectors,
+								overlap_list,
+								&len_overlap_list,
+								Z_gen, 
+								N);
+				
 			
-			int len_overlap_list = count;
-			
+			// if the overlap isn't the multiplicity, its a problem
 			if(len_overlap_list != order)
 			{	
 				if(thread_num == 1)
-				printf("%d %d overlap error detected %d, table %d\n", spg+1, pos, len_overlap_list, order);
-					print_crystal(&xtal);
-					
+				printf("***ERROR: spg = %d, pos = %d overlap error."
+					"Detected %d order, order should be %d\n",
+					spg+1, pos, len_overlap_list, order);
+				//print_crystal(&xtal);	
 				continue;
 			}
 			
-			
-			/*debug
-			int result = check_overlap_xtal(&xtal,
-									overlap_list,
-									len_overlap_list,
-									N);
-		
-			if (result)
-			{ print_crystal(&xtal); printf("result 1\n"); exit(0);}
-			
-			//end debug
-			*/
+			//bring all molecules to the origin to check overlap of molecules
+			//using the list of overlap molecules
 			bring_molecules_to_origin(&xtal);
-			//print_crystal(&xtal);
-			//overlap list contains molecules that overlap with
-			//first molecule. count is length of that array
-			
-			int result = check_pos_compatibility_using_std_orientations(&xtal, mol, hall_number, 
-					*mol_axes, *num_axes, rand_frac_array, overlap_list, len_overlap_list);
+
+			//check compatiblility of a wyckoff position using standard 
+			//viewing directions
+			int result = check_pos_compatibility_using_std_orientations(&xtal,
+									compatible_spg[*num_compatible_spg].compatible_axes[pos],
+									mol,
+									hall_number,
+									*mol_axes,
+									*num_axes,
+									rand_frac_array,
+									overlap_list,
+									len_overlap_list);
 					
+			//not compatible? then skip
 			if( result != Z)
 				{continue;}
 			
+			//if compatible
 			if(thread_num == 1)
 				printf("spg %3d Wyckoff position %d%c with site symmetry %3s is compatible.\n",
 					spg+1,
@@ -357,14 +337,10 @@ void find_compatible_spg_positions(molecule *mol,
 					spg_positions[spg].wyckoff_letter[pos],
 					spg_positions[spg].site_symmetry[pos]);
 				
-			//usleep(30000);
-			//bring_all_molecules_to_first_cell(&xtal);		
-			//combine_close_molecules(&xtal);
-			//print_crystal(&xtal);
-			//exit(0);
 			pos_list[len_pos_list] = pos;
 			compatible_spg[*num_compatible_spg].pos_overlap_list[len_pos_list] = (int *)\
 				malloc(len_overlap_list*sizeof(int) );
+				
 			for(int i =0; i < len_overlap_list; i++)
 			{
 				*(compatible_spg[*num_compatible_spg].pos_overlap_list[len_pos_list]+i)\
@@ -374,6 +350,11 @@ void find_compatible_spg_positions(molecule *mol,
 			len_pos_list++;
 		}//end of pos loop
 	
+		// pos_list contains information about all compatible wyckoff 
+		//positions. len_pos_list is its length. Now allocate memory to 
+		// allowed pos inside the compatible spg structure and copy 
+		//the pos_list for this space group. 
+		//The number of allowed pos is also stored in the structure.
 		if(len_pos_list != 0)
 		{
 			compatible_spg[*num_compatible_spg].allowed_pos =\
@@ -394,220 +375,67 @@ void find_compatible_spg_positions(molecule *mol,
 	
 }
 
-//align annd check all possible molecular axes with all possible
-//special directions computed on the fly. 
-int check_pos_compatibility(crystal* xtal_1,		\
-							  molecule* mol,		\
-							  int hall_number,		\
-							  int overlap_list[],	\
-							  int len_overlap_list,	\
-							  int eq_atoms[],		\
-							  int len_eq_atoms,		
-							  float first_com[3])
+
+
+void find_overlap_list (crystal xtal,
+						float first_com[3],
+						float inverse_lattice_vectors[3][3],
+						int overlap_list[],
+						int *len_overlap_list,
+						int Z_gen, 
+						int N)
 {
-	//take two pairs
-	//rotate molecule to average position
-	int N = mol->num_of_atoms;
-
-	float rotation_matrix[3][3];
-	float mol_Xfrac[N]; //stores fractional ...
-	float mol_Yfrac[N]; //coordinates of first mol
-	float mol_Zfrac[N];
-	float lattice_vectors[3][3];
-	float inv_lattice_vectors[3][3];
-	copy_mat3b3_mat3b3(lattice_vectors, xtal_1->lattice_vectors);
-	inverse_mat3b3(inv_lattice_vectors, lattice_vectors);
-	mat3b3_transpose(inv_lattice_vectors, inv_lattice_vectors);
+	//find molecules which overlap with the first molecule
+	//The index of first atoms of those molecules are stored
+	//in overlap list.
 	
-	//create a temp xtal
-	crystal *xtal = (crystal*)malloc(sizeof(crystal));
-	xtal->lattice_vectors[0][0] = xtal_1->lattice_vectors[0][0];
-	xtal->lattice_vectors[0][1] = xtal_1->lattice_vectors[0][1];
-	xtal->lattice_vectors[0][2] = xtal_1->lattice_vectors[0][2];
+	int count = 0;
 	
-	xtal->lattice_vectors[1][0] = xtal_1->lattice_vectors[1][0];
-	xtal->lattice_vectors[1][1] = xtal_1->lattice_vectors[1][1];
-	xtal->lattice_vectors[1][2] = xtal_1->lattice_vectors[1][2];
-	
-	xtal->lattice_vectors[2][0] = xtal_1->lattice_vectors[2][0];
-	xtal->lattice_vectors[2][1] = xtal_1->lattice_vectors[2][1];
-	xtal->lattice_vectors[2][2] = xtal_1->lattice_vectors[2][2];
-	
-	xtal->Xcord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->Ycord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->Zcord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->atoms = (char *)malloc(ZMAX*N*2*sizeof(char));
-	xtal->num_atoms_in_molecule = mol->num_of_atoms;
-	
-	//debug
-	int spg = xtal_1->spg;
-	//generate_lattice(xtal->lattice_vectors, spg, 60, 120, 1000000);
-	//generate_fake_lattice(xtal->lattice_vectors, spg);
-	/*
-	if(hall_number > 480)
-	{	for(int i = 0; i <len_overlap_list; i++)
-			printf("%d ",overlap_list[i]);
-		printf("\n");
-	}
-	
-	int result = check_overlap_xtal(xtal_1,
-									overlap_list,
-									len_overlap_list,
-									N);
-					
-	if (result)
+	for(int i = 0; i < Z_gen * N; i = i + N)
 	{
-		//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
-		//remove_close_molecules(xtal);
-		combine_close_molecules(xtal_1);
-		int Z_return = xtal_1->Z;
-		//HARD condition debug
-		if(Z_return != 4)
-			return 0;
-		detect_spg_using_spglib(xtal_1);
-		//print_crystal(xtal);
-		//printf("result 1\n");
-		free(xtal->atoms);
-		free(xtal->Xcord);
-		free(xtal->Ycord);
-		free(xtal->Zcord);
-		free(xtal);
-		return Z_return;
-	}
-	
-	*/
+		float com[3];
+		compute_molecule_COM(xtal, com, i);
 
-	for (int i = 1; i < len_overlap_list; i++)
-	{
-		int mol_index = overlap_list[i];
-		for(int j1 = 0; j1 < len_eq_atoms; j1++)
-		for(int j2 = j1; j2 < len_eq_atoms; j2++ )
-		for(int l1 = 0; l1 < 2; l1++ )
-			{	
-				int axis1_j1 = eq_atoms[j1];
-				int axis1_j2 = eq_atoms[j2];
-				float axis1[3];
-
-				if( l1 == 0)
-				if( !compute_atom_average_xtal(xtal_1, axis1_j1, axis1_j2 ,axis1) )
-					{continue;}
-
-				if( l1 == 1)
-				if ( !compute_atom_cross_xtal(xtal_1, axis1_j1, axis1_j2 ,axis1) )
-					{continue;}
-
-				for(int k1 = 0; k1 < len_eq_atoms; k1++)
-				for(int k2 = k1; k2 < len_eq_atoms; k2++)
-				{	
-			
-					int axis2_k1 = eq_atoms[k1];
-					int axis2_k2 = eq_atoms[k2];
-					float axis2[3];
-					float avg[3];
-
-					if( l1 == 0)
-					if( !compute_atom_average_xtal(xtal_1, mol_index + axis2_k1, mol_index + axis2_k2, axis2) )
-						{continue;}
-
-					if( l1 == 1)
-					if( !compute_atom_cross_xtal(xtal_1, mol_index + axis2_k1, mol_index + axis2_k2, axis2) )
-						{continue;}					
-
-					//compute average of the axis of two molecules
-					if ( !compute_average_axis(axis1, axis2, avg) )
-						{continue;}
-					//create rotation matrix
-					rotation_matrix_from_vectors(rotation_matrix, axis1, avg);
-					
-					
-					
-					for(int z = 0; z < N;  z++)
-						{
-						float temp[3] = {xtal_1->Xcord[z] ,
-										 xtal_1->Ycord[z] ,
-										 xtal_1->Zcord[z] };
-						vector3_mat3b3_multiply(rotation_matrix, temp, temp);
-						//vector3_add(temp,com,temp);
-						//convert to frac
-						vector3_mat3b3_multiply(inv_lattice_vectors,
-												temp,
-												temp );
-						vector3_add(temp, first_com, temp);
-						mol_Xfrac[z] = temp[0];
-						mol_Yfrac[z] = temp[1];
-						mol_Zfrac[z] = temp[2];
-					}
-					
-					apply_all_symmetry_ops(xtal,
-										   mol,
-										   mol_Xfrac,
-										   mol_Yfrac,
-										   mol_Zfrac,
-										   N,
-										   hall_number);
-										   
-					//print_vec3(avg);
-					
-					int result = check_overlap_xtal(xtal,
-													overlap_list,
-													len_overlap_list,
-													N);
-					
-					if (result)
-					{
-						int Z_gen = xtal->Z;
-						//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
-						//remove_close_molecules(xtal);
-						combine_close_molecules(xtal);
-						int Z_return = xtal->Z;
-						//len_overlap_list == order, Z/len = multiplicity
-						if(Z_return != Z_gen/len_overlap_list)
-							return 0;
-
-						//detect_spg_using_spglib(xtal);
-						//print_crystal(xtal);
-						
-						//printf("result 1\n");
-						free(xtal->atoms);
-						free(xtal->Xcord);
-						free(xtal->Ycord);
-						free(xtal->Zcord);
-						free(xtal);
-						return Z_return;
-					}
-						
-					//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
-					
-					//print_crystal(xtal);
-					
-				}	
+		if ( pdist_appx(xtal.lattice_vectors,
+				inverse_lattice_vectors,
+				com[0],
+				com[1],
+				com[2],
+				first_com[0],
+				first_com[1],
+				first_com[2]) < CONST_TOL)
+				
+		{	
+			overlap_list[count] = i;
+			count++;
+			//not tested; check if + or - !
+			if (cart_dist(com, first_com) > CONST_TOL) 
+			{
+				float displace[3];
+				vector3_subtract(com, first_com, displace);
+				for(int k = i; k < i + N; k++)
+				{
+					xtal.Xcord[k] -= displace[0];
+					xtal.Ycord[k] -= displace[1];
+					xtal.Zcord[k] -= displace[2];  
+				}
+			}
 		}
 	}
-	
-	free(xtal->atoms);
-	free(xtal->Xcord);
-	free(xtal->Ycord);
-	free(xtal->Zcord);
-	free(xtal);
-	
-	return 0;
+	*len_overlap_list = count;
 }
 
-
-
-int check_pos_compatibility_using_std_orientations(crystal* xtal_1,		\
-							  molecule* mol,		\
-							  int hall_number,		\
-							  float *mol_axes,	\
-							  int num_axes,	\
+int check_pos_compatibility_using_std_orientations(crystal* xtal_1,	
+							  COMPATIBLE_AXES comp_axes,
+							  molecule* mol,		
+							  int hall_number,		
+							  float *mol_axes,	
+							  int num_axes,	
 							  float first_com[3],
 							  int overlap_list[],
 							  int len_overlap_list)
 {
-	//take two pairs
-	//rotate molecule to average position
 	int N = mol->num_of_atoms;
-
 	float rotation_matrix[3][3];
 	float mol_Xfrac[N]; //stores fractional ...
 	float mol_Yfrac[N]; //coordinates of first mol
@@ -620,27 +448,13 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,		\
 	
 	//create a temp xtal
 	crystal *xtal = (crystal*)malloc(sizeof(crystal));
-	xtal->lattice_vectors[0][0] = xtal_1->lattice_vectors[0][0];
-	xtal->lattice_vectors[0][1] = xtal_1->lattice_vectors[0][1];
-	xtal->lattice_vectors[0][2] = xtal_1->lattice_vectors[0][2];
-	xtal->lattice_vectors[1][0] = xtal_1->lattice_vectors[1][0];
-	xtal->lattice_vectors[1][1] = xtal_1->lattice_vectors[1][1];
-	xtal->lattice_vectors[1][2] = xtal_1->lattice_vectors[1][2];
-	xtal->lattice_vectors[2][0] = xtal_1->lattice_vectors[2][0];
-	xtal->lattice_vectors[2][1] = xtal_1->lattice_vectors[2][1];
-	xtal->lattice_vectors[2][2] = xtal_1->lattice_vectors[2][2];
-	
-	xtal->Xcord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->Ycord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->Zcord = (float *)malloc(ZMAX*N*sizeof(float));
-	xtal->atoms = (char *)malloc(ZMAX*N*2*sizeof(char));
+	copy_mat3b3_mat3b3(xtal->lattice_vectors, xtal_1->lattice_vectors);
+	allocate_xtal(xtal, ZMAX, N);
 	xtal->num_atoms_in_molecule = mol->num_of_atoms;
 	
 	//debug
 	int spg = xtal_1->spg;
-	//generate_lattice(xtal->lattice_vectors, spg, 60, 120, 1000000);
-	//generate_fake_lattice(xtal->lattice_vectors, spg);
-	
+
 	//pick a mol axis
 	for (int i = 0; i < num_axes; i++)
 	{
@@ -708,9 +522,6 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,		\
 				free_xtal(xtal);
 				return Z_return;
 			}
-			  
-			
-			
 		}
 	}
 	
