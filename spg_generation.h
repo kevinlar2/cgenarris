@@ -8,12 +8,22 @@
 
 typedef struct
 {
-	int *usable_mol_axes;
-	int *usable_view_dir;
+	float *usable_mol_axes;
+	float *usable_view_dir;
 	int num_combinations;
 	
 }COMPATIBLE_AXES;
 
+/*
+ * spg: is the space group.
+ * num_allowed_pos: is the number of compatible positions for this spg.
+ * allowed_pos: is a list of allowed pos; 0 for general position,
+ * the order is defined by the database.
+ * pos_overlap_list: is the overlap list for each position. overlap list 
+ * is the list of molecules that overlap with the first molecule.
+ * compatible_axes: stores information about the combination of 
+ * viewing directions and molecular axes.
+ */
 typedef struct 
 {
 	unsigned int spg;

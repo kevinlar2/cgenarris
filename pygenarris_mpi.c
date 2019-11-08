@@ -248,13 +248,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 									 mol_axes,
 									 num_axes);
 					
-					//alignment failure
-					if(!result)
-						continue;
-					
-					//check if molecules are too close with sr	    
-					verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);    
-					
 					//reset volume after volume attempts
 					if( (i+j) % VOL_ATTEMPT == 0 && i+j != 0)
 					{
@@ -263,7 +256,14 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 							printf("#Rank 0: Completed %d attempts.\n", (i+j)*total_ranks);
 						fflush(stdout);
 					}
-
+					
+					//alignment failure
+					if(!result)
+						continue;
+					
+					//check if molecules are too close with sr	    
+					verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);    
+					
 										//if generation is successful
 					if (verdict == 1 )
 					{

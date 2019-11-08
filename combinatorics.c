@@ -313,10 +313,12 @@ void find_compatible_spg_positions(molecule *mol,
 			//using the list of overlap molecules
 			bring_molecules_to_origin(&xtal);
 
+			//debug 
+			compatible_spg[*num_compatible_spg].compatible_axes[pos].num_combinations = 0;
 			//check compatiblility of a wyckoff position using standard 
 			//viewing directions
 			int result = check_pos_compatibility_using_std_orientations(&xtal,
-									compatible_spg[*num_compatible_spg].compatible_axes[pos],
+									&compatible_spg[*num_compatible_spg].compatible_axes[pos],
 									mol,
 									hall_number,
 									*mol_axes,
@@ -376,57 +378,8 @@ void find_compatible_spg_positions(molecule *mol,
 }
 
 
-
-void find_overlap_list (crystal xtal,
-						float first_com[3],
-						float inverse_lattice_vectors[3][3],
-						int overlap_list[],
-						int *len_overlap_list,
-						int Z_gen, 
-						int N)
-{
-	//find molecules which overlap with the first molecule
-	//The index of first atoms of those molecules are stored
-	//in overlap list.
-	
-	int count = 0;
-	
-	for(int i = 0; i < Z_gen * N; i = i + N)
-	{
-		float com[3];
-		compute_molecule_COM(xtal, com, i);
-
-		if ( pdist_appx(xtal.lattice_vectors,
-				inverse_lattice_vectors,
-				com[0],
-				com[1],
-				com[2],
-				first_com[0],
-				first_com[1],
-				first_com[2]) < CONST_TOL)
-				
-		{	
-			overlap_list[count] = i;
-			count++;
-			//not tested; check if + or - !
-			if (cart_dist(com, first_com) > CONST_TOL) 
-			{
-				float displace[3];
-				vector3_subtract(com, first_com, displace);
-				for(int k = i; k < i + N; k++)
-				{
-					xtal.Xcord[k] -= displace[0];
-					xtal.Ycord[k] -= displace[1];
-					xtal.Zcord[k] -= displace[2];  
-				}
-			}
-		}
-	}
-	*len_overlap_list = count;
-}
-
 int check_pos_compatibility_using_std_orientations(crystal* xtal_1,	
-							  COMPATIBLE_AXES comp_axes,
+							  COMPATIBLE_AXES *comp_axes,
 							  molecule* mol,		
 							  int hall_number,		
 							  float *mol_axes,	
@@ -436,7 +389,6 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 							  int len_overlap_list)
 {
 	int N = mol->num_of_atoms;
-	int is_compatible = 0;
 	float rotation_matrix[3][3];
 	float mol_Xfrac[N]; //stores fractional ...
 	float mol_Yfrac[N]; //coordinates of first mol
@@ -515,27 +467,27 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 				if(Z_return != Z_gen/len_overlap_list)
 					{continue;}
 				
-				int comb = comp_axes.num_combinations;
-				comp_axes.usable_mol_axes = (float *) 
-						realloc(comp_axes.usable_mol_axes, 3*(comb+1)*sizeof(float));
-				comp_axes.usable_view_dir = (float *) 
-						realloc(comp_axes.usable_view_dir, 3*(comb+1)*sizeof(float));
+				int comb = (*comp_axes).num_combinations;
+				(*comp_axes).usable_mol_axes = (float *) 
+						realloc((*comp_axes).usable_mol_axes, 3*(comb+1)*sizeof(float));
+				(*comp_axes).usable_view_dir = (float *) 
+						realloc((*comp_axes).usable_view_dir, 3*(comb+1)*sizeof(float));
 				
-				*(comp_axes.usable_mol_axes + 3*comb + 0) = mol_axes[0];
-				*(comp_axes.usable_mol_axes + 3*comb + 1) = mol_axes[1];
-				*(comp_axes.usable_mol_axes + 3*comb + 2) = mol_axes[2];
+				*((*comp_axes).usable_mol_axes + 3*comb + 0) = mol_axes[0];
+				*((*comp_axes).usable_mol_axes + 3*comb + 1) = mol_axes[1];
+				*((*comp_axes).usable_mol_axes + 3*comb + 2) = mol_axes[2];
 				
-				*(comp_axes.usable_view_dir + 3*comb + 0) = view_dir[0];
-				*(comp_axes.usable_view_dir + 3*comb + 1) = view_dir[1];
-				*(comp_axes.usable_view_dir + 3*comb + 2) = view_dir[2];
+				*((*comp_axes).usable_view_dir + 3*comb + 0) = view_dir[0];
+				*((*comp_axes).usable_view_dir + 3*comb + 1) = view_dir[1];
+				*((*comp_axes).usable_view_dir + 3*comb + 2) = view_dir[2];
 				
-				comp_axes.num_combinations++;
+				(*comp_axes).num_combinations++;
 			}
 		}
 	}
 	
 	free_xtal(xtal);
-	if(comp_axes.num_combinations)
+	if((*comp_axes).num_combinations)
 		return 1;
 	else
 		return 0;
@@ -812,6 +764,56 @@ int compute_cross_axis(float axis1[3],float axis2[3], float avg[3])
 	normalise_vector3(avg);
 	return 1;
 	
+}
+
+
+
+void find_overlap_list (crystal xtal,
+						float first_com[3],
+						float inverse_lattice_vectors[3][3],
+						int overlap_list[],
+						int *len_overlap_list,
+						int Z_gen, 
+						int N)
+{
+	//find molecules which overlap with the first molecule
+	//The index of first atoms of those molecules are stored
+	//in overlap list.
+	
+	int count = 0;
+	
+	for(int i = 0; i < Z_gen * N; i = i + N)
+	{
+		float com[3];
+		compute_molecule_COM(xtal, com, i);
+
+		if ( pdist_appx(xtal.lattice_vectors,
+				inverse_lattice_vectors,
+				com[0],
+				com[1],
+				com[2],
+				first_com[0],
+				first_com[1],
+				first_com[2]) < CONST_TOL)
+				
+		{	
+			overlap_list[count] = i;
+			count++;
+			//not tested; check if + or - !
+			if (cart_dist(com, first_com) > CONST_TOL) 
+			{
+				float displace[3];
+				vector3_subtract(com, first_com, displace);
+				for(int k = i; k < i + N; k++)
+				{
+					xtal.Xcord[k] -= displace[0];
+					xtal.Ycord[k] -= displace[1];
+					xtal.Zcord[k] -= displace[2];  
+				}
+			}
+		}
+	}
+	*len_overlap_list = count;
 }
 
 

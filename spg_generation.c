@@ -49,14 +49,16 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 	random_crystal->wyckoff_position = pos;
 	
 	//place, align and attempt to generate crystal at position pos
-	int result = auto_align_and_generate_at_position(random_crystal, mol, hall_number, spg, 
-		pos,mol_axes, num_axes, compatible_spg[compatible_spg_index].pos_overlap_list[pos_index]);
-	
-
-
+	int result = auto_align_and_generate_at_position(random_crystal,
+							mol,
+							hall_number,
+							spg, 
+							pos_index,
+							compatible_spg[compatible_spg_index]);
+	//copy back to mol
 	copy_positions_to_mol(mol, Xm, Ym, Zm);
 	
-	if(result == 0)
+	if(!result)
 		return 0;
 	else
 		return 1;

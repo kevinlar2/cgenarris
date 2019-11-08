@@ -16,8 +16,8 @@ void find_farthest_equivalent_atoms(molecule *mol,int atom_index[],\
 									
 
 
-int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
-							  COMPATIBLE_AXES comp_axes,
+int check_pos_compatibility_using_std_orientations(crystal* xtal_1,	
+							  COMPATIBLE_AXES *comp_axes,
 							  molecule* mol,		
 							  int hall_number,		
 							  float *mol_axes,	
