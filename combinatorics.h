@@ -31,6 +31,17 @@ int check_overlap_xtal(crystal* xtal,
 					   int len_overlap_list,
 					   int N);
 					   
+/*
+*function to check overlaps in a crystal using simple cartesian distance
+* uses the overlap list to know location of symmetrically equivalent 
+* molecules
+*/
+int check_overlap_xtal_cartesian(crystal* xtal,
+								int overlap_list[],
+								int len_overlap_list,
+								int N);
+								
+					   
 int compute_average_axis(float axis1[3],float axis2[3], float avg[3]);
 int compute_atom_average_xtal(crystal* xtal, int index1, int index2, float avg[3]);
 

@@ -63,7 +63,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	srand((unsigned int)time(NULL));
 	int seed_shift = rand()% 1061 + 7 ;
 	//variable declarations
-	int fail_count;
+	//int fail_count;
 	int stop_flag = 0;	// to stop threads if limit is reached
 	int success_flag = 0;
 	int counter = 0;	//counts number of structures
@@ -211,14 +211,14 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	{
 		MPI_Barrier(world_comm);
 		//counter counts the number of structures generated
-		if (spg_index > 44)
-			break;
-		spg_index = 44;
+		//if (spg_index > 44)
+		//	break;
+		//spg_index = 44;
 		spg = compatible_spg[spg_index].spg; //pick a spg 
 		
 		//time information
 		time_t start_time = time(NULL);
-		fail_count = 0;
+		//fail_count = 0;
 
 		//print attempted space group 
 		if (my_rank == 0)
@@ -252,8 +252,8 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 					{
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						if(my_rank == 0)
-							printf("#Rank 0: Completed %d attempts.\n", (i+j)*total_ranks);
-						printf("fail count - %d / %d \n", fail_count, i);
+							printf("#Rank %8d: Completed %d attempts.\n", 0, (i+j)*total_ranks);
+						//printf("fail count - %d / %d \n", fail_count, i);
 						//print_crystal(random_crystal);
 						fflush(stdout);						
 					}
@@ -261,7 +261,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 					//alignment failure
 					if(!result)
 					{
-						fail_count ++;
+						//fail_count ++;
 						continue;
 					}
 					//check if molecules are too close with sr	    
@@ -288,14 +288,14 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 						if (counter < num_structures)
 						{							
 							print_crystal2file(random_crystal, out_file);
-							printf("#Rank %d: Generation successful.\n", my_rank);
+							printf("#Rank %8d: Generation successful.\n", my_rank);
 							counter++;
 							success_flag = 1;
 							//int spglib_spg = detect_spg_using_spglib(random_crystal);
 							//printf("#SPGLIB detected space group = %d\n\n",
 							//				                     spglib_spg);
-							printf("fail count = %d, total_attempts = %d \n", fail_count, i);
-							fail_count = 0;
+							//printf("fail count = %d, total_attempts = %d \n", fail_count, i);
+							//fail_count = 0;
 							
 						}
 						else
@@ -313,7 +313,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 							if(counter < num_structures)
 							{	
 								print_crystal2file(random_crystal, out_file);
-								printf("#Rank %d: Generation successful.\n", rank);
+								printf("#Rank %8d: Generation successful.\n", rank);
 								counter++;
 							}
 							else
@@ -352,7 +352,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 				if (my_rank== 0)
 				{	
 					printf("**WARNING: generation failed for space group = %d "
-							"after %ld attempts. \n",
+							"after %12ld attempts. \n",
 							spg,
 							max_attempts);		
 					fflush(stdout);

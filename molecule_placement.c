@@ -314,10 +314,10 @@ int align_using_std_orientations(crystal* xtal_1,
 	
 	//bring_molecules_to_origin(xtal);
 	
-	int result = check_overlap_xtal(xtal,
-									overlap_list,
-									len_overlap_list,
-									N);
+	int result = check_overlap_xtal_cartesian(xtal,
+										overlap_list,
+										len_overlap_list,
+										N);
 			
 	if (result)
 	{

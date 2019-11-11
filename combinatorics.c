@@ -660,6 +660,76 @@ int check_overlap_xtal(crystal* xtal,
 	return 1;
 }
 
+/*
+*function to check overlaps in a crystal using simple cartesian distance
+* uses the overlap list to know location of symmetrically equivalent 
+* molecules
+*/
+int check_overlap_xtal_cartesian(crystal* xtal,
+								int overlap_list[],
+								int len_overlap_list,
+								int N)
+{
+	float lattice_vectors[3][3];
+	float inv_lattice_vectors[3][3];
+	copy_mat3b3_mat3b3(lattice_vectors, xtal->lattice_vectors);
+	inverse_mat3b3(inv_lattice_vectors, lattice_vectors);
+	
+	float first_com[3], second_com[3];
+	compute_molecule_COM(*xtal, first_com, 0);
+	
+	for (int i = 1; i < len_overlap_list; i++)
+	{
+		int mol_index = overlap_list[i];
+		compute_molecule_COM(*xtal, second_com, mol_index);
+		
+		if ( (first_com[0] - second_com[0])*(first_com[0] - second_com[0]) +
+			 (first_com[1] - second_com[1])*(first_com[1] - second_com[1]) +
+			 (first_com[2] - second_com[2])*(first_com[2] - second_com[2])		
+								> TOL 										)
+		{
+			float displace[3];
+			vector3_subtract(second_com, first_com, displace);
+			
+			for(int l = mol_index; l < mol_index + N; l++)
+			{
+				xtal->Xcord[l] -= displace[0];
+				xtal->Ycord[l] -= displace[1];
+				xtal->Zcord[l] -= displace[2];  
+			}
+			
+		}
+		
+		for(int j = 0; j < N; j++)
+		{
+			float atom1[3] = {xtal->Xcord[mol_index+j], 
+							  xtal->Ycord[mol_index+j], 
+							  xtal->Zcord[mol_index+j]  };
+							  
+			float min_dist = 1000*TOL ;
+			
+			for(int k = 0; k < N; k++)
+			{
+				float atom2[3] = { xtal->Xcord[k], 
+								   xtal->Ycord[k], 
+								   xtal->Zcord[k]	};
+				float dist = (atom1[0] - atom2[0]) * (atom1[0] - atom2[0])+
+							 (atom1[1] - atom2[1]) * (atom1[1] - atom2[1])+
+							 (atom1[2] - atom2[2]) * (atom1[2] - atom2[2]);
+
+				//float dist = cart_dist(atom1, atom2);
+				if (dist < min_dist)
+					{min_dist = dist ;}
+			}
+			
+			if ( sqrt(min_dist) > 1*TOL)
+				{return 0;}
+		}
+	}
+	
+	return 1;
+}
+
 
 
 /*compute avg of two atoms in a molecule. return 0 if the resultant is 

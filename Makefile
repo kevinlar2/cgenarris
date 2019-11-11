@@ -1,5 +1,5 @@
 CC=mpicc
-CFLAGS=-std=gnu99 -pg -O3 -fPIC -Wall -Wextra 
+CFLAGS=-std=gnu99 -O3 -fPIC -Wall -Wextra 
 OMP=fopenmp
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 

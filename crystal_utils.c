@@ -456,14 +456,13 @@ void average_positions_using_list(float 	*tempx,
 		for (int j = 0; j < N; j++)
 		{
 
-			float p1[3]; 
 			float min = 0;
 			int mink = 0;
-			p1[0] = xtal->Xcord[first_mol+j];
-			p1[1] = xtal->Ycord[first_mol+j];
-			p1[2] = xtal->Zcord[first_mol+j];
+			float p1[3] = 
+			{ xtal->Xcord[first_mol+j],
+			  xtal->Ycord[first_mol+j],
+			  xtal->Zcord[first_mol+j] };
 			
-
 			//add first mol to tempx and tempatoms
             if (i == 1)
             {
@@ -477,14 +476,18 @@ void average_positions_using_list(float 	*tempx,
 			for(int k = 0; k < N; k++)
 			{
 				
-				float p2[3];
-				p2[0] = xtal->Xcord[second_mol + k];
-				p2[1] = xtal->Ycord[second_mol + k];
-				p2[2] = xtal->Zcord[second_mol + k];
+				float p2[3] = 
+				{ xtal->Xcord[second_mol + k],
+				  xtal->Ycord[second_mol + k],
+				  xtal->Zcord[second_mol + k] };
 				
-				if(cart_dist(p1,p2) < min || k == 0)
+				float temp_min =  (p1[0]-p2[0])*(p1[0]-p2[0]) +
+								  (p1[1]-p2[1])*(p1[1]-p2[1]) +
+								  (p1[2]-p2[2])*(p1[2]-p2[2]);
+				
+				if(temp_min < min || k == 0)
 				{
-					min = cart_dist(p1,p2);
+					min = temp_min;
 					mink = k;
 				}
 			}
