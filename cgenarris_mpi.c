@@ -30,8 +30,7 @@ void create_vdw_matrix_from_sr(molecule *mol,
 								float sr,
 								int Z);
 
-
-int main(int argc, char **argv)
+void main(int argc, char **argv)
 {
 	//Initialise MPI 
 	MPI_Init(&argc, &argv);
@@ -87,8 +86,7 @@ int main(int argc, char **argv)
 		max_attempts, 
 		world_comm);
 	
-	
-	return 0;
+	MPI_Finalize();
 }
 
 void create_vdw_matrix_from_sr(molecule *mol,
@@ -113,6 +111,8 @@ void create_vdw_matrix_from_sr(molecule *mol,
 						sr;
 			}
 	free(atom_vdw_vector);
+	
+	
 }
 
 /*

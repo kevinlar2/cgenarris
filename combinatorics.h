@@ -9,7 +9,7 @@ void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 
 void find_compatible_spg_positions(molecule *mol, int Z,
  COMPATIBLE_SPG compatible_spg[], int *num_compatible_spg,
- float **mol_axes, int *num_axes, int thread_num);
+ int thread_num);
 
 void find_farthest_equivalent_atoms(molecule *mol,int atom_index[],\
 										int* len_atom_index);

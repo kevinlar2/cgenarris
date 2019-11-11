@@ -10,7 +10,7 @@ number_of_structures    40
 sr                      0.85
 
 #mean volume of the unit cell (gaussian distribution)
-volume_mean             300
+volume_mean             600
 
 #standard deviation of the gaussian distribution
 volume_std              40
@@ -19,4 +19,4 @@ volume_std              40
 tolerance               0.1
 
 #number of attempts before moving to next space group
-max_attempts            2000000
+max_attempts            200000

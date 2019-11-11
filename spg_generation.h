@@ -53,8 +53,7 @@ typedef struct
 
 int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 	float Z, float Zp_max, int spg, COMPATIBLE_SPG compatible_spg[],
-	int len_compatible_spg, int compatible_spg_index, float* mol_axes,
-	int num_axes);
+	int len_compatible_spg, int compatible_spg_index);
 
 
 

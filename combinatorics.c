@@ -141,8 +141,6 @@ void find_compatible_spg_positions(molecule *mol,
 									int Z,
 									COMPATIBLE_SPG compatible_spg[],
 									int *num_compatible_spg,
-									float **mol_axes,
-									int *num_axes,
 									int thread_num)
 {
 	crystal xtal;
@@ -164,11 +162,11 @@ void find_compatible_spg_positions(molecule *mol,
 	
 
 	//allocate memory for mol_axes
-	*mol_axes = (float *)malloc(3*(len_eq_atoms*len_eq_atoms+3)*sizeof(float));	
-	find_possible_mol_axis(mol, *mol_axes, num_axes, eq_atoms, len_eq_atoms);
+	float *mol_axes = (float *)malloc(3*(len_eq_atoms*len_eq_atoms+3)*sizeof(float));
+	int num_axes = 0;	
+	find_possible_mol_axis(mol, mol_axes, &num_axes, eq_atoms, len_eq_atoms);
 	//for (int i = 0; i < num_axes; i++)
 	//	printf("%f %f %f \n", *((*mol_axes)+3*i+0), *((*mol_axes)+3*i+1), *((*mol_axes)+3*i+2) );
-	
 	
 	for (int spg = 0; spg < 230; spg++ )
 	{
@@ -204,6 +202,7 @@ void find_compatible_spg_positions(molecule *mol,
 				len_pos_list++;
 				continue;
 			}
+			
 			
 			//get rot and trans from database
 			int rot[3][3];
@@ -296,8 +295,7 @@ void find_compatible_spg_positions(molecule *mol,
 								&len_overlap_list,
 								Z_gen, 
 								N);
-				
-			
+
 			// if the overlap isn't the multiplicity, its a problem
 			if(len_overlap_list != order)
 			{	
@@ -321,8 +319,8 @@ void find_compatible_spg_positions(molecule *mol,
 									&compatible_spg[*num_compatible_spg].compatible_axes[pos],
 									mol,
 									hall_number,
-									*mol_axes,
-									*num_axes,
+									mol_axes,
+									num_axes,
 									rand_frac_array,
 									overlap_list,
 									len_overlap_list);
@@ -378,6 +376,7 @@ void find_compatible_spg_positions(molecule *mol,
 }
 
 
+
 int check_pos_compatibility_using_std_orientations(crystal* xtal_1,	
 							  COMPATIBLE_AXES *comp_axes,
 							  molecule* mol,		
@@ -408,6 +407,10 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 	//debug
 	int spg = xtal_1->spg;
 
+	(*comp_axes).usable_mol_axes = NULL;
+	(*comp_axes).usable_view_dir = NULL;
+	
+	
 	//pick a mol axis
 	for (int i = 0; i < num_axes; i++)
 	{
@@ -421,7 +424,7 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 								 viewing_directions[j][1],
 								 viewing_directions[j][2] };
 			normalise_vector3(view_dir);
-			
+						
 			//create rotation matrix
 			rotation_matrix_from_vectors(rotation_matrix,mol_axis, view_dir);
 			//rotate and store first molecule in fractional coord 
@@ -452,7 +455,7 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 						hall_number);
 			
 			//bring_molecules_to_origin(xtal);
-			
+
 			int result = check_overlap_xtal(xtal,
 										overlap_list,
 										len_overlap_list,
@@ -466,16 +469,17 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 				//len_overlap_list == order, Z/len = multiplicity
 				if(Z_return != Z_gen/len_overlap_list)
 					{continue;}
-				
+
 				int comb = (*comp_axes).num_combinations;
+				
 				(*comp_axes).usable_mol_axes = (float *) 
 						realloc((*comp_axes).usable_mol_axes, 3*(comb+1)*sizeof(float));
 				(*comp_axes).usable_view_dir = (float *) 
 						realloc((*comp_axes).usable_view_dir, 3*(comb+1)*sizeof(float));
-				
-				*((*comp_axes).usable_mol_axes + 3*comb + 0) = mol_axes[0];
-				*((*comp_axes).usable_mol_axes + 3*comb + 1) = mol_axes[1];
-				*((*comp_axes).usable_mol_axes + 3*comb + 2) = mol_axes[2];
+
+				*((*comp_axes).usable_mol_axes + 3*comb + 0) = mol_axis[0];
+				*((*comp_axes).usable_mol_axes + 3*comb + 1) = mol_axis[1];
+				*((*comp_axes).usable_mol_axes + 3*comb + 2) = mol_axis[2];
 				
 				*((*comp_axes).usable_view_dir + 3*comb + 0) = view_dir[0];
 				*((*comp_axes).usable_view_dir + 3*comb + 1) = view_dir[1];
@@ -501,6 +505,7 @@ void find_possible_mol_axis(molecule *mol, float *mol_axes, int* num_axes,\
 {
 	//add principle axes
 	*num_axes = 0;
+	/*
 	float p1[3] = {1, 0, 0};
 	float p2[3] = {0, 1, 0};
 	float p3[3] = {0, 0, 1};
@@ -508,7 +513,7 @@ void find_possible_mol_axis(molecule *mol, float *mol_axes, int* num_axes,\
 	add_axis_to_mol_axes(mol_axes, num_axes, p1);
 	add_axis_to_mol_axes(mol_axes, num_axes, p2);
 	add_axis_to_mol_axes(mol_axes, num_axes, p3);
-	
+	*/
 	int N = mol->num_of_atoms;
 	for(int i = 0; i < len_eq_atoms; i++)
 	for(int j = i; j < len_eq_atoms; j++)
@@ -654,7 +659,6 @@ int check_overlap_xtal(crystal* xtal,
 	
 	return 1;
 }
-
 
 
 

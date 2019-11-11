@@ -13,7 +13,7 @@
 
 
 #define PI 3.141592653
-
+extern unsigned int *seed2;
 
 void apply_all_symmetry_ops(crystal *xtal,
 							molecule *mol,
@@ -241,83 +241,106 @@ int align_using_std_orientations(crystal* xtal_1,
 	//rotate about axis if allowed
 	float random_rotation_about_axis[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 	
-	for (int i = 0; i < comb; i++)
-	{
-		float mol_axis[3] = {*(mol_axes+3*i + 0),
-							 *(mol_axes+3*i + 1),
-							 *(mol_axes+3*i + 2) };		
-		float view_dir[3] = { *(viewing_directions + 3*i + 0),
-							  *(viewing_directions + 3*i + 1),
-							  *(viewing_directions + 3*i + 2)};
-		normalise_vector3(view_dir);
-		
-		//create rotation matrix
-		rotation_matrix_from_vectors(rotation_matrix, view_dir, mol_axis);
-		//rotate and store first molecule in fractional coord 
-		//in mol_frac
-		if(dof == 1)
-		{
-			float psi = 2*PI*uniform_dist_01();
-			rotation_mat_around_axis(random_rotation_about_axis, view_dir, psi);
-		}
-		
-		for(int z = 0; z < N; z++)
-		{
-			float temp[3] = {xtal_1->Xcord[z] ,
-							 xtal_1->Ycord[z] ,
-							 xtal_1->Zcord[z] };
-			vector3_mat3b3_multiply(rotation_matrix, temp, temp);
-			
-			vector3_mat3b3_multiply(random_rotation_about_axis, temp, temp);
-			//vector3_add(temp,com,temp);
-			//convert to frac
-			vector3_mat3b3_multiply(inv_lattice_vectors,
-									temp,
-									temp );
-			vector3_add(temp, first_com, temp);
-			mol_Xfrac[z] = temp[0];
-			mol_Yfrac[z] = temp[1];
-			mol_Zfrac[z] = temp[2];
-		}
-		
-		apply_all_symmetry_ops(	xtal,
-								mol,
-								mol_Xfrac,
-								mol_Yfrac,
-								mol_Zfrac,
-								N,
-								hall_number);
-		
-		//bring_molecules_to_origin(xtal);
-		
-		int result = check_overlap_xtal(xtal,
-										overlap_list,
-										len_overlap_list,
-										N);
-				
-		if (result)
-		{
-			int Z_gen = xtal->Z;
-			//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
-			//remove_close_molecules(xtal);
-			combine_close_molecules(xtal);
-			int Z_return = xtal->Z;
-			//len_overlap_list == order, Z/len = multiplicity
-			if(Z_return != Z_gen/len_overlap_list)
-				{continue;}
+	int i = rand_r(seed2) % comb;
 
-			//detect_spg_using_spglib(xtal);
-			//print_crystal(xtal);
-			//printf("result 1\n");
-			copy_xtal(xtal_1, xtal);
-			free_xtal(xtal);
-			return Z_return;
-		}
-		  
-	}//end of combination loop
+	float mol_axis[3] = {*(mol_axes+3*i + 0),
+						 *(mol_axes+3*i + 1),
+						 *(mol_axes+3*i + 2) };		
+	float view_dir[3] = { *(viewing_directions + 3*i + 0),
+						  *(viewing_directions + 3*i + 1),
+						  *(viewing_directions + 3*i + 2)};
+	normalise_vector3(view_dir);
+	normalise_vector3(mol_axis);
 	
-	free_xtal(xtal);
-	return 0;
+	//create rotation matrix
+	rotation_matrix_from_vectors(rotation_matrix, mol_axis, view_dir);
+	//rotate and store first molecule in fractional coord 
+	//in mol_frac
+	if(dof == 1)
+	{
+		float psi = 2*PI*uniform_dist_01();
+		rotation_mat_around_axis(random_rotation_about_axis, view_dir, psi);
+	}
+	
+	if(dof == 0)
+	{
+		float axis[3];
+		int draw = rand_r(seed2) % 3;
+		
+		if (draw == 1)
+		{
+			float x[3] = {1, 0, 0};
+			copy_vector3_vector3(axis, x);
+		}
+		else if (draw == 2)
+		{
+			float y[3] = {0, 1, 0};
+			copy_vector3_vector3(axis, y);
+		}
+		else
+		{
+			float z[3] = {0, 0, 1};
+			copy_vector3_vector3(axis, z);
+		}
+		rotation_mat_around_axis(random_rotation_about_axis, axis, PI/2);
+	}
+	
+	for(int z = 0; z < N; z++)
+	{
+		float temp[3] = {xtal_1->Xcord[z] ,
+						 xtal_1->Ycord[z] ,
+						 xtal_1->Zcord[z] };
+		vector3_mat3b3_multiply(rotation_matrix, temp, temp);
+		
+		vector3_mat3b3_multiply(random_rotation_about_axis, temp, temp);
+		//vector3_add(temp,com,temp);
+		//convert to frac
+		vector3_mat3b3_multiply(inv_lattice_vectors,
+								temp,
+								temp );
+		vector3_add(temp, first_com, temp);
+		mol_Xfrac[z] = temp[0];
+		mol_Yfrac[z] = temp[1];
+		mol_Zfrac[z] = temp[2];
+	}
+	
+	apply_all_symmetry_ops(	xtal,
+							mol,
+							mol_Xfrac,
+							mol_Yfrac,
+							mol_Zfrac,
+							N,
+							hall_number);
+	
+	//bring_molecules_to_origin(xtal);
+	
+	int result = check_overlap_xtal(xtal,
+									overlap_list,
+									len_overlap_list,
+									N);
+			
+	if (result)
+	{
+		int Z_gen = xtal->Z;
+		//printf("i=%d, j1=%d, j2=%d, k1=%d, k2=%d \n", i,j1,j2,k1,k2);
+		//remove_close_molecules(xtal);
+		combine_close_molecules(xtal);
+		int Z_return = xtal->Z;
+		//len_overlap_list == order, Z/len = multiplicity
+		if(Z_return != Z_gen/len_overlap_list)
+			{goto failed;}
+
+		copy_xtal(xtal_1, xtal);
+		goto success;
+	}
+
+	failed:
+		free_xtal(xtal);
+		return 0;
+	success:
+		free_xtal(xtal);
+		return 1;
+	
 }
 
 
