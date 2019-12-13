@@ -4,6 +4,14 @@ setup.py file
 """
 
 from distutils.core import setup, Extension
+from distutils import sysconfig
+import os
+
+os.environ["CC"] = "mpicc" 
+ldshared = sysconfig.get_config_var('LDSHARED')
+#remove gcc or icc and paste mpicc for linker
+ldshared = "mpicc " + ldshared.partition(' ')[2]
+os.environ["LDSHARED"] = ldshared
 
 
 package = 'numpy'
@@ -12,8 +20,16 @@ try:
 except ImportError:
     print("Please install numpy python package")
     exit()
-
 import numpy
+
+package = 'mpi4py'
+try:
+    __import__(package)
+except ImportError:
+    print("Please install mpi4py python package")
+    exit()
+import mpi4py
+
 
 sources_spglib = ['arithmetic.c',
            'cell.c',
@@ -42,15 +58,19 @@ for i, s in enumerate(sources_spglib):
     sources_spglib[i] = "%s/%s" % (source_dir, s)
 
 
-pygenarris = Extension('_pygenarris',include_dirs= ['./', numpy.get_include()], sources=['pygenarris.i', 'pygenarris.c', 
-'combinatorics.c', 'molecule_placement.c', 'algebra.c', 'molecule_utils.c',
-'spg_generation.c', 'lattice_generator.c', 'crystal_utils.c', 'check_structure.c', 'read_input.c', 'randomgen.c']+sources_spglib,
-extra_compile_args=["-fopenmp", "-std=gnu99"], extra_link_args=['-lgomp'])
 
-setup (name = 'pygenarris',
+pygenarris_mpi = Extension('_pygenarris_mpi',
+                           include_dirs= ['./', numpy.get_include(), mpi4py.get_include()],
+                           sources=['pygenarris_mpi.i', 'pygenarris_mpi.c', 'combinatorics.c', 'molecule_placement.c',
+                           'algebra.c', 'molecule_utils.c','spg_generation.c', 'lattice_generator.c', 'crystal_utils.c',
+                           'check_structure.c', 'read_input.c', 'randomgen.c']+sources_spglib,
+                           extra_compile_args=["-std=gnu99"])
+
+setup (name = 'pygenarris_mpi',
        version = '0.1',
        author      = "xxx",
        description = """yyy""",
-       ext_modules = [pygenarris],
-       py_modules = ["pygenarris"],
+       ext_modules = [pygenarris_mpi],
+       install_requires=['numpy', 'mpi4py'],
+       py_modules = ["pygenarris_mpi"],
        )

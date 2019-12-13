@@ -440,7 +440,8 @@ newpage
 \end_layout
 
 \begin_layout Section
-Pygenarris
+Pygenarris (Deprecated; Use pygenarris_mpi.
+ Documentation for pygenarris_mpi will be available soon )
 \end_layout
 
 \begin_layout Standard

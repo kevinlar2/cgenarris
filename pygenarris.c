@@ -24,6 +24,7 @@ unsigned int *seed2;
 #pragma omp threadprivate(seed2)
 extern float TOL;
 
+/*
 
 void generate_molecular_crystals(char *filename,int num_structures, int Z,
 	double volume_mean1, double volume_std1, double sr1, double tol1, 
@@ -136,7 +137,7 @@ void generate_molecular_crystals(char *filename,int num_structures, int Z,
 		{
 			int verdict = 0;
 			int i = 0; 
-			/* attempts for an spg*/
+			// attempts for an spg
 			for(; i < max_attempts/total_threads; i++)
 			{
 				if(counter >= num_structures)
@@ -387,7 +388,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 		{
 			int verdict = 0;
 			int i = 0; 
-			/* attempts for an spg*/
+			// attempts for an spg
 			for(; i < max_attempts/total_threads; i++)
 			{
 				if(counter >= num_structures)
@@ -506,7 +507,7 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 
 
 
-
+*/
 
 
 
@@ -586,6 +587,7 @@ int num_compatible_spacegroups(int Z, double tolerance)
 {
 	//set global variable tolerance
 	TOL = tolerance;
+    seed2 = (unsigned int*)malloc(sizeof(unsigned int));
 
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
@@ -601,12 +603,11 @@ int num_compatible_spacegroups(int Z, double tolerance)
 								  Z,
 								  compatible_spg,
 								  &num_compatible_spg,
-								  &mol_axes,
-								  &num_axes,
 								  thread_num);
 
 	free(mol_axes);
 	free(mol);
+    free(seed2);
 	return num_compatible_spg;
 
 }

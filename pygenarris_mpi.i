@@ -38,6 +38,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	double tol1, 
 	long max_attempts, 
 	MPI_Comm world_comm);
+int num_compatible_spacegroups(int Z, double tolerance);
+void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
+	int Z, int Zpp);
 
 void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);
 void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);

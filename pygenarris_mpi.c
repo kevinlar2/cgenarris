@@ -448,3 +448,32 @@ void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
 	xtal->lattice_vectors[2][1] = temp[7];
 	xtal->lattice_vectors[2][2] = temp[8];
 }
+
+int num_compatible_spacegroups(int Z, double tolerance)
+{
+	//set global variable tolerance
+	TOL = tolerance;
+
+
+	COMPATIBLE_SPG compatible_spg[230]; 
+	int num_compatible_spg = 0;
+	int num_axes;
+	float *mol_axes;
+	int thread_num = 1; 
+	molecule *mol = (molecule*)malloc(sizeof(molecule));
+
+	//read geometry from geometry.in
+	read_geometry(mol);
+
+	find_compatible_spg_positions(mol,
+								  Z,
+								  compatible_spg,
+								  &num_compatible_spg,
+								  thread_num);
+
+	free(mol_axes);
+	free(mol);
+
+	return num_compatible_spg;
+
+}

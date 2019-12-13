@@ -1,6 +1,7 @@
 
 %module pygenarris
 %{
+#include "algebra.h"
 #include "read_input.h"
 #include "spg_generation.h"
 #include "pygenarris.h"
@@ -22,10 +23,7 @@
 import_array();
 %}
 
-void generate_molecular_crystals(char *filename,int num_structures, int Z,
-	double volume_mean1, double volume_std1, double sr1, double tol1, 
-	int max_attempts);
-	
+
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
 	
@@ -55,17 +53,7 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int dim1,
 	int dim2);
 
-void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
-	int seedstate,
-	float *vdw_matrix,
-	int dim1,
-	int dim2,
-	int num_structures,
-	int Z,
-	double volume_mean1,
-	double volume_std1,
-	double tol1, 
-	int max_attempts);
+
 
 int num_compatible_spacegroups(int Z, double tolerance);
 

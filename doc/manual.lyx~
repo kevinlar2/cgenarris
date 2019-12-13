@@ -423,6 +423,22 @@ geometry.out
 with all the generated structures in FHI-aims geometry format.
 \end_layout
 
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+newpage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Pygenarris
 \end_layout
