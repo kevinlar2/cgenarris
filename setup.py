@@ -57,8 +57,6 @@ include_dirs = [source_dir, ]
 for i, s in enumerate(sources_spglib):
     sources_spglib[i] = "%s/%s" % (source_dir, s)
 
-
-
 pygenarris_mpi = Extension('_pygenarris_mpi',
                            include_dirs= ['./', numpy.get_include(), mpi4py.get_include()],
                            sources=['pygenarris_mpi.i', 'pygenarris_mpi.c', 'combinatorics.c', 'molecule_placement.c',
@@ -68,8 +66,8 @@ pygenarris_mpi = Extension('_pygenarris_mpi',
 
 setup (name = 'pygenarris_mpi',
        version = '0.1',
-       author      = "xxx",
-       description = """yyy""",
+       author      = "Rithwik Tom",
+       description = """email:rtom@andrew.cmu.edu""",
        ext_modules = [pygenarris_mpi],
        install_requires=['numpy', 'mpi4py'],
        py_modules = ["pygenarris_mpi"],

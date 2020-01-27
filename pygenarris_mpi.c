@@ -477,3 +477,46 @@ int num_compatible_spacegroups(int Z, double tolerance)
 	return num_compatible_spg;
 
 }
+
+
+void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
+		double *Yc,int total_atoms2, double *Zc, int total_atoms3,char* atoms, int total_atoms, int Z, int spg)
+{
+	
+	xtal->spg = spg;
+	xtal->Z = Z;
+	
+	int num_atoms_in_molecule = total_atoms/Z;
+	allocate_xtal(xtal, Z, num_atoms_in_molecule);
+	xtal->num_atoms_in_molecule = num_atoms_in_molecule;
+	
+	xtal->lattice_vectors[0][0] = lattice_vector[0][0];
+	xtal->lattice_vectors[0][1] = lattice_vector[0][1];
+	xtal->lattice_vectors[0][2] = lattice_vector[0][2];
+	
+	xtal->lattice_vectors[1][0] = lattice_vector[1][0];
+	xtal->lattice_vectors[1][1] = lattice_vector[1][1];
+	xtal->lattice_vectors[1][2] = lattice_vector[1][2];
+	
+	xtal->lattice_vectors[2][0] = lattice_vector[2][0];
+	xtal->lattice_vectors[2][1] = lattice_vector[2][1];
+	xtal->lattice_vectors[2][2] = lattice_vector[2][2];
+	
+	for(int i = 0; i < total_atoms; i++)
+	{
+		xtal->Xcord[i] = Xc[i];
+		xtal->Ycord[i] = Yc[i];
+		xtal->Zcord[i] = Zc[i]; 
+		xtal->atoms[2*i] = atoms[2*i];
+		xtal->atoms[2*i+1] = atoms[2*i+1];
+		
+	}
+	
+	print_crystal(xtal);
+}
+
+int c_check_structure(crystal xtal, double sr)
+{
+	float f_sr = sr;
+	return check_structure(xtal, f_sr);
+}
