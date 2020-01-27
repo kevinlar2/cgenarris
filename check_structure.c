@@ -487,12 +487,12 @@ int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 				return 0;
 				
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
-					//printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n"
-					//, k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					printf("failed at %d atom and %d atom with distance %f, expected %f , bondlength of %f\n"
+					, k+1, j+1, pdist_kj,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
 					return 0 ;
 				}
 			}
@@ -531,7 +531,7 @@ int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 				*/
 				return 0;
 			}	
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
@@ -636,7 +636,7 @@ int check_structure(crystal random_crystal, float sr)
 	
 	//tier 1 check 
 	if( fast_screener(random_crystal, sr, atom_vdw) == 0)
-		{ free (atom_vdw); return 0;}
+		{ free (atom_vdw); printf("failed at tier1\n"); return 0;}
 	//end tier 1 check
 	
 	
@@ -666,6 +666,8 @@ int check_structure(crystal random_crystal, float sr)
 		}
 	}
 	
+    if(final_verdict == 0)
+      printf("failed at tier2 pair check");
 	//check self-image
 	 calc_bond_length(bond_length, random_crystal.Xcord, 
 		random_crystal.Ycord,  random_crystal.Zcord, N);
@@ -688,6 +690,7 @@ int check_structure(crystal random_crystal, float sr)
 	if (check_val == 0)
 	{	free(atom_vdw);
 		free(bond_length);
+        printf("failed at tier2 self check\n");
 		return final_verdict = 0;
 	}
 
@@ -1003,7 +1006,7 @@ int check_self_vdw_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			if (k == j && pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
 				return 0;
 				
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
 			{
 				if (pdist_kj < *(vdw_matrix + k*total_atoms + j) )
 				{
@@ -1076,7 +1079,7 @@ int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			if (k == j && pdist_kj_2 < *(vdw_matrix + k*total_atoms + j) )
 				return 0;
 				
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.00001)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
 			{
 				if (pdist_kj < *(vdw_matrix + k*total_atoms + j) )
 				{

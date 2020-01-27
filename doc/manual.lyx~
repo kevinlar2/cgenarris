@@ -135,7 +135,7 @@ Support for special positions.
 \end_layout
 
 \begin_layout Itemize
-Parallelized using OpenMP.
+Parallelized using MPI and OpenMP.
 \end_layout
 
 \begin_layout Itemize
@@ -208,7 +208,7 @@ Remove object files using 'make clean'
 \end_layout
 
 \begin_layout Subsection
-Pygenarris
+Pygenarris_mpi
 \end_layout
 
 \begin_layout Subsubsection*
@@ -224,7 +224,7 @@ SWIG (Simplified Wrapper code and Interface Generator).
 \end_layout
 
 \begin_layout Enumerate
-Numpy
+Numpy and mpi4py
 \end_layout
 
 \begin_layout Enumerate
@@ -245,11 +245,12 @@ Paste the location of Python.h headerfile in the Makefile.
 \end_layout
 
 \begin_layout Enumerate
-Execute 'make pygenarris'.
+Execute 'make pygenarris_mpi'.
 \end_layout
 
 \begin_layout Enumerate
-This will create pygenarris.so library from which you can import pygenarris.
+This will create pygenarris_mpi.so library from which you can import pygenarris
+ functions.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -265,7 +266,8 @@ Execute ' python setup.py build_ext --inplace'.
 \end_layout
 
 \begin_layout Enumerate
-This will create pygenarris.so library from which you can import pygenarris.
+This will create pygenarris_mpi.so library from which you can import pygenarris
+ functions.
 \end_layout
 
 \begin_layout Standard
@@ -277,7 +279,7 @@ You may change the C compiler using the environment variable CC.
 \end_layout
 
 \begin_layout Enumerate
-pygenarris can be configured with both python2 and python3.
+Pygenarris can be built with both python2 and python3.
 \end_layout
 
 \begin_layout Standard
@@ -440,11 +442,19 @@ newpage
 \end_layout
 
 \begin_layout Section
-Pygenarris
+Pygenarris_mpi 
 \end_layout
 
 \begin_layout Standard
-Pygenarris is a python API for C structure generator and associated functions.
+Pygenarris_mpi is a python API for C structure generator and associated
+ functions.
+ Import the module by :
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+import pygenarris_mpi
 \end_layout
 
 \begin_layout Subsection
@@ -768,6 +778,9 @@ is the specific radius proportion.
 create an object by 
 \emph on
 xtal = crystal().
+ 
+\emph default
+[Or use the constructor generated automatically by SWIG; xtal = new_crystal().]
 \end_layout
 
 \begin_layout Enumerate
@@ -777,7 +790,8 @@ Then assign values using the function
 \begin_layout Itemize
 
 \emph on
-create_crystal_from_array(xtal, lattice_vector, X, Y, Z, atoms, Z, spg)
+create_crystal_from_array(xtal, lattice_vector, X, Y, Z, atoms, total_atoms,
+ Z, spg)
 \end_layout
 
 \begin_layout Itemize
@@ -836,6 +850,20 @@ Br
 \begin_layout Itemize
 
 \emph on
+total_atoms 
+\emph default
+is the number of atoms in the molecule.
+ This should be the length of 
+\emph on
+X, Y, Z.
+ 
+\emph default
+Type: integer.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
 Z 
 \emph default
 is the number of molecules in the unit cell.
@@ -855,6 +883,13 @@ is the space group (Not used by structure checker!).
 IMPORTANT: It is assumed that coordinates are specified in molecule blocks.
  i.e, first molecule is first N coordinates, second molecule is from N+1
  to 2N etc.
+\end_layout
+
+\begin_layout Itemize
+IMPORTANT: Don't forget to free the swig object.
+ This can be done by 
+\emph on
+delete_crystal(xtal).
 \end_layout
 
 \begin_layout Subsubsection*
