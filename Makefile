@@ -83,6 +83,6 @@ spglib.o:
 	${CC} ${CFLAGS} -c spglib_src/*.c -lm
 
 clean: 
-	rm -rf *.o *.x *pygenarris.so __pycache__ pygenarris.py *wrap.c *.pyc _pygenarris.* build spglib_src/*.o *pygenarris_mpi.py _pygenarris_mpi*
+	rm -rf *.o *.x *pygenarris.so __pycache__ pygenarris.py *wrap.c *.pyc _pygenarris.* build spglib_src/*.o *pygenarris_mpi.py _pygenarris_mpi* pygenarris_mpi.egg*
 
 

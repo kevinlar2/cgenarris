@@ -69,6 +69,5 @@ setup (name = 'pygenarris_mpi',
        author      = "Rithwik Tom",
        description = """email:rtom@andrew.cmu.edu""",
        ext_modules = [pygenarris_mpi],
-       install_requires=['numpy', 'mpi4py'],
        py_modules = ["pygenarris_mpi"],
        )
