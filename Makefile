@@ -4,26 +4,26 @@ OMP=fopenmp
 PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
 
 
-cgenarris:  main.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+#cgenarris:  main.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
 		   molecule_placement.o randomgen.o spglib.o
-	$(CC) ${CFLAGS} *.o -o cgenarris.x -lm -${OMP} 
+#	$(CC) ${CFLAGS} *.o -o cgenarris.x -lm -${OMP} 
 
 cgenarris_mpi: cgenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
                molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
                molecule_placement.o randomgen.o spglib.o pygenarris_mpi.o
 	$(CC) ${CFLAGS} *.o -o cgenarris_mpi.x -lm 
 
-swig:
-	swig -python pygenarris.i
+#swig:
+#	swig -python pygenarris.i
 
 swig_pygenarris_mpi:
 	swig -python pygenarris_mpi.i
 
-pygenarris:pygenarris.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+#pygenarris:pygenarris.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
 		   molecule_placement.o randomgen.o swig pywrap spglib.o
-	${CC} ${CFLAGS} -shared  *.o -o _pygenarris.so -lm 
+#	${CC} ${CFLAGS} -shared  *.o -o _pygenarris.so -lm 
 
 pygenarris_mpi:pygenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
@@ -43,8 +43,8 @@ cgenarris_mpi.o:cgenarris_mpi.c
 pygenarris_mpi.o:pygenarris_mpi.c
 	${CC} ${CFLAGS} -c pygenarris_mpi.c
 
-pygenarris.o: pygenarris.c
-	${CC} ${CFLAGS} -c pygenarris.c
+#pygenarris.o: pygenarris.c
+#	${CC} ${CFLAGS} -c pygenarris.c
 
 main.o: main.c
 	${CC} ${CFLAGS} -c main.c

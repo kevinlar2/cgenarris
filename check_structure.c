@@ -9,6 +9,7 @@
 #include "algebra.h"
 
 float CONSTANT_TOL = 0.001;
+float MOL_SIM_TOL = 0.05;
 
 static inline int int_floor(float x)
 {
@@ -125,7 +126,7 @@ void pdist_2(float T[3][3],
 		for (int j = 0; j < 3; j++)
 			sum = sum + T_inv[j][i] * cartesian_distance[j];	
 
-		float frac_part = sum - ((long)sum); //if -ve add one
+		float frac_part = sum - ((int)sum); //if -ve add one
 		if (frac_part < 0)
 			fractional_distance[i] = frac_part + 1;	
 		else
@@ -151,12 +152,20 @@ void pdist_2(float T[3][3],
 	for (int k = -limz; k <= limz; k++)
 	{
 		test_dist[0] = i*T[0][0] + j*T[1][0] + k*T[2][0] - red_cart_distance[0];
-		test_dist[1] = j*T[1][1] + k*T[2][1] -red_cart_distance[1];
-		test_dist[2] = k*T[2][2] -red_cart_distance[2];
+		test_dist[1] = i*T[0][1] + j*T[1][1] + k*T[2][1] - red_cart_distance[1];
+		test_dist[2] = i*T[0][2] + j*T[1][2] + k*T[2][2] - red_cart_distance[2];
 		
 		float norm = vector3_norm(test_dist);
 		if ( norm + CONSTANT_TOL < *p_dist )
-		{
+		{/*
+            printf("ijl = %d %d %d , norm = %f, red_cart_dist=%f\n", i, j, k, norm, vector3_norm(red_cart_distance));
+            printf("red_cart_dist = %f %f %f\n", red_cart_distance[0], red_cart_distance[1], red_cart_distance[2]);
+            printf("x =  %f, %f, %f \n", x1, x2, x3);
+            printf("y =  %f, %f, %f \n", y1, y2, y3);
+            printf("fractional dist =  %f %f %f \n", fractional_distance[0], fractional_distance[1], fractional_distance[2] );
+           */
+            print_mat3b3(T);
+            print_mat3b3(T_inv);
 			*p_dist_2 = *p_dist;
 			*p_dist = norm;
 		}
@@ -487,7 +496,7 @@ int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 				return 0;
 				
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -MOL_SIM_TOL)
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
@@ -523,15 +532,15 @@ int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			
 			if (k == j && pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 			{	
-				/*	printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
-					 k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
-					float p_dist1, p_dist2;
-					pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
-					printf("appx = %f, %f \n", p_dist1, p_dist2 );
-				*/
+					//printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
+					// k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
+					//float p_dist1, p_dist2;
+					//pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
+					//printf("appx = %f, %f \n", p_dist1, p_dist2 );
+				
 				return 0;
 			}	
-			if (pdist_kj - *(bond_length+modj*N+modk) < -0.02)
+			if (pdist_kj - *(bond_length+modj*N+modk) < -MOL_SIM_TOL)
 			{
 				if (pdist_kj < sr*(atom_vdw[k]+atom_vdw[j]) )
 				{
@@ -549,7 +558,7 @@ int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 			if(pdist_kj_2 < sr*(atom_vdw[k]+atom_vdw[j]) )
 			{
 				/*
-				printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
+				   printf("failed at %d atom and %d atom with distance %f, %f, expected %f ,bondlength of %f\n",
 					 k+1, j+1, pdist_kj, pdist_kj_2,sr*(atom_vdw[k]+atom_vdw[j]), *(bond_length+modj*N+modk) );
 					float p_dist1, p_dist2;
 					pdist_2_appx(T,T_inv, X[k], Y[k], Z[k], X[j], Y[j], Z[j], &p_dist1, &p_dist2);
@@ -636,7 +645,7 @@ int check_structure(crystal random_crystal, float sr)
 	
 	//tier 1 check 
 	if( fast_screener(random_crystal, sr, atom_vdw) == 0)
-		{ free (atom_vdw); printf("failed at tier1\n"); return 0;}
+		{ free (atom_vdw);  return 0;}
 	//end tier 1 check
 	
 	
@@ -665,10 +674,11 @@ int check_structure(crystal random_crystal, float sr)
 			}
 		}
 	}
-	
+	/*
     if(final_verdict == 0)
       printf("failed at tier2 pair check");
-	//check self-image
+	*/
+    //check self-image
 	 calc_bond_length(bond_length, random_crystal.Xcord, 
 		random_crystal.Ycord,  random_crystal.Zcord, N);
     if (final_verdict == 1)
@@ -723,8 +733,11 @@ int check_structure(crystal random_crystal, float sr)
 				}
 			}
 		}
-	} 
-		
+	}
+    /*
+    if (final_verdict == 0)
+       printf("failed at tier3 pair check\n"); 
+	*/
     if (final_verdict == 1)
     {
 		for (i = 0; i < total_atoms; i = i + N)
@@ -740,8 +753,10 @@ int check_structure(crystal random_crystal, float sr)
 			}
 		}
 	}
-														//end tier-3
-	
+	/*													//end tier-3
+	if (final_verdict == 0)
+       printf("failed at tier3 self check\n") ;
+    */
 	free(atom_vdw);
 	free(bond_length);
 	return final_verdict;
