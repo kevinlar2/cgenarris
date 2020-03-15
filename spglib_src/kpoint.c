@@ -687,7 +687,7 @@ static int get_ir_reciprocal_mesh_normal(int grid_address[][3],
 
   kgd_get_all_grid_addresses(grid_address, mesh);
 
-#pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+//#pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     kgd_get_grid_address_double_mesh(address_double,
                                      grid_address[i],
@@ -732,7 +732,7 @@ static long get_long_ir_reciprocal_mesh_normal(int grid_address[][3],
 
   kgd_get_all_grid_addresses(grid_address, mesh);
 
-#pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+//#pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     kgd_get_grid_address_double_mesh(address_double,
                                      grid_address[i],
@@ -773,7 +773,7 @@ static int get_ir_reciprocal_mesh_distortion(int grid_address[][3],
     divisor[i] = mesh[(i + 1) % 3] * mesh[(i + 2) % 3];
   }
 
-#pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+//#pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     kgd_get_grid_address_double_mesh(address_double,
                                      grid_address[i],
@@ -829,7 +829,7 @@ static long get_long_ir_reciprocal_mesh_distortion(int grid_address[][3],
     divisor[j] = mesh[(j + 1) % 3] * mesh[(j + 2) % 3];
   }
 
-#pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+//#pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     kgd_get_grid_address_double_mesh(address_double,
                                      grid_address[i],
@@ -875,7 +875,7 @@ static int get_num_ir(int ir_mapping_table[], const int mesh[3])
 
   num_ir = 0;
 
-#pragma omp parallel for reduction(+:num_ir)
+//#pragma omp parallel for reduction(+:num_ir)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     if (ir_mapping_table[i] == i) {
       num_ir++;
@@ -897,7 +897,7 @@ static long get_long_num_ir(long ir_mapping_table[], const int mesh[3])
 
   num_ir = 0;
 
-#pragma omp parallel for reduction(+:num_ir)
+//#pragma omp parallel for reduction(+:num_ir)
   for (i = 0; i < mesh[0] * mesh[1] * mesh[2]; i++) {
     if (ir_mapping_table[i] == i) {
       num_ir++;

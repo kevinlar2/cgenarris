@@ -78,6 +78,10 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		}
 		//fprintf(out_file, "my_rank=%d\n", my_rank);
 	}
+    else
+    {
+        out_file = NULL;
+    }
 
 	//random number seeding, different seeds for different threads
 	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen

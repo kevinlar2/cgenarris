@@ -407,7 +407,7 @@ get_integration_weight_at_omegas(double *integration_weights,
 {
   int i;
 
-#pragma omp parallel for
+//#pragma omp parallel for
   for (i = 0; i < num_omegas; i++) {
     integration_weights[i] = get_integration_weight(omegas[i],
                                                     tetrahedra_omegas,
