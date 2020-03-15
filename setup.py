@@ -3,15 +3,15 @@
 setup.py file 
 """
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from distutils import sysconfig
 import os
 
 os.environ["CC"] = "mpicc" 
 ldshared = sysconfig.get_config_var('LDSHARED')
 #remove gcc or icc and paste mpicc for linker
-ldshared = "mpicc " + ldshared.partition(' ')[2]
-os.environ["LDSHARED"] = ldshared
+#ldshared = "mpicc " + ldshared.partition(' ')[2]
+#os.environ["LDSHARED"] = ldshared
 
 
 package = 'numpy'
