@@ -14,9 +14,7 @@
 #define UPPER_MASK 0x80000000UL /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffffUL /* least significant r bits */
 static unsigned long mt[N]; /* the array for the state vector  */
-#pragma omp threadprivate(mt)
 static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
-#pragma omp threadprivate(mti)
 
 
 #define PI 3.141592653589793

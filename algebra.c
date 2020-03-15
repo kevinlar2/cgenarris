@@ -6,7 +6,7 @@
 
 #define PI 3.141592653
 extern unsigned int *seed2;
-#pragma omp threadprivate(seed2)
+
 
 void vector3_add(float a[3], float b[3], float sum[3])
 {

@@ -37,7 +37,6 @@ float viewing_directions[16][3] = {
 			{0, 1, 1},
 			{1, 0, 1}
 								};
-#pragma omp threadprivate(viewing_directions)
 
 const int num_viewing_direction = 16;
 
@@ -91,11 +90,12 @@ void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 									int Z,
 									int Zpp)
 {
-	
+	Zpp = 1; //stupid argument
 	int index = 0;
 	int spg_counter = 0;
 	int position_counter = 0;
 	printf("molecular symmetry = %s\n", mol_sym);
+
 	while (index < 31)
 	{
 		if (strcmp(mol_sym, point_group_dbs[index].point_group) == 0)
@@ -361,7 +361,7 @@ void find_compatible_spg_positions(molecule *mol,
 			(unsigned int *)malloc(len_pos_list*(sizeof(unsigned int)));
 			compatible_spg[*num_compatible_spg].spg = spg+1;
 			compatible_spg[*num_compatible_spg].num_allowed_pos = len_pos_list;
-			for (int i = 0; i < len_pos_list; i++)
+			for (unsigned int i = 0; i < len_pos_list; i++)
 			{
 				compatible_spg[*num_compatible_spg].allowed_pos[i] = pos_list[i];
 				pos_list[i] = 0;
@@ -404,9 +404,6 @@ int check_pos_compatibility_using_std_orientations(crystal* xtal_1,
 	allocate_xtal(xtal, ZMAX, N);
 	xtal->num_atoms_in_molecule = mol->num_of_atoms;
 	
-	//debug
-	int spg = xtal_1->spg;
-
 	(*comp_axes).usable_mol_axes = NULL;
 	(*comp_axes).usable_view_dir = NULL;
 	
@@ -513,8 +510,9 @@ void find_possible_mol_axis(molecule *mol, float *mol_axes, int* num_axes,\
 	add_axis_to_mol_axes(mol_axes, num_axes, p1);
 	add_axis_to_mol_axes(mol_axes, num_axes, p2);
 	add_axis_to_mol_axes(mol_axes, num_axes, p3);
-	*/
 	int N = mol->num_of_atoms;
+    */
+
 	for(int i = 0; i < len_eq_atoms; i++)
 	for(int j = i; j < len_eq_atoms; j++)
 	{

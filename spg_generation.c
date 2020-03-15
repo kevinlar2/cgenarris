@@ -15,15 +15,17 @@
 #define PI 3.141592653
 
 extern unsigned int *seed2;
-#pragma omp threadprivate(seed2)
+
 
 
 int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 	float Z, float Zp_max, int spg, COMPATIBLE_SPG compatible_spg[],
 	int len_compatible_spg, int compatible_spg_index)
 {
+	Zp_max = 192; //stupid argument
+    len_compatible_spg += 1; // not needed now; stupid argument 
 	
-	//crystal random_crystal;
+    //crystal random_crystal;
 	float max_angle = 30 * PI/180;
 	float min_angle = 150 * PI/180;
 

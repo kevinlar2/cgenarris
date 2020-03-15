@@ -30,7 +30,7 @@ void create_vdw_matrix_from_sr(molecule *mol,
 								float sr,
 								int Z);
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	//Initialise MPI 
 	MPI_Init(&argc, &argv);
@@ -42,16 +42,14 @@ void main(int argc, char **argv)
     
     //variable declarartion	
 	molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
-	crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
+
 	float volume_std;	//standard dev for volumes
 	float volume_mean;	//mean volume
 	float sr;			//specific radius proportion for structure checks
 						//see paper for definition
 	float Zp_max;		//Z'' . not implemented
-	float volume;		//random volume used of generation
 	int Z;				//multiplicity of general position
 	int num_structures;	//num of structures per spg
-	int spg;			//space group attempted
 	long max_attempts;	//max attempts per space group
     float tol;
     
@@ -87,6 +85,8 @@ void main(int argc, char **argv)
 		world_comm);
 	
 	MPI_Finalize();
+
+    return 0;
 }
 
 void create_vdw_matrix_from_sr(molecule *mol,

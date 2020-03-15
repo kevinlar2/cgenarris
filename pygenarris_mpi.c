@@ -21,8 +21,7 @@
 
 unsigned int *seed;
 unsigned int *seed2;
-#pragma omp threadprivate(seed)
-#pragma omp threadprivate(seed2)
+
 extern float TOL;
 
 void print_time()
@@ -454,11 +453,8 @@ int num_compatible_spacegroups(int Z, double tolerance)
 	//set global variable tolerance
 	TOL = tolerance;
 
-
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
-	int num_axes;
-	float *mol_axes;
 	int thread_num = 1; 
 	molecule *mol = (molecule*)malloc(sizeof(molecule));
 
@@ -471,7 +467,6 @@ int num_compatible_spacegroups(int Z, double tolerance)
 								  &num_compatible_spg,
 								  thread_num);
 
-	free(mol_axes);
 	free(mol);
 
 	return num_compatible_spg;
@@ -485,7 +480,10 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], doubl
 	
 	xtal->spg = spg;
 	xtal->Z = Z;
-	
+    
+    if (total_atoms != total_atoms1 || total_atoms != total_atoms2 || total_atoms != total_atoms3)
+    printf("***ERR0R:sizes of arrays doesnot match");	
+
 	int num_atoms_in_molecule = total_atoms/Z;
 	allocate_xtal(xtal, Z, num_atoms_in_molecule);
 	xtal->num_atoms_in_molecule = num_atoms_in_molecule;

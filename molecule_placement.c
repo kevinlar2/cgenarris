@@ -99,7 +99,7 @@ int auto_align_and_generate_at_position(crystal *Xtal,
 	//declare variables
 	//num of atoms in the molecule is N
 	int N = mol->num_of_atoms;
-	int Z = Xtal->Z;
+	//int Z = Xtal->Z;
 	int wyckoff_pos = compatible_spg.allowed_pos[pos_index];
 	int order = spg_positions[spg-1].multiplicity[0]/\
 		spg_positions[spg-1].multiplicity[wyckoff_pos];
@@ -234,7 +234,7 @@ int align_using_std_orientations(crystal* xtal_1,
 	allocate_xtal(xtal, Z, N);
 	copy_xtal(xtal, xtal_1);
 	//debug
-	int spg = xtal_1->spg;
+	//int spg = xtal_1->spg;
 	//generate_lattice(xtal->lattice_vectors, spg, 60, 120, 1000000);
 	//generate_fake_lattice(xtal->lattice_vectors, spg);
 	

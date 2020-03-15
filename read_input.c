@@ -100,10 +100,10 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
     *volume_mean = 1200;
     *volume_std  = 100;
 	*Z = 6;
-	*Zp_max = 1;
 	*sr = 0.75;
 	*/     
 	fclose(fileptr);
+    *Zp_max = 192;
 }
 
 
@@ -197,6 +197,7 @@ void read_geometry(molecule* mol)
 void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
 	float* volume_mean, float* volume_std, float *sr, long *max_attempts)
 {
+    *Zp_max = 192; //useless argument
 	printf("INPUT SETTINGS:\n");
 	printf("-----------------------------\n");
 	printf("Number of structures per space group:         %d \n", *num_structures);

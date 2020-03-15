@@ -95,7 +95,7 @@ void gen_monoclinic_lattice(float lattice_vector[3][3],
 }
 
 void gen_orthorhombic_lattice(float lattice_vector[3][3], 
-	float target_volume, float max_angle, float min_angle)
+	float target_volume)
 {
 	float random01 = uniform_dist_01();
 	float ax = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
@@ -118,7 +118,7 @@ void gen_orthorhombic_lattice(float lattice_vector[3][3],
 
 
 void gen_tetragonal_lattice(float lattice_vector[3][3],
-	float target_volume, float max_angle, float min_angle)
+	float target_volume)
 {
 	float random01 = uniform_dist_01();
 	float cz = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
@@ -139,7 +139,7 @@ void gen_tetragonal_lattice(float lattice_vector[3][3],
 }
 
 void gen_hexagonal_lattice(float lattice_vector[3][3], 
-	float target_volume, float max_angle, float min_angle)
+	float target_volume)
 {
 	float random01 = uniform_dist_01();
 	float cz = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
@@ -162,7 +162,7 @@ void gen_hexagonal_lattice(float lattice_vector[3][3],
 }
 
 void gen_cubic_lattice(float lattice_vector[3][3],
-	float target_volume, float max_angle, float min_angle)
+	float target_volume)
 {
 	float a = cbrt(target_volume); 
 
@@ -194,20 +194,20 @@ void generate_lattice(float lattice_vector[3][3], int spg,
 	gen_monoclinic_lattice(lattice_vector, target_volume, max_angle, min_angle);
 
 	else if (spg <= 74)
-	gen_orthorhombic_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	gen_orthorhombic_lattice(lattice_vector, target_volume);
 
 	else if (spg <= 142)
-	gen_tetragonal_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	gen_tetragonal_lattice(lattice_vector, target_volume);
 
 	else if (spg <= 167)
-	gen_hexagonal_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	gen_hexagonal_lattice(lattice_vector, target_volume);
 	//same as heaxagonal?
 	
 	else if (spg <= 194) 
-	gen_hexagonal_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	gen_hexagonal_lattice(lattice_vector, target_volume);
 
 	else if (spg <= 230)
-	gen_cubic_lattice(lattice_vector, target_volume, max_angle, min_angle);
+	gen_cubic_lattice(lattice_vector, target_volume);
 	
 	standardise_lattice(lattice_vector, spg);
 
