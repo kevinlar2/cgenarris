@@ -204,7 +204,7 @@ void print_input_settings(int* num_structures, int* Z, float* Zp_max,
 	printf("Number of molecules in the cell:              %d\n", *Z);
 	printf("Mean volume of unit cell:                     %f\n", *volume_mean);
 	printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
-	printf("Specific radius proportion:                   %f\n", *sr );
+	//printf("Specific radius proportion:                   %f\n", *sr );
 	printf("Maximum attempts per space group:             %ld\n", *max_attempts);
 	printf("Tolerance:                                    %f\n", TOL);
 	printf("-----------------------------\n\n");
