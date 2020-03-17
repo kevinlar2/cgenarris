@@ -135,7 +135,7 @@ Support for special positions.
 \end_layout
 
 \begin_layout Itemize
-Parallelized using MPI and OpenMP.
+Parallelized using MPI.
 \end_layout
 
 \begin_layout Itemize
@@ -167,7 +167,7 @@ Installation
 \end_layout
 
 \begin_layout Subsection
-Cgenarris
+cgenarris_mpi.x
 \end_layout
 
 \begin_layout Subsubsection*
@@ -175,7 +175,8 @@ Requirements
 \end_layout
 
 \begin_layout Standard
-Any C compiler which supports ANSI C99 / GNU99 standard.
+Any MPI C compiler which supports ANSI C99 / GNU99 standard and v3+ MPI
+ standard.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -187,11 +188,11 @@ Uncompress the tar file.
 \end_layout
 
 \begin_layout Enumerate
-Execute 'make cgenarris'.
+Execute 'make cgenarris_mpi'.
 \end_layout
 
 \begin_layout Enumerate
-This will create cgenarris.x which is the desired executable.
+This will create cgenarris_mpi.x which is the desired executable.
 \end_layout
 
 \begin_layout Standard
@@ -204,7 +205,7 @@ You may change the C compiler using the environment variable CC.
 \end_layout
 
 \begin_layout Enumerate
-Remove object files using 'make clean'
+Remove object files using 'make clean'.
 \end_layout
 
 \begin_layout Subsection
@@ -216,7 +217,8 @@ Requirements
 \end_layout
 
 \begin_layout Enumerate
-Any C compiler which supports ANSI C99 / GNU99 standard.
+Any MPI C compiler which supports ANSI C99 / GNU99 standard and v3+ MPI
+ standard.
 \end_layout
 
 \begin_layout Enumerate
@@ -224,11 +226,11 @@ SWIG (Simplified Wrapper code and Interface Generator).
 \end_layout
 
 \begin_layout Enumerate
-Numpy and mpi4py
+Numpy and mpi4py.
 \end_layout
 
 \begin_layout Enumerate
-Distutils for installation through setup.py
+Setuptools for installation through setup.py.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -249,8 +251,8 @@ Execute 'make pygenarris_mpi'.
 \end_layout
 
 \begin_layout Enumerate
-This will create pygenarris_mpi.so library from which you can import pygenarris
- functions.
+This will create pygenarris_mpi.so library from which you can import pygenarris_m
+pi functions.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -266,8 +268,8 @@ Execute ' python setup.py build_ext --inplace'.
 \end_layout
 
 \begin_layout Enumerate
-This will create pygenarris_mpi.so library from which you can import pygenarris
- functions.
+This will create pygenarris_mpi.so library from which you can import pygenarris_m
+pi functions.
 \end_layout
 
 \begin_layout Standard
@@ -275,11 +277,26 @@ NOTE
 \end_layout
 
 \begin_layout Enumerate
-You may change the C compiler using the environment variable CC.
+You may change the compiler using the environment variable CC.
 \end_layout
 
 \begin_layout Enumerate
 Pygenarris can be built with both python2 and python3.
+\end_layout
+
+\begin_layout Enumerate
+All functions from pygenarris were moved to pygenarris_mpi.
+ The former module is now deprecated.
+\end_layout
+
+\begin_layout Enumerate
+Import the module using 
+\emph on
+import _pygenarris_mpi 
+\emph default
+or 
+\emph on
+import pygenarris_mpi.
 \end_layout
 
 \begin_layout Standard
@@ -307,9 +324,8 @@ Cgenarris is the structure generator written in pure C.
  It can be compiled into a binary and can run without installing the full
  genarris python package.
  If you are interested in only random crystal structures, you can compile
- and run Cgenarris.
- It is parallelised using OpenMP and therefore can run only in one node.
- (An MPI version is under development).
+ and run cgenarris_mpi.x.
+ It is parallelised using MPI version (The openMP version is now deprecated).
  The settings for generation are read from control.in file and molecule geometry
  is read from geometry.in file found in the working directory.
  The output is printed in file named geometry.out file.
@@ -327,8 +343,11 @@ First, the generator first identifies space groups that are compatible with
  The closeness checks are controlled by the specific radius proportion (sr).
  If the generation of a space group fails after max_attempts times, the
  generator moves to the next higher space group.
- The generated structures are printed to the file in FHI-aims geometry.in.
- format.
+ The generated structures are printed to the file 
+\emph on
+geometry.out 
+\emph default
+in FHI-aims geometry format.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -448,7 +467,7 @@ Pygenarris_mpi
 \begin_layout Standard
 Pygenarris_mpi is a python API for C structure generator and associated
  functions.
- Import the module by :
+ Import the module by:
 \end_layout
 
 \begin_layout Standard
