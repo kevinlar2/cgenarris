@@ -1165,3 +1165,58 @@ int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 
 //////////////////////////// STRUCTURE CHECK FUNCTIONS WITH VDW MATRIX ///////////////////////////
 
+/* for pygenarris API only
+*/
+int structure_checker(float *X ,
+	int dim1,
+	float *Y,
+	int dim2,
+	float *Z,
+	int dim3,
+	float *vdw_cutoff,
+	int dim4, 
+	int dim5,
+	int *mol_id
+	int num_mols
+	)
+{
+	//preliminary checks
+	if(dim1 != dim2 || dim2 != dim3 || dim3 != dim1)
+	{
+		printf("***ERRROR: length of coordinate arrays don't match\n");
+		return -1;
+	}
+
+	if(dim4 != dim5)
+	{
+		printf("***ERRROR: vdw cutoff matrix should be a square matrix\n");
+		return -1;
+	}	
+
+	//find number of atoms in each molecule
+	int num_atoms_in_molecule[num_mols];
+	for(int i = 0; i < num_mols -1; i++)
+	{
+		num_atoms_in_molecule[i] = mol_id[i+1] - mol_id[i];
+	}
+	//for last mol:
+	num_atoms_in_molecule[num_mols-1] = dim1 - mol_id[num_mols-1]
+
+	// estimate molecule lengths
+	float mol_len[num_mols];
+	for(int i = 0 ; i < num_mols; i++)
+	{
+		mol_len[i] = get_mol_len(X + mol_id[i],
+								 Y + mol_id[i],
+								 Z + mol_id[i],
+								 num_atoms_in_molecule[i])
+	}
+}
+
+
+float find_mol_len(float *X, float *Y, float *Z, int len)
+{
+	float com[3] = {0, 0, 0};
+	find_mol_com(X, Y, Z, len, com);
+}
+
