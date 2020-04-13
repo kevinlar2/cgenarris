@@ -584,8 +584,16 @@ int fast_screener(crystal xtal, float sr, float *atom_vdw)
 	// numberof atom in a unit cell = N*m
 	int total_atoms = N*m;	
 
-	float mol_len = 11.6;
-	float small_number = 0.1;
+	static float mol_len = 0;
+    static int first_time = 1;
+
+    if (first_time)
+    {
+        first_time = 0;
+        mol_len = get_molecule_length(xtal);
+    }
+
+	float small_number = 1;
 	
 	for(int i = 0; i < total_atoms; i += N)
 	{
@@ -767,6 +775,42 @@ int check_structure(crystal random_crystal, float sr)
 
 
 
+//////////////////////////// STRUCTURE CHECK FUNCTIONS WITH VDW MATRIX ///////////////////////////
+
+/*
+Compute the length of the first molecule in xtal
+*/
+float get_molecule_length(crystal xtal)
+{
+	int N = xtal.num_atoms_in_molecule;
+	float com[3];
+	compute_molecule_COM( xtal, com, 0);
+	float max = 0;
+	float dist = 0;
+	int first_time = 1;
+
+	for(int i = 0; i < N; i++)
+	{
+		float atom_vec[3] = {xtal.Xcord[i] , xtal.Ycord[i] , xtal.Zcord[i]};
+		float dist_vec[3] = {0 , 0 , 0};
+		vector3_subtract(atom_vec, com, dist_vec);
+		dist = vector3_norm(dist_vec);
+
+		if (first_time)
+		{
+			first_time = 0;
+			max = dist;
+		}
+		else if (max < dist)
+		{
+			max = dist;
+		}
+
+	}
+	//printf("molecule distance  = %f\n", dist);
+	return 2*dist;
+}
+
 int check_structure_with_vdw_matrix(crystal random_crystal,
 	float *vdw_matrix,
 	int dim1,
@@ -918,8 +962,16 @@ int fast_screener_vdw(crystal xtal, float *vdw_matrix)
 	int m = xtal.Z;					//number of molecules in a unit cell;
 								// numberof atom in a unit cell = N*m
 	int total_atoms = N*m;	
-	float mol_len = 11.6;
-	float small_number = 0.1;
+	static float mol_len = 0;
+    static int first_time = 1;
+
+    if (first_time)
+    {
+        first_time = 0;
+        mol_len = get_molecule_length(xtal);
+    }
+
+	float small_number = 2;
 	
 	for(int i = 0; i < total_atoms; i += N)
 	{
@@ -935,7 +987,7 @@ int fast_screener_vdw(crystal xtal, float *vdw_matrix)
 				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
 						  (com1[1] - com2[1])*(com1[1] - com2[1])+
 						  (com1[2] - com2[2])*(com1[2] - com2[2]))
-					<     (mol_len + small_number)                  )
+					<     (2*mol_len + small_number)                  )
 					continue;
 			}
 			
@@ -1110,3 +1162,6 @@ int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 	}
 	return 1;
 }
+
+//////////////////////////// STRUCTURE CHECK FUNCTIONS WITH VDW MATRIX ///////////////////////////
+

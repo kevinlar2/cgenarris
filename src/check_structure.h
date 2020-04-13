@@ -127,4 +127,6 @@ int check_pair_vdw_tier3( float T[3][3],
 int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length);
 
+float get_molecule_length(crystal xtal);
+
 #endif
