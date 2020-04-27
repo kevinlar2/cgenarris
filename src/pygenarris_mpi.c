@@ -402,6 +402,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		print_time();
 		printf("Generation completed.\nHave a nice day!!\n");
 	}
+    MPI_Finalize();
 }
 
 void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
