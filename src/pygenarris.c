@@ -587,12 +587,9 @@ int num_compatible_spacegroups(int Z, double tolerance)
 {
 	//set global variable tolerance
 	TOL = tolerance;
-    seed2 = (unsigned int*)malloc(sizeof(unsigned int));
 
 	COMPATIBLE_SPG compatible_spg[230]; 
 	int num_compatible_spg = 0;
-	int num_axes;
-	float *mol_axes;
 	int thread_num = 1; 
 	molecule *mol = (molecule*)malloc(sizeof(molecule));
 
@@ -605,9 +602,8 @@ int num_compatible_spacegroups(int Z, double tolerance)
 								  &num_compatible_spg,
 								  thread_num);
 
-	free(mol_axes);
 	free(mol);
-    free(seed2);
+
 	return num_compatible_spg;
 
 }
