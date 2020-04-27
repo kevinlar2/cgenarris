@@ -29,18 +29,12 @@ void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	
 void allocate_xtal(crystal* xtal, int Z, int N);
 
-%include "spg_generation.h"
-
-
 %apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice_vector[3][3])};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Xc, int total_atoms1)};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Yc, int total_atoms2)};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Zc, int total_atoms3)};
 void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
 		double *Yc,int total_atoms2, double *Zc, int total_atoms3,char *atoms,  int total_atoms, int Z, int spg);
-
-
-%apply (double INPLACE_ARRAY1[ANY]) {(double a[3])};
 
 void print_crystal(crystal* xtal);
 void free_xtal(crystal* xtal);

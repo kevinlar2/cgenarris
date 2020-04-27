@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 		max_attempts, 
 		world_comm);
 	
-	MPI_Finalize();
+    MPI_Finalize();
 
     return 0;
 }
