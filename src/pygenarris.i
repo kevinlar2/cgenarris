@@ -26,7 +26,8 @@ import_array();
 
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
-	
+
+%include "spg_generation.h"
 void allocate_xtal(crystal* xtal, int Z, int N);
 
 %apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice_vector[3][3])};
