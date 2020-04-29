@@ -1,23 +1,15 @@
 #include "read_input.h"
+#include "molecule_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-//returns the atomic number for a given symbol
-/*
-int convert_atom_to_atomic_numbers(char *atom)
-{
-	if (strcmp(atom, "C") == 0)
-		return 12;
-	else if (strcmp(atom, "H") == 0)
-		return 1;
-}
-*/
+
 float TOL;
 
 
-void read_control(int* num_structures, int* Z, float* Zp_max, 
-	float* volume_mean, float* volume_std, float *sr, long *max_attempts)
+void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean,
+				 float* volume_std, float *sr, long *max_attempts, char *spg_dist_type)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -89,7 +81,25 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 			sub_line = strtok(NULL," ");
 			*max_attempts = atoi(sub_line);
 			continue;
-		}	
+		}
+
+		if(strcmp(sub_line, "spg_distribution_type") == 0)
+		{
+			sub_line = strtok(NULL," ");
+			sub_line = strtok(sub_line, "\n");
+			strcpy(spg_dist_type, sub_line);
+			if(!( strcmp(spg_dist_type, "standard") ||
+				  strcmp(spg_dist_type, "uniform")  ||
+			      strcmp(spg_dist_type, "chiral")   ||      
+				  strcmp(spg_dist_type, "csd")       ) )
+			{
+				printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
+				exit(0);
+			}
+			continue;
+		}
+
+
 			//printf("char = %c \n",mol->atoms[2*i+1]); exit(0);
             //printf("string = %c l %c \n", *sub_line, *(sub_line+1));	
 
@@ -195,7 +205,7 @@ void read_geometry(molecule* mol)
 
 
 void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
-	float* volume_mean, float* volume_std, float *sr, long *max_attempts)
+	float* volume_mean, float* volume_std, float *sr, long *max_attempts, char * spg_dist_type)
 {
     *Zp_max = 192; //useless argument
 	printf("INPUT SETTINGS:\n");
@@ -204,6 +214,7 @@ void print_input_settings(int* num_structures, int* Z, float* Zp_max,
 	printf("Number of molecules in the cell:              %d\n", *Z);
 	printf("Mean volume of unit cell:                     %f\n", *volume_mean);
 	printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
+	printf("Spacegroup distribution type:                 %s\n", spg_dist_type);
 	//printf("Specific radius proportion:                   %f\n", *sr );
 	printf("Maximum attempts per space group:             %ld\n", *max_attempts);
 	printf("Tolerance:                                    %f\n", TOL);

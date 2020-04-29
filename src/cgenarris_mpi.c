@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 	int num_structures;	//num of structures per spg
 	long max_attempts;	//max attempts per space group
     float tol;
+    char spg_dist_type[10];
     
     read_geometry(mol);				//read molecule from geometry.in
     read_control(&num_structures,
@@ -60,8 +61,10 @@ int main(int argc, char **argv)
 				 &volume_mean, 
 				 &volume_std,
 				 &sr,
-				 &max_attempts);	//get settings
+				 &max_attempts,
+                 spg_dist_type);	//get settings
 	tol = TOL;
+	printf("spg_dist_type = %s\n", spg_dist_type );
 	
 	int num_atoms_in_molecule = mol->num_of_atoms;
 	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
@@ -81,7 +84,8 @@ int main(int argc, char **argv)
 		volume_mean,
 		volume_std,
 		tol, 
-		max_attempts, 
+		max_attempts,
+		spg_dist_type,
 		world_comm);
 	
     MPI_Finalize();
