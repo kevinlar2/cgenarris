@@ -1166,8 +1166,10 @@ int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
 //////////////////////////// STRUCTURE CHECK FUNCTIONS WITH VDW MATRIX ///////////////////////////
 
 /* for pygenarris API only
+* Assume lattice to be lower triangular in row major form
 */
-int structure_checker(float *X ,
+int structure_checker(float L[3][3],
+	float *X ,
 	int dim1,
 	float *Y,
 	int dim2,
@@ -1183,13 +1185,19 @@ int structure_checker(float *X ,
 	//preliminary checks
 	if(dim1 != dim2 || dim2 != dim3 || dim3 != dim1)
 	{
-		printf("***ERRROR: length of coordinate arrays don't match\n");
+		printf("***ERROR: length of coordinate arrays don't match\n");
 		return -1;
 	}
 
 	if(dim4 != dim5)
 	{
-		printf("***ERRROR: vdw cutoff matrix should be a square matrix\n");
+		printf("***ERROR: vdw cutoff matrix should be a square matrix\n");
+		return -1;
+	}
+
+	if(!check_lower_triangular(L))
+	{
+		printf("***ERROR: lattice_vectors should be a lower triangular matrix in row major form\n");
 		return -1;
 	}	
 
@@ -1211,12 +1219,123 @@ int structure_checker(float *X ,
 								 Z + mol_id[i],
 								 num_atoms_in_molecule[i])
 	}
+
+	// find com
+	float com[num_mols][3];
+	for(int i = 0; i < num_mols; i++)
+	{
+		
+		find_mol_com(X, Y, Z, num_atoms_in_molecule[i], com + 3*i);
+	}
+
+	for(int i = 0; i < num_mols; i++)
+	{
+		for(int j = i; j < num_mols; j++)
+		{
+			//check pair of selcted molecules.
+			float sum_len = mol_len[i] + mol_len[j];
+			check_pairwise_if_mol_close(L, vdw_matrix, X, Y, Z, mol_id[i], num_atoms_in_molecule[i], mol_id[j], num_atoms_in_molecule[j], com+3*i, com+3*j, sum_len);
+		}
+	}
+
 }
 
+
+int check_pairwise_if_mol_close(float L[3][3], float *vdw_matrix, float *X, float *Y, float *Z, int id1, int N1, int id2, int N2, float com1[3], float com2[3], float sum_len)
+{
+	int xmax = sum_len/L[0][0] + 1;
+	int ymax = (sum_len + xmax*L[1][0])/L[1][1] + 1;
+	int zmax = (sum_len + xmax*L[2][0] + ymax*L[2][0])/L[2][2] + 1;
+
+	for(int i = -xmax; i < xmax; i++)
+	for(int j = -ymax; j < ymax; j++)
+	for(int k = -zmax; k < zmax; k++)
+	{
+		float dist[3] = {com1[0] - com2[0] + i*L[0][0], 
+						 com1[0] - com2[0] + i*L[1][0] + j*L[1][1],
+						 com1[0] - com2[0] + i*L[2][0] + j*L[2][1]+ k*L[2][2]};
+
+		if (NORM2(dist) < sum_len*sum_len)
+		{
+			int ret_val = check_pairwise(L, vdw_matrix, X, Y, Z, id1, id2, N1, N2, i, j, k)
+			if(!ret_val)
+				return 0;
+		}
+	}
+	return 1;
+}
+
+int check_pairwise(float L[3][3], float *vdw_matrix, float *X, float *Y, float *Z, int id1, int N1, int id2, int N2, int i, int j, int k)
+{
+	for(int i1 = 0; i1 < N1; i1++)
+	for(int i2 = 0; i2 < N2; i2++)
+	{
+		int atom1 = i1 + id1;
+		int atom2 = i2 + id2;
+
+		float dist[3] = {X[atom1] - X[atom2] + i*L[0][0],
+						 Y[atom1] - Y[atom2] + i*L[1][0] + j*L[1][1],
+						 Z[atom1] - Z[atom2] + i*L[1][0] + j*L[1][1]+ k*L[2][2]
+						};
+
+		if (NORM2(dist) < vdw_matrix)
+
+	}
+}
+check_lower_triangular(float L[3][3])
+{
+	if (L[0][1] < CONSTANT_TOL &&
+	    L[0][2] < CONSTANT_TOL &&
+	    L[1][2] < CONSTANT_TOL
+	    )
+	    return 1;
+
+	return 0;
+}
+
+
+
+#define NORM2(a,b) ( (a[0]-b[0])*(a[0]-b[0]) +\
+ 					 (a[1]-b[1])*(a[1]-b[1]) +\
+  					 (a[2]-b[2])*(a[2]-b[2]) 
+					)
 
 float find_mol_len(float *X, float *Y, float *Z, int len)
 {
 	float com[3] = {0, 0, 0};
 	find_mol_com(X, Y, Z, len, com);
+	float first_atom = {X[0], Y[0], Z[0]};
+	float max = NORM2(com, first_atom);
+	float dist_sqr = 0;
+
+	for(int i = 0; i < len; i++)
+	{
+		float atom_vec[3] = {X[i], Y[i], Z[i]};
+		dist_sqr = NORM2(atom_vec, com);
+
+		if (max < dist_sqr)
+			max = dist_sqr;
+	}
+
+	return 2*sqrt(max)
 }
 
+
+
+void find_mol_com(float *X, float *Y, float *Z, int len, float com[3])
+{
+	com[0] = 0;
+	com[1] = 0;
+	com[2] = 0;
+
+	for(int i = 0; i < len; i++)
+	{
+		com[0] += X[i];
+		com[1] += Y[i];
+		com[2] += Z[i];
+	}
+
+	com[0] /= len;
+	com[1] /= len;
+	com[2] /= len;
+}
