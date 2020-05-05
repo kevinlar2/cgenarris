@@ -64,7 +64,6 @@ int main(int argc, char **argv)
 				 &max_attempts,
                  spg_dist_type);	//get settings
 	tol = TOL;
-	printf("spg_dist_type = %s\n", spg_dist_type );
 	
 	int num_atoms_in_molecule = mol->num_of_atoms;
 	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
