@@ -87,6 +87,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean
 		{
 			sub_line = strtok(NULL," ");
 			sub_line = strtok(sub_line, "\n");
+            sub_line = strtok(sub_line, "\r")
 			strcpy(spg_dist_type, sub_line);
 			if(!( strcmp(spg_dist_type, "standard") ||
 				  strcmp(spg_dist_type, "uniform")  ||
