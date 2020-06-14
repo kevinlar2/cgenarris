@@ -92,31 +92,6 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void create_vdw_matrix_from_sr(molecule *mol,
-								float *vdw_matrix,
-								float sr,
-								int Z)
-{	int num_atoms_in_molecule = mol->num_of_atoms;
-	float *atom_vdw_vector = (float *) malloc( num_atoms_in_molecule*
-							sizeof(float) );
-	//create vector with vdw radii of size num of atoms in mol
-	convert_atom2atom_vdw( mol->atoms, atom_vdw_vector,
-							num_atoms_in_molecule);
-							
-	//now create matrix
-	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
-	for(int i = 0; i < dim_vdw_matrix; i++)
-		for(int j = 0; j < dim_vdw_matrix; j++)
-			{
-				*(vdw_matrix + i*dim_vdw_matrix +j)
-					=  (*(atom_vdw_vector + i%num_atoms_in_molecule) +
-						*(atom_vdw_vector + j%num_atoms_in_molecule) ) *
-						sr;
-			}
-	free(atom_vdw_vector);
-	
-	
-}
 
 /*
 int main(int argc, char **argv)

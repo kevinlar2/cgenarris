@@ -4,7 +4,7 @@
 Z                       2 
 
 #this is the number of structures per space group
-number_of_structures    40
+number_of_structures    200
 
 #specific radius proportion
 sr                      0.85
