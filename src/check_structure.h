@@ -2,7 +2,12 @@
 #define _CHECK_STRUCTURE_H
 
 int check_structure(crystal random_crystal, float sr);
-void vector_cpy(float A[], float B[][3], int index);
+int check_structure_with_vdw_matrix(crystal random_crystal,
+	float *vdw_matrix,
+	int dim1,
+	int dim2);
+
+//void vector_cpy(float A[], float B[][3], int index);
 float pdist(float T[3][3],
 			float T_inv[3][3],
 			float x1, 
@@ -12,6 +17,37 @@ float pdist(float T[3][3],
 			float y2,
 			float y3  );
 			
+int structure_checker(float L[3][3],
+	float *X ,
+	int dim1,
+	float *Y,
+	int dim2,
+	float *Z,
+	int dim3,
+	float *vdw_cutoff,
+	int dim4, 
+	int dim5,
+	int *mol_id,
+	int num_mols
+	);
+
+int fast_screener_vdw(crystal xtal, float *vdw_matrix);
+
+int check_pairwise_if_mol_close(float L[3][3],
+ float *vdw_matrix, int dim, float *X, float *Y,
+ float *Z, int id1, int N1, int id2, int N2,
+ float com1[3], float com2[3], float sum_len);
+
+int check_pairwise(float L[3][3], float *vdw_matrix,
+int dim, float *X, float *Y, float *Z, int id1,
+int id2, int N1, int N2, int i, int j, int k);
+
+int check_lower_triangular(float L[3][3]);
+
+float find_mol_len(float *X, float *Y, float *Z, int len);
+
+void find_mol_com(float *X, float *Y, float *Z, int len, float com[3]);
+
 float pdist_appx(float T[3][3],
 			float T_inv[3][3],
 			float x1, 
@@ -21,112 +57,6 @@ float pdist_appx(float T[3][3],
 			float y2,
 			float y3  );
 
-void pdist_2(float T[3][3],
-			float T_inv[3][3],
-			float x1, 
-			float x2,
-			float x3,
-			float y1,
-			float y2,
-			float y3,
-			float *p_dist,
-			float *p_dist_2  );
-			
-void pdist_2_appx(float T[3][3],
-			float T_inv[3][3],
-			float x1, 
-			float x2,
-			float x3,
-			float y1,
-			float y2,
-			float y3,
-			float *p_dist,
-			float *p_dist_2  );
-			
-int check_pair_tier2( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *atom_vdw,
-				int i,
-				int j,
-				int N,
-				float sr);
 
-int check_self_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length);
-
-int check_pair_tier3( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *atom_vdw,
-				int i,
-				int j,
-				int N,
-				float sr);
-
-int check_self_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *atom_vdw, int i,int  N,float  sr, float *bond_length);
-
-void convert_atom2atom_vdw(char *atom,float *atom_vdw, int num_atoms);
-
-void calc_bond_length(float *bond_length,float *X, float *Y, float *Z, int N);
-
-
-int fast_screener(crystal xtal, float sr, float *atom_vdw);
-
-
-int check_self_vdw(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length);
-	
-int check_pair_vdw( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *vdw_matrix,
-				int i,
-				int j,
-				int N,
-				int total_atoms);
-
-int fast_screener_vdw(crystal xtal, float *vdw_matrix);
-int check_structure_with_vdw_matrix(crystal random_crystal,
-	float *vdw_matrix,
-	int dim1,
-	int dim2);
-
-int check_pair_vdw_tier2( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *vdw_matrix,
-				int i,
-				int j,
-				int N,
-				int total_atoms);
-
-int check_self_vdw_tier2(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length);
-
-int check_pair_vdw_tier3( float T[3][3],
-				float T_inv[3][3],
-				float *X,
-				float *Y,
-				float *Z,
-				float *vdw_matrix,
-				int i,
-				int j,
-				int N,
-				int total_atoms);
-
-int check_self_vdw_tier3(float T[3][3], float T_inv[3][3],float *X,float *Y,
-	float *Z, float *vdw_matrix, int i,int  N,int total_atoms, float *bond_length);
-
-float get_molecule_length(crystal xtal);
 
 #endif

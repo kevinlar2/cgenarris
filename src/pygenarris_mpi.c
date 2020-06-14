@@ -269,7 +269,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 					}
 					//check if molecules are too close with sr	    
 					verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);    
-					
 										//if generation is successful
 					if (verdict == 1 )
 					{
@@ -390,6 +389,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 			print_time();
 			printf("Time spent on space group %d: ~ %.0lf seconds \n", spg, elapsed);
 			printf("-----------------------------------------------------\n\n");
+			printf("exiting spg\n");break;
 		}
 		
 	}//end of spg while loop
@@ -517,8 +517,10 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], doubl
 	//print_crystal(xtal);
 }
 
+/*
 int c_check_structure(crystal xtal, double sr)
 {
 	float f_sr = sr;
 	return check_structure(xtal, f_sr);
 }
+*/
