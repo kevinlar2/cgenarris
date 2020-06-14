@@ -56,6 +56,7 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 	int len_compatible_spg, int compatible_spg_index);
 
 
+int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int spg, int Z);
 
 
 #endif

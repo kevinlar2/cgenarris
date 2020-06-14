@@ -2,6 +2,7 @@
 #include <time.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "read_input.h"
 #include "spg_generation.h"
 #include "combinatorics.h"
@@ -68,3 +69,53 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
 		return 1;
 }
 
+int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int spg, int Z)
+{
+	if ( strcmp(spg_dist_type, "uniform") == 0)
+		return num_structures;
+
+	else if ( strcmp(spg_dist_type, "standard") == 0)
+	{
+		int order  = spg_positions[spg-1].multiplicity[0]/ Z;
+		return (num_structures/order);
+	}
+
+	// list from Genarris 1.0 source code
+	else if ( strcmp(spg_dist_type, "chiral") == 0 )
+	{
+		if (  spg == 1 || (spg > 2 && spg < 6) || (spg > 15 && spg < 25) ||
+			 (spg > 74 && spg < 81) || (spg > 88 && spg < 99) || (spg > 142 && spg < 147) ||
+			 (spg > 148 && spg < 156) || (spg > 167 && spg < 174) ||(spg > 176 && spg < 183) ||
+			 (spg > 194 && spg < 200) || (spg > 207 && spg < 215)
+			)
+		{
+			return num_structures;
+		}
+
+	 	else
+	 	{
+	 		return 0;
+	 	}
+	}
+
+	else if ( strcmp(spg_dist_type, "csd") == 0 )
+	{
+		const int len = 10;
+		// list of high frequency spgs in csd
+		// http://pd.chem.ucl.ac.uk/pdnn/symm3/sgpfreq.htm
+		int csd_list[ ] = { 14, 2, 19, 15, 3, 61, 62, 33, 9, 1};
+		for (int i = 0; i < len; i++)
+		{
+			if (csd_list[i] == spg)
+				return num_structures;
+		}
+
+		return 0;
+	}
+
+	else
+	{
+		printf("***ERROR: spg_generation: spg_dist_type not found\n");
+		exit(0);
+	}
+}

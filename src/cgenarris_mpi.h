@@ -1,4 +1,3 @@
-
 #ifndef CGENARRIS_MPI_H
 #define CGENARRIS_MPI_H
 

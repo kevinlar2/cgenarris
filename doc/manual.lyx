@@ -139,11 +139,11 @@ Parallelized using MPI.
 \end_layout
 
 \begin_layout Itemize
-Fast and efficient structure checking.
+Fast and efficient structure checks.
 \end_layout
 
 \begin_layout Itemize
-Can generate in all possible Z (or NMPC) with Z' <= 1.
+Can generate in all possible Z given Z' <= 1.
 \end_layout
 
 \begin_layout Standard
@@ -188,7 +188,11 @@ Uncompress the tar file.
 \end_layout
 
 \begin_layout Enumerate
-Execute 'make cgenarris_mpi'.
+Execute 'make cgenarris_mpi' in the 
+\emph on
+src
+\emph default
+ folder.
 \end_layout
 
 \begin_layout Enumerate
@@ -226,7 +230,7 @@ SWIG (Simplified Wrapper code and Interface Generator).
 \end_layout
 
 \begin_layout Enumerate
-Numpy and mpi4py.
+Numpy and Mpi4py.
 \end_layout
 
 \begin_layout Enumerate
@@ -285,11 +289,6 @@ Pygenarris can be built with both python2 and python3.
 \end_layout
 
 \begin_layout Enumerate
-All functions from pygenarris were moved to pygenarris_mpi.
- The former module is now deprecated.
-\end_layout
-
-\begin_layout Enumerate
 Import the module using 
 \emph on
 import _pygenarris_mpi 
@@ -327,22 +326,38 @@ Cgenarris is the structure generator written in pure C.
  and run cgenarris_mpi.x.
  It is parallelised using MPI version (The openMP version is now deprecated).
  The settings for generation are read from control.in file and molecule geometry
- is read from geometry.in file found in the working directory.
- The output is printed in file named geometry.out file.
+ is read from 
+\emph on
+geometry.in
+\emph default
+ file found in the working directory.
+ The output is printed in file named 
+\emph on
+geometry.out
+\emph default
+ file.
  
 \end_layout
 
 \begin_layout Standard
 First, the generator first identifies space groups that are compatible with
  molecular symmetry and given number of molecules in the unit cell.
- Structures are generated sequentially from lowest space group to the highest.
+ Structures are generated sequentially from lowest space group to the highest
+ with a given spacegroup sampling scheme.
  Cell volumes are sampled from a normal distribution.
  The attempted structures are checked for closeness of molecules.
  If an atom of a molecule is too close to its own periodic image or another
  atom of a different molecule in a cell, the structure is discarded.
- The closeness checks are controlled by the specific radius proportion (sr).
- If the generation of a space group fails after max_attempts times, the
- generator moves to the next higher space group.
+ The closeness checks are controlled by the specific radius proportion (
+\emph on
+sr
+\emph default
+).
+ If the generation of a space group fails after 
+\emph on
+max_attempts
+\emph default
+ times, the generator moves to the next higher space group.
  The generated structures are printed to the file 
 \emph on
 geometry.out 
@@ -360,6 +375,11 @@ Geometry of the molecule is read from the file
 geometry.in 
 \emph default
 from the working directory.
+ Note that input file is 
+\series bold
+case sensitive
+\series default
+.
 \end_layout
 
 \begin_layout Enumerate
@@ -368,7 +388,7 @@ from the working directory.
 num_structures 
 \emph default
 is the number of structures from each space group.
- Type: integer
+ Type: integer.
 \end_layout
 
 \begin_layout Enumerate
@@ -377,7 +397,7 @@ is the number of structures from each space group.
 Z 
 \emph default
 number of molecules in the conventional cell.
- Type: integer
+ Type: integer.
 \end_layout
 
 \begin_layout Enumerate
@@ -386,7 +406,7 @@ number of molecules in the conventional cell.
 volume_mean 
 \emph default
 is the mean of the normal distribution from which volume is sampled.
- Type: float
+ Type: float.
 \end_layout
 
 \begin_layout Enumerate
@@ -395,7 +415,7 @@ is the mean of the normal distribution from which volume is sampled.
 volume_std 
 \emph default
 is the standard deviation of the volume distribution.
- Type: float
+ Type: float.
 \end_layout
 
 \begin_layout Enumerate
@@ -405,7 +425,7 @@ sr
 \emph default
 is specific radius proportion.
  See Genarris paper for definition.
- Type: float
+ Type: float.
 \end_layout
 
 \begin_layout Enumerate
@@ -414,7 +434,7 @@ is specific radius proportion.
 tol
 \emph default
  is the tolerance for special position generation and space group detection.
- Type: float
+ Type: float.
 \end_layout
 
 \begin_layout Enumerate
@@ -423,15 +443,74 @@ tol
 max_attempts 
 \emph default
 is the maximum number of attempts before moving to the next space group.
- Type: integer
+ Type: integer.
 \end_layout
 
 \begin_layout Enumerate
-The number of threads can be set by using the environment variable 
+
 \emph on
-OMP_NUM_THREADS.
+spg_distribution_type 
+\emph default
+specifies how spacegroups are sampled.
+ Currently there are four options.
+ Type: string.
 \end_layout
 
+\begin_deeper
+\begin_layout Enumerate
+
+\emph on
+standard
+\emph default
+: Molecules in special positions are sampled lesser than 
+\emph on
+num_structures.
+ 
+\emph default
+More precisely, population of special position = 
+\emph on
+num_structures/
+\emph default
+(order of special position).
+ Population of spacegroups with molecule in general position is 
+\emph on
+num_structures.
+ 
+\emph default
+This is the recommended setting.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+uniform: 
+\emph default
+All spacegroups have equal population equal to 
+\emph on
+num_structures
+\emph default
+.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+chiral:
+\emph default
+ Only spacegroups that do not change the handedness of molecules are sampled.
+ 
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+csd: 
+\emph default
+Top ten most frequent spacegroups in the Cambridge Structural Database (CSD)
+ are sampled.
+\end_layout
+
+\end_deeper
 \begin_layout Subsubsection*
 Output
 \end_layout
