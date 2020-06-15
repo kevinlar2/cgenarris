@@ -15,14 +15,80 @@
 #include "algebra.h"
 #include "spglib.h"
 
-#define ZMAX 192
-#define VOL_ATTEMPT  100000
 
-unsigned int *seed;
-unsigned int *seed2;
-#pragma omp threadprivate(seed)
-#pragma omp threadprivate(seed2)
 extern float TOL;
+
+/* atoms supported
+ */
+void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
+		double *Yc,int total_atoms2, double *Zc, int total_atoms3,char* atoms, int total_atoms, int Z, int spg)
+{
+	
+	xtal->spg = spg;
+	xtal->Z = Z;
+	
+	int num_atoms_in_molecule = total_atoms/Z;
+	allocate_xtal(xtal, Z, num_atoms_in_molecule);
+	xtal->num_atoms_in_molecule = num_atoms_in_molecule;
+	
+	xtal->lattice_vectors[0][0] = lattice_vector[0][0];
+	xtal->lattice_vectors[0][1] = lattice_vector[0][1];
+	xtal->lattice_vectors[0][2] = lattice_vector[0][2];
+	
+	xtal->lattice_vectors[1][0] = lattice_vector[1][0];
+	xtal->lattice_vectors[1][1] = lattice_vector[1][1];
+	xtal->lattice_vectors[1][2] = lattice_vector[1][2];
+	
+	xtal->lattice_vectors[2][0] = lattice_vector[2][0];
+	xtal->lattice_vectors[2][1] = lattice_vector[2][1];
+	xtal->lattice_vectors[2][2] = lattice_vector[2][2];
+	
+	for(int i = 0; i < total_atoms; i++)
+	{
+		xtal->Xcord[i] = Xc[i];
+		xtal->Ycord[i] = Yc[i];
+		xtal->Zcord[i] = Zc[i]; 
+		xtal->atoms[2*i] = atoms[2*i];
+		xtal->atoms[2*i+1] = atoms[2*i+1];
+		
+	}
+	
+	print_crystal(xtal);
+}
+
+/*
+int c_check_structure(crystal xtal, double sr)
+{
+	float f_sr = sr;
+	return check_structure(xtal, f_sr);
+}
+*/
+
+
+int num_compatible_spacegroups(int Z, double tolerance)
+{
+	//set global variable tolerance
+	TOL = tolerance;
+
+	COMPATIBLE_SPG compatible_spg[230]; 
+	int num_compatible_spg = 0;
+	int thread_num = 1; 
+	molecule *mol = (molecule*)malloc(sizeof(molecule));
+
+	//read geometry from geometry.in
+	read_geometry(mol);
+
+	find_compatible_spg_positions(mol,
+								  Z,
+								  compatible_spg,
+								  &num_compatible_spg,
+								  thread_num);
+
+	free(mol);
+
+	return num_compatible_spg;
+
+}
 
 /*
 
@@ -508,103 +574,3 @@ void generate_molecular_crystals_with_vdw_cutoff_matrix(char *filename,
 
 
 */
-
-
-
-
-
-
-
-
-
-/* atoms supported
- */
-void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
-		double *Yc,int total_atoms2, double *Zc, int total_atoms3,char* atoms, int total_atoms, int Z, int spg)
-{
-	
-	xtal->spg = spg;
-	xtal->Z = Z;
-	
-	int num_atoms_in_molecule = total_atoms/Z;
-	allocate_xtal(xtal, Z, num_atoms_in_molecule);
-	xtal->num_atoms_in_molecule = num_atoms_in_molecule;
-	
-	xtal->lattice_vectors[0][0] = lattice_vector[0][0];
-	xtal->lattice_vectors[0][1] = lattice_vector[0][1];
-	xtal->lattice_vectors[0][2] = lattice_vector[0][2];
-	
-	xtal->lattice_vectors[1][0] = lattice_vector[1][0];
-	xtal->lattice_vectors[1][1] = lattice_vector[1][1];
-	xtal->lattice_vectors[1][2] = lattice_vector[1][2];
-	
-	xtal->lattice_vectors[2][0] = lattice_vector[2][0];
-	xtal->lattice_vectors[2][1] = lattice_vector[2][1];
-	xtal->lattice_vectors[2][2] = lattice_vector[2][2];
-	
-	for(int i = 0; i < total_atoms; i++)
-	{
-		xtal->Xcord[i] = Xc[i];
-		xtal->Ycord[i] = Yc[i];
-		xtal->Zcord[i] = Zc[i]; 
-		xtal->atoms[2*i] = atoms[2*i];
-		xtal->atoms[2*i+1] = atoms[2*i+1];
-		
-	}
-	
-	print_crystal(xtal);
-}
-
-
-int c_check_structure(crystal xtal, double sr)
-{
-	float f_sr = sr;
-	return check_structure(xtal, f_sr);
-}
-
-/*
-crystal generate_one_molecular_crystal(int Z, int spg, double volume1, double sr,
-	double tol, int max_attempts, int seed_in)
-{
-	srand((unsigned int)time(NULL));
-	int seed_shift = rand()% 1061 + 7 ;
-	*seed = seedin*13+ seed_shift*7;
-	int verdict;
-	molecule *mol = (molecule*)malloc(sizeof(molecule));
-	read_geometry(mol);
-	crystal *random_crystal = (crystal*)malloc(sizeof(crystal));
-	allocate_xtal(random_crystal, ZMAX, N);
-	
-	for(int i = 0; i < max_attempts; i++)
-	{
-		
-	}
-	 
-}
-*/
-
-int num_compatible_spacegroups(int Z, double tolerance)
-{
-	//set global variable tolerance
-	TOL = tolerance;
-
-	COMPATIBLE_SPG compatible_spg[230]; 
-	int num_compatible_spg = 0;
-	int thread_num = 1; 
-	molecule *mol = (molecule*)malloc(sizeof(molecule));
-
-	//read geometry from geometry.in
-	read_geometry(mol);
-
-	find_compatible_spg_positions(mol,
-								  Z,
-								  compatible_spg,
-								  &num_compatible_spg,
-								  thread_num);
-
-	free(mol);
-
-	return num_compatible_spg;
-
-}
-

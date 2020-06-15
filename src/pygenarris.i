@@ -24,10 +24,11 @@ import_array();
 %}
 
 
+%include "crystal.h"
+
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
 
-%include "spg_generation.h"
 void allocate_xtal(crystal* xtal, int Z, int N);
 
 %apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice_vector[3][3])};
@@ -39,16 +40,13 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], doubl
 
 void print_crystal(crystal* xtal);
 void free_xtal(crystal* xtal);
-int c_check_structure(crystal xtal, double sr);
-
+//int c_check_structure(crystal xtal, double sr);
 
 %apply ( float* IN_ARRAY2, int DIM1, int DIM2) {(float *vdw_matrix, int dim1, int dim2)};
 int check_structure_with_vdw_matrix(crystal random_crystal,
 	float *vdw_matrix,
 	int dim1,
 	int dim2);
-
-
 
 int num_compatible_spacegroups(int Z, double tolerance);
 

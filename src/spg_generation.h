@@ -4,8 +4,9 @@
 #define POS_MAX 47
 #define MAX_ORDER 16
 
-//for storing allowed spacegroup and position
+#include "crystal.h"
 
+//for storing allowed spacegroup and position
 typedef struct
 {
 	float *usable_mol_axes;
@@ -33,22 +34,6 @@ typedef struct
 	COMPATIBLE_AXES compatible_axes[POS_MAX];
 	
 }COMPATIBLE_SPG;
-
-typedef struct
-{
-	float lattice_vectors[3][3];
-	float *Xcord;
-	float *Ycord;
-	float *Zcord;
-	char *atoms;
-	int spg;
-	int wyckoff_position;
-    int num_atoms_in_molecule;
-	int Z;
-	int Zp;
-	
-}crystal;
-
 
 
 int generate_crystal(crystal* random_crystal, molecule* mol,float volume,

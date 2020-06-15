@@ -22,4 +22,4 @@ tolerance               0.1
 max_attempts            20000000
 
 #spacegroup distribution type
-spg_distribution_type   chiral
+spg_distribution_type   uniform

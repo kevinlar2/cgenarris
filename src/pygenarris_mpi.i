@@ -36,20 +36,21 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	double volume_mean1,
 	double volume_std1,
 	double tol1, 
-	long max_attempts, 
+	long max_attempts,
+        char *spg_dist_type, 
 	MPI_Comm world_comm);
 int num_compatible_spacegroups(int Z, double tolerance);
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
 
-void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);
-void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);
+//void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);
+//void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
 	
 void allocate_xtal(crystal* xtal, int Z, int N);
 
-%include "spg_generation.h"
+%include "crystal.h"
 
 
 %apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice_vector[3][3])};
@@ -64,7 +65,6 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], doubl
 
 void print_crystal(crystal* xtal);
 void free_xtal(crystal* xtal);
-int c_check_structure(crystal xtal, double sr);
 
 
 %apply ( float* IN_ARRAY2, int DIM1, int DIM2) {(float *vdw_matrix, int dim1, int dim2)};
