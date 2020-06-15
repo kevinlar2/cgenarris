@@ -18,6 +18,10 @@
 
 extern float TOL;
 
+unsigned int *seed;
+unsigned int *seed2;
+
+
 /* atoms supported
  */
 void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
