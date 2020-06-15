@@ -213,7 +213,7 @@ Remove object files using 'make clean'.
 \end_layout
 
 \begin_layout Subsection
-Pygenarris_mpi
+pygenarris_mpi
 \end_layout
 
 \begin_layout Subsubsection*
@@ -242,10 +242,6 @@ Method 1: Using Makefile
 \end_layout
 
 \begin_layout Enumerate
-Uncompress the tar file.
-\end_layout
-
-\begin_layout Enumerate
 Paste the location of Python.h headerfile in the Makefile.
  (for Anaconda v3.7 it should be ' anaconda/include/python3.7m/ ')
 \end_layout
@@ -264,16 +260,12 @@ Method 2: Using Distutils
 \end_layout
 
 \begin_layout Enumerate
-Uncompress the tar file.
-\end_layout
-
-\begin_layout Enumerate
 Execute ' python setup.py build_ext --inplace'.
 \end_layout
 
 \begin_layout Enumerate
-This will create pygenarris_mpi.so library from which you can import pygenarris_m
-pi functions.
+This will create pygenarris_mpi.so library file from which you can import
+ pygenarris_mpi functions.
 \end_layout
 
 \begin_layout Standard
@@ -296,6 +288,32 @@ import _pygenarris_mpi
 or 
 \emph on
 import pygenarris_mpi.
+\end_layout
+
+\begin_layout Subsection
+pygenarris
+\end_layout
+
+\begin_layout Standard
+All non-mpi utility functions except structure generator.
+\end_layout
+
+\begin_layout Subsubsection*
+Method 1: Using Makefile
+\end_layout
+
+\begin_layout Enumerate
+Paste the location of Python.h headerfile in the Makefile.
+ (for Anaconda v3.7 it should be ' anaconda/include/python3.7m/ ')
+\end_layout
+
+\begin_layout Enumerate
+Execute 'make pygenarris'.
+\end_layout
+
+\begin_layout Enumerate
+This will create pygenarris.so library file from which you can import pygenarris_
+mpi functions.
 \end_layout
 
 \begin_layout Standard
@@ -576,8 +594,8 @@ Generate a pool of random molecular crystals
 \begin_layout Standard
 
 \emph on
-generate_molecular_crystals(filename, num_structures, Z, volume_mean, volume_std
-, sr, tol, max_attempts)
+mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(filename, num_structures,
+ Z, volume_mean, volume_std, sr, tol, max_attempts,spg_dist_type, world_comm)
 \end_layout
 
 \begin_layout Subsubsection*
@@ -686,9 +704,21 @@ is the maximum number of attempts before moving to the next space group.
 \end_layout
 
 \begin_layout Enumerate
-The number of threads can be set by using the environment variable 
+
 \emph on
-OMP_NUM_THREADS.
+spg_dist_type 
+\emph default
+is space group distribution.
+ Check see the input from cgenarris section.
+ Type: string
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+world_comm 
+\emph default
+is the MPI4PY communicator object.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -696,73 +726,11 @@ Output
 \end_layout
 
 \begin_layout Enumerate
-A file with all the generated structures in FHI-aims geometry format
-\end_layout
-
-\begin_layout Standard
-\begin_inset Separator plain
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Generate a pool of random molecular crystals with VdW cutoff matrix
-\end_layout
-
-\begin_layout Standard
-
+A file named 
 \emph on
-generate_molecular_crystals_with_vdw_cutoff_matrix(filename, seedstate,
- vdw_matrix, num_structures, Z, volume_mean, volume_std, tol, max_attempts)
-\end_layout
-
-\begin_layout Subsubsection*
-Description
-\end_layout
-
-\begin_layout Standard
-Almost the same as the previous function.
- Uses a van der Waal cutoff matrix instead of sr.
-\end_layout
-
-\begin_layout Subsubsection*
-Input
-\end_layout
-
-\begin_layout Enumerate
-All keywords same as before.
-\end_layout
-
-\begin_layout Enumerate
-
-\emph on
-seedstate 
+geometry.out
 \emph default
-is the seed for random number generator.
- Type: int.
-\end_layout
-
-\begin_layout Enumerate
-vdw_matrix is a numpy array.
- Type: 2D numpy array of type 
-\begin_inset Quotes eld
-\end_inset
-
-float32
-\begin_inset Quotes erd
-\end_inset
-
- (single precision) and size 
-\emph on
-total_atoms 
-\emph default
-x
-\emph on
- total_atoms
-\emph default
-\SpecialChar endofsentence
-
+ with all the generated structures in FHI-aims geometry format.
 \end_layout
 
 \begin_layout Subsection
@@ -855,7 +823,7 @@ Molecule closeness check using specific radius proportion
 \begin_layout Standard
 
 \emph on
-int c_check_structure(xtal, sr)
+int check_structure_with_vdw_matrix(xtal, vdw_matrix)
 \end_layout
 
 \begin_layout Subsubsection*
@@ -865,8 +833,17 @@ Description
 \begin_layout Standard
 This function uses the built-in cgenarris structure checking function to
  see if the molecules are unphysically close.
- The treshold is controlled by specific radius proportion (sr).
- See the genarris paper for its definition.
+ The vdW distance matrix defines the shortest distance between two atoms
+ belonging to different molecules (which includes periodic images).
+ The matrix should be symmetric and should be of size 
+\emph on
+total_atoms x total_atoms 
+\emph default
+where 
+\emph on
+total_atoms
+\emph default
+ is the number of atoms in a cell.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -881,9 +858,27 @@ y) of type crystal by:
 \begin_layout Enumerate
 
 \emph on
-sr 
+vdw_matrix
 \emph default
-is the specific radius proportion.
+ is a numpy array.
+ Type: 2D numpy array of type 
+\begin_inset Quotes eld
+\end_inset
+
+float32
+\begin_inset Quotes erd
+\end_inset
+
+ (single precision) and size 
+\emph on
+total_atoms 
+\emph default
+x
+\emph on
+ total_atoms
+\emph default
+\SpecialChar endofsentence
+
 \end_layout
 
 \begin_layout Enumerate
@@ -1002,74 +997,6 @@ IMPORTANT: Don't forget to free the swig object.
  This can be done by 
 \emph on
 delete_crystal(xtal).
-\end_layout
-
-\begin_layout Subsubsection*
-Output
-\end_layout
-
-\begin_layout Standard
-Returns 0 if the structure is unphysical, returns 1 if the structure passes
- the test.
-\end_layout
-
-\begin_layout Subsection
-Molecule closeness check using vdW distance matrix
-\end_layout
-
-\begin_layout Standard
-
-\emph on
-int check_structure_with_vdw_matrix(xtal, vdw_matrix)
-\end_layout
-
-\begin_layout Subsubsection*
-Description
-\end_layout
-
-\begin_layout Standard
-The vdW distance matrix defines the shortest distance between two atoms
- belonging to different molecules (which includes periodic images).
- The matrix should be symmetric and should be of size 
-\emph on
-total_atoms x total_atoms 
-\emph default
-where 
-\emph on
-total_atoms
-\emph default
- is the number of atoms in a cell.
-\end_layout
-
-\begin_layout Subsubsection*
-Input
-\end_layout
-
-\begin_layout Enumerate
-xtal is an object of type crystal.
- See the previous function for more details.
-\end_layout
-
-\begin_layout Enumerate
-vdw_matrix is a numpy array.
- Type: 2D numpy array of type 
-\begin_inset Quotes eld
-\end_inset
-
-float32
-\begin_inset Quotes erd
-\end_inset
-
- (single precision) and size 
-\emph on
-total_atoms 
-\emph default
-x
-\emph on
- total_atoms
-\emph default
-\SpecialChar endofsentence
-
 \end_layout
 
 \begin_layout Subsubsection*
