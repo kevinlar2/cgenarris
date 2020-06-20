@@ -37,8 +37,8 @@ void print_crystal(crystal* xtal)
 	
 	for(int i = 0; i < N*m; i++)
 	{
-		printf("atom %12f %12f %12f %4c \n", xtal->Xcord[i],
-			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i]);
+		printf("atom %12f %12f %12f  %c%c \n", xtal->Xcord[i],
+			xtal->Ycord[i],  xtal->Zcord[i],  xtal->atoms[2*i], xtal->atoms[2i+1]);
 	}
 }
 
