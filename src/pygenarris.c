@@ -57,7 +57,7 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], doubl
 		
 	}
 	
-	print_crystal(xtal);
+	//print_crystal(xtal);
 }
 
 /*
