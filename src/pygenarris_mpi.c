@@ -400,7 +400,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 			print_time();
 			printf("Time spent on space group %d: ~ %.0lf seconds \n", spg, elapsed);
 			printf("-----------------------------------------------------\n\n");
-			printf("exiting spg\n");break;
 		}
 		
 	}//end of spg while loop
