@@ -52,7 +52,9 @@ int main(int argc, char **argv)
 	int num_structures;	//num of structures per spg
 	long max_attempts;	//max attempts per space group
     float tol;
-    char spg_dist_type[10];
+    char spg_dist_type[10];  //spg distribution type
+    int vol_attempt;    // no of attempts after which volume is resampled
+    int random_seed;    //seed for random gen 
     
     read_geometry(mol);				//read molecule from geometry.in
     read_control(&num_structures,
@@ -62,7 +64,9 @@ int main(int argc, char **argv)
 				 &volume_std,
 				 &sr,
 				 &max_attempts,
-                 spg_dist_type);	//get settings
+                 spg_dist_type,
+                 &vol_attempt, 
+                 &random_seed);	//get settings
 	tol = TOL;
 	
 	int num_atoms_in_molecule = mol->num_of_atoms;
@@ -73,7 +77,7 @@ int main(int argc, char **argv)
 	
 	create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 	
-		//call the generator from pygenarris_mpi
+	//call the generator from pygenarris_mpi
 	mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		vdw_cutoff_matrix,
 		dim_vdw_matrix,
@@ -85,6 +89,8 @@ int main(int argc, char **argv)
 		tol, 
 		max_attempts,
 		spg_dist_type,
+		vol_attempt,
+		random_seed,
 		world_comm);
 	
     MPI_Finalize();

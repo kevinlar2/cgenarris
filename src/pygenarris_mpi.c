@@ -16,7 +16,6 @@
 #include "pygenarris_mpi.h"
 
 #define ZMAX 192
-#define VOL_ATTEMPT  100000
 #define GRAIN_SIZE 10000
 
 unsigned int *seed;
@@ -42,7 +41,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	double volume_std1,
 	double tol1, 
 	long max_attempts,
-	char *spg_dist_type, 
+	char *spg_dist_type,
+    int vol_attempt, 
+    int random_seed, 
 	MPI_Comm world_comm)
 {
 	float Zp_max=1;
@@ -59,9 +60,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int my_rank;
     MPI_Comm_rank(world_comm, &my_rank);
 
-	//random number seeding
-	srand((unsigned int)time(NULL));
-	int seed_shift = rand()% 1061 + 7 ;
 	//variable declarations
 	//int fail_count;
 	int stop_flag = 0;	// to stop threads if limit is reached
@@ -85,10 +83,19 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     }
 
 	//random number seeding, different seeds for different threads
+	if (random_seed == 0)
+	{
+		srand((unsigned int)time(NULL));
+		random_seed = rand();
+	}
+	else
+	{
+		srand((unsigned int) 19023411);
+	}
 	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
 	seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
-	*seed += my_rank*7 + seed_shift*13; //some random seed private for each threads
-	*seed2 = my_rank*17 + seed_shift*11;
+	*seed = (unsigned int)abs(my_rank*7 + random_seed);  //some random seed private for each threads
+	*seed2 = (unsigned int)abs(my_rank*17 + random_seed);
 	init_genrand(abs(*seed));
 	
 	//storing information for compatible space groups
@@ -131,15 +138,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	MPI_Barrier(world_comm);
 
     read_geometry(mol);				//read molecule from geometry.in
-    /*
-    read_control(&num_structures,
-				 &Z,
-				 &Zp_max,
-				 &volume_mean, 
-				 &volume_std,
-				 &sr,
-				 &max_attempts);	//get settings
-	*/
 	
 	//recenter molecule to origin
 	recenter_molecule(mol);
@@ -154,7 +152,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 							 &volume_std,
 							 &sr,
 							 &max_attempts,
-							 spg_dist_type);
+							 spg_dist_type,
+							 &vol_attempt,
+							 &random_seed);
 	}
 
 	MPI_Barrier(world_comm);
@@ -165,11 +165,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	allocate_xtal(random_crystal, ZMAX, N); //allcate memory
 	random_crystal->num_atoms_in_molecule = mol->num_of_atoms;
 	int total_atoms = mol->num_of_atoms * Z;
-
-	//create xtal type structure for MPI
-	//MPI_Datatype XTAL_TYPE;
-	//create_mpi_xtal_type(&XTAL_TYPE, mol->num_of_atoms*Z);
-	//MPI_Type_commit(&XTAL_TYPE);
 
 	
 	if(my_rank == 0)
@@ -262,7 +257,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 									 spg_index);
 					
 					//reset volume after volume attempts
-					if( (i+j) % VOL_ATTEMPT == 0 && i+j != 0)
+					if( (i+j) % vol_attempt == 0 && i+j != 0)
 					{
 						do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 						if(my_rank == 0)

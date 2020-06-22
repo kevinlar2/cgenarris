@@ -23,3 +23,9 @@ max_attempts            20000000
 
 #spacegroup distribution type
 spg_distribution_type   uniform
+
+#random seed for reproducibilty; set it to 0 (default) to generate a time-dependent seed
+random_seed             223344
+
+#no of failed attempts after which unit cell volume is redrawn. default: 100000
+volume_attempt          0		

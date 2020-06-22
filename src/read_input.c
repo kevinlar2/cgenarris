@@ -8,8 +8,16 @@
 float TOL;
 
 
-void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean,
-				 float* volume_std, float *sr, long *max_attempts, char *spg_dist_type)
+void read_control(int* num_structures,
+                  int* Z,
+                  float* Zp_max,
+                  float* volume_mean,
+                  float* volume_std,
+                  float *sr,
+                  long *max_attempts,
+                  char *spg_dist_type, 
+                  int *vol_attempt, 
+                  int *random_seed)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -24,6 +32,11 @@ void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean
 		exit(0);
 	}
 	
+    //defaults
+    *sr = 0.85;
+    *vol_attempt = 100000;
+    *random_seed = 0;
+
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
 	{
@@ -83,6 +96,20 @@ void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean
 			continue;
 		}
 
+		if(strcmp(sub_line, "volume_attempts") == 0)
+		{
+			sub_line = strtok(NULL," ");
+			*vol_attempt = atoi(sub_line);
+			continue;
+		}
+
+		if(strcmp(sub_line, "random_seed") == 0)
+		{
+			sub_line = strtok(NULL," ");
+			*random_seed = atoi(sub_line);
+			continue;
+		}
+
 		if(strcmp(sub_line, "spg_distribution_type") == 0)
 		{
 			sub_line = strtok(NULL," ");
@@ -100,19 +127,9 @@ void read_control(int* num_structures, int* Z, float* Zp_max, float* volume_mean
 			continue;
 		}
 
-
-			//printf("char = %c \n",mol->atoms[2*i+1]); exit(0);
-            //printf("string = %c l %c \n", *sub_line, *(sub_line+1));	
-
    	}
 	
-	/*
-    *num_structures = 1;
-    *volume_mean = 1200;
-    *volume_std  = 100;
-	*Z = 6;
-	*sr = 0.75;
-	*/     
+ 
 	fclose(fileptr);
     *Zp_max = 192;
 }
@@ -205,8 +222,16 @@ void read_geometry(molecule* mol)
 }
 
 
-void print_input_settings(int* num_structures, int* Z, float* Zp_max, 
-	float* volume_mean, float* volume_std, float *sr, long *max_attempts, char * spg_dist_type)
+void print_input_settings(int* num_structures,
+                          int* Z,
+                          float* Zp_max,
+                          float* volume_mean,
+                          float* volume_std,
+                          float *sr,
+                          long *max_attempts,
+                          char * spg_dist_type, 
+                          int *vol_attempt, 
+                          int *random_seed)
 {
     *Zp_max = 192; //useless argument
 	printf("INPUT SETTINGS:\n");
@@ -218,6 +243,8 @@ void print_input_settings(int* num_structures, int* Z, float* Zp_max,
 	printf("Spacegroup distribution type:                 %s\n", spg_dist_type);
 	//printf("Specific radius proportion:                   %f\n", *sr );
 	printf("Maximum attempts per space group:             %ld\n", *max_attempts);
+	printf("Volume attempts:                              %d\n", *vol_attempt);
+	printf("Random seed:                                  %d\n", *random_seed);
 	printf("Tolerance:                                    %f\n", TOL);
 	printf("-----------------------------\n\n");
 

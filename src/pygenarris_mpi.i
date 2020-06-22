@@ -37,7 +37,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	double volume_std1,
 	double tol1, 
 	long max_attempts,
-        char *spg_dist_type, 
+	char *spg_dist_type,
+    int vol_attempt, 
+    int random_seed, 
 	MPI_Comm world_comm);
 int num_compatible_spacegroups(int Z, double tolerance);
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
