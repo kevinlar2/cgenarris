@@ -21,6 +21,7 @@ void gen_triclinic_lattice(float lattice_vector[3][3],
 	int attempt = 0;
     float obliqness = 0.6;
     float random01;
+    
     float x, y, z;
     do {x = normal_dist_ab(1, obliqness); } while(x < 0);
     do {y = normal_dist_ab(1, obliqness); } while(y < 0);
@@ -223,7 +224,7 @@ void generate_lattice(float lattice_vector[3][3], int spg,
 	else if (spg <= 230)
 	gen_cubic_lattice(lattice_vector, target_volume);
 	
-	//standardise_lattice(lattice_vector, spg);
+	standardise_lattice(lattice_vector, spg);
 
 	return;
 }

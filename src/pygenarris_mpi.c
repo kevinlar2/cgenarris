@@ -376,6 +376,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		}//end of numof structures whileloop
 	
 		//move to next spacegroup
+//exit(0);
 		counter = 0;
 		spg_index++;
 		if (my_rank == 0)
