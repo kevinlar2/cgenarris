@@ -4,6 +4,7 @@
 #include <time.h>
 #include "lattice_generator.h"
 #include "randomgen.h"
+#include "niggli.h"
 
 #define LOWB 2.5  //lower bound for length of lattice vector
 #define PI 3.141592653
@@ -18,13 +19,26 @@ void gen_triclinic_lattice(float lattice_vector[3][3],
 	float target_volume, float max_angle, float min_angle)
 {
 	int attempt = 0;
+    float obliqness = 0.6;
+    float random01;
+    float x, y, z;
+    do {x = normal_dist_ab(1, obliqness); } while(x < 0);
+    do {y = normal_dist_ab(1, obliqness); } while(y < 0);
+    do {z = normal_dist_ab(1, obliqness); } while(z < 0);
+    float factor =  cbrt (target_volume / (x*y*z) );
+    float ax = x*factor;
+    float by = y*factor;
+    float cz = z*factor;
 	//select principal components
+/*
 	float random01 = uniform_dist_01();
 	float ax = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
 	random01 = uniform_dist_01();
 	float by = random01*(target_volume/(ax*LOWB) - LOWB) +LOWB;
 	float cz = target_volume/(ax*by); 
-	
+*/
+
+
 	//generate random angles
 	random01 = uniform_dist_01();;
 	float beta = random01*(max_angle - min_angle) + min_angle; 
@@ -209,7 +223,7 @@ void generate_lattice(float lattice_vector[3][3], int spg,
 	else if (spg <= 230)
 	gen_cubic_lattice(lattice_vector, target_volume);
 	
-	standardise_lattice(lattice_vector, spg);
+	//standardise_lattice(lattice_vector, spg);
 
 	return;
 }
@@ -323,21 +337,51 @@ static inline float fmodulo (float n, float d)
 
 void standardise_lattice( float lattice[3][3], int spg)
 {
+/*
+    double nlattice[9] = {lattice[0][0], lattice[0][1], lattice[0][2],
+                         lattice[1][0], lattice[1][1], lattice[1][2],
+                         lattice[2][0], lattice[2][1], lattice[2][2]
+                        };
+    
+    int status = niggli_reduce(nlattice, 0.0001);
+
+    if(status)
+    {
+        lattice[0][0] = nlattice[0];
+        lattice[0][1] = nlattice[1];
+        lattice[0][2] = nlattice[2];
+        
+        lattice[1][0] = nlattice[3];
+        lattice[1][1] = nlattice[4];
+        lattice[1][2] = nlattice[5];
+
+        lattice[2][0] = nlattice[6];
+        lattice[2][1] = nlattice[7];
+        lattice[2][2] = nlattice[8];
+    }
+*/
+
+    
 	//triclinic
 	if (spg == 1 || spg == 2)
 	{
-		float bx = lattice[1][0];
+		float by = lattice[1][1];
+		float cy = lattice[2][1];
+        float cx = lattice[2][0];
+        float bx = lattice[1][0];
+        long q = cy/by;
+		float cy_new = cy - q * by;
+        float cx_new = cx - q * bx;
+		lattice[2][1] = cy_new;
+        lattice[2][0] = cx_new;
+		
+		bx = lattice[1][0];
 		float ax = lattice[0][0];
 		float bx_new = fmodulo (bx, ax);
 		lattice[1][0] = bx_new;
 		
-		float by = lattice[1][1];
-		float cy = lattice[2][1];
-		float cy_new = fmodulo(cy, by);
-		lattice[2][1] = cy_new;
-		
-		float cx = lattice[2][0];
-		float cx_new = fmodulo(cx, ax);
+		cx = lattice[2][0];
+		cx_new = fmodulo(cx, ax);
 		lattice[2][0] = cx_new;
 	}
 	
