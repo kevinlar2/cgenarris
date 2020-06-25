@@ -4,7 +4,7 @@
 #include <time.h>
 #include "lattice_generator.h"
 #include "randomgen.h"
-#include "niggli.h"
+//#include "niggli.h"
 
 #define LOWB 2.5  //lower bound for length of lattice vector
 #define PI 3.141592653
