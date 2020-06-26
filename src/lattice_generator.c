@@ -6,12 +6,11 @@
 #include "randomgen.h"
 //#include "niggli.h"
 
-#define LOWB 2.5  //lower bound for length of lattice vector
+#define LOWB 3  //lower bound for length of lattice vector
 #define PI 3.141592653
 
-//****
-//
-//***
+
+float obliqness = 0.6;
 
 //angles are in radians
 
@@ -19,17 +18,18 @@ void gen_triclinic_lattice(float lattice_vector[3][3],
 	float target_volume, float max_angle, float min_angle)
 {
 	int attempt = 0;
-    float obliqness = 0.6;
     float random01;
     
-    float x, y, z;
-    do {x = normal_dist_ab(1, obliqness); } while(x < 0);
-    do {y = normal_dist_ab(1, obliqness); } while(y < 0);
-    do {z = normal_dist_ab(1, obliqness); } while(z < 0);
-    float factor =  cbrt (target_volume / (x*y*z) );
-    float ax = x*factor;
-    float by = y*factor;
-    float cz = z*factor;
+    float x, y, z, ax, by, cz;
+    do{
+    	do {x = normal_dist_ab(1, obliqness); } while(x < 0.1);
+    	do {y = normal_dist_ab(1, obliqness); } while(y < 0.1);
+    	do {z = normal_dist_ab(1, obliqness); } while(z < 0.1 );
+    	float factor =  cbrt (target_volume / (x*y*z) );
+    	ax = x*factor;
+    	by = y*factor;
+    	cz = z*factor;
+	}while(ax < LOWB ||by < LOWB || cz < LOWB);
 	//select principal components
 /*
 	float random01 = uniform_dist_01();
@@ -85,13 +85,19 @@ void gen_triclinic_lattice(float lattice_vector[3][3],
 void gen_monoclinic_lattice(float lattice_vector[3][3], 
 	float target_volume, float max_angle, float min_angle)
 {
-	float random01 =uniform_dist_01();
-	float ax = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
-	random01 = uniform_dist_01();
-	float by = random01*(target_volume/(ax*LOWB) - LOWB) +LOWB;
-	float cz = target_volume/(ax*by); 
+    
+    float x, y, z, ax, by, cz;
+    do{
+    	do {x = normal_dist_ab(1, obliqness); } while(x < 0.1);
+    	do {y = normal_dist_ab(1, obliqness); } while(y < 0.1);
+    	do {z = normal_dist_ab(1, obliqness); } while(z < 0.1 );
+    	float factor =  cbrt (target_volume / (x*y*z) );
+    	ax = x*factor;
+    	by = y*factor;
+    	cz = z*factor;
+	}while(ax < LOWB ||by < LOWB || cz < LOWB);
 	
-	random01 = uniform_dist_01();;
+	float random01 = uniform_dist_01();;
 	float beta = random01*(max_angle - min_angle) + min_angle;
 
 	float cx = cz / tan(beta); 
@@ -112,11 +118,16 @@ void gen_monoclinic_lattice(float lattice_vector[3][3],
 void gen_orthorhombic_lattice(float lattice_vector[3][3], 
 	float target_volume)
 {
-	float random01 = uniform_dist_01();
-	float ax = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
-	random01 = uniform_dist_01();
-	float by = random01*(target_volume/(ax*LOWB) - LOWB) +LOWB;
-	float cz = target_volume/(ax*by); 
+	float x, y, z, ax, by, cz;
+    do{
+    	do {x = normal_dist_ab(1, obliqness); } while(x < 0.1);
+    	do {y = normal_dist_ab(1, obliqness); } while(y < 0.1);
+    	do {z = normal_dist_ab(1, obliqness); } while(z < 0.1 );
+    	float factor =  cbrt (target_volume / (x*y*z) );
+    	ax = x*factor;
+    	by = y*factor;
+    	cz = z*factor;
+	}while(ax < LOWB ||by < LOWB || cz < LOWB);
 
 	lattice_vector[0][0] = ax;
 	lattice_vector[1][1] = by;
@@ -135,10 +146,16 @@ void gen_orthorhombic_lattice(float lattice_vector[3][3],
 void gen_tetragonal_lattice(float lattice_vector[3][3],
 	float target_volume)
 {
-	float random01 = uniform_dist_01();
-	float cz = random01*(target_volume/(LOWB*LOWB) - LOWB) + LOWB;
-	float by = sqrt (target_volume/cz) ; 
-	float ax = by; 
+    float x, y, z, ax, by, cz;
+    do{
+    	do {x = normal_dist_ab(1, obliqness); } while(x < 0.1);
+    	y = x;
+    	do {z = normal_dist_ab(1, obliqness); } while(z < 0.1 );
+    	float factor =  cbrt (target_volume / (x*y*z) );
+    	ax = x*factor;
+    	by = y*factor;
+    	cz = z*factor;
+	}while(ax < LOWB ||by < LOWB || cz < LOWB);
 
 	lattice_vector[0][0] = ax;
 	lattice_vector[1][1] = by;
