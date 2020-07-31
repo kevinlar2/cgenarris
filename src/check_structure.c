@@ -167,7 +167,7 @@ int fast_screener_vdw(crystal xtal, float *vdw_matrix)
 				if( sqrt ((com1[0] - com2[0])*(com1[0] - com2[0])+
 						  (com1[1] - com2[1])*(com1[1] - com2[1])+
 						  (com1[2] - com2[2])*(com1[2] - com2[2]))
-					<     (mol_len + small_number)                  )
+					>     (mol_len + small_number)                  )
 					continue;
 			}
 			
