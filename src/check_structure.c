@@ -347,7 +347,7 @@ int structure_checker(float L[3][3],
 
 int check_pairwise_if_mol_close(float L[3][3], float *vdw_matrix, int dim, float *X, float *Y, float *Z, int id1, int N1, int id2, int N2, float com1[3], float com2[3], float sum_len)
 {
-	int xmax = fabs(sum_len/L[0][0]) + 2; // can't ignore nearest cells +2 ; loop goes until xmax-1
+	int xmax = fabs(sum_len/L[0][0]) + 5; // can't ignore nearest cells +2 ; loop goes until xmax-1
 	int ymax = (sum_len + xmax*fabs(L[1][0]/L[1][1]) ) + 2;
 	int zmax = (sum_len + xmax*fabs(L[2][0]) + ymax*fabs(L[2][0]/L[2][2]) ) + 2;
 	//printf("xmax, ymax, zmax = %d %d %d\n", xmax, ymax, zmax);
