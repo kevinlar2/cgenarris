@@ -103,7 +103,7 @@ int check_structure_with_vdw_matrix(crystal xtal,
 	int dim1,
 	int dim2)
 {
-	int dim = xtal.Z * xtal.num_atoms_in_molecule;
+	int total_atoms = xtal.Z * xtal.num_atoms_in_molecule;
 	int mol_id[xtal.Z];
 
 	if( !fast_screener_vdw(xtal, vdw_matrix) )
@@ -113,20 +113,15 @@ int check_structure_with_vdw_matrix(crystal xtal,
 	for(int i = 1; i < xtal.Z; i++)
 	{
 		mol_id[i] = mol_id[i-1] + xtal.num_atoms_in_molecule;
+		//printf("mol_id = %d\n", mol_id[i]);
 	}
 
-	return structure_checker(xtal.lattice_vectors,
-	                         xtal.Xcord,
-	                         dim,
-	                         xtal.Ycord, 
-	                         dim, 
-	                         xtal.Zcord, 
-	                         dim, 
-	                         vdw_matrix, 
-	                         dim1, 
-	                         dim2,
+	return structure_checker(
+							 &xtal,
+	                         vdw_matrix,
+	                         total_atoms, 
 	                         mol_id,
-	                         xtal.Z                 );
+	                         xtal.Z);
 
 }
 
@@ -196,7 +191,7 @@ int fast_screener_vdw(crystal xtal, float *vdw_matrix)
 	return 1;
 }
 
-int xseq_generator(int reset)
+static int xseq_generator(int reset)
 {
 	static int count = 0;
 	if (reset)
@@ -217,7 +212,7 @@ int xseq_generator(int reset)
     return count;
 }
 
-int yseq_generator(int reset)
+static int yseq_generator(int reset)
 {
 	static int count = 0;
 	if (reset)
@@ -238,7 +233,7 @@ int yseq_generator(int reset)
 	return count;
 }
 
-int zseq_generator(int reset)
+static int zseq_generator(int reset)
 {
 	static int count = 0;
 	if (reset)
@@ -261,16 +256,9 @@ int zseq_generator(int reset)
 /* 
  * Assume lattice to be lower triangular in row major form
  */
-int structure_checker(float L[3][3],
-	float *X ,
-	int dim1,
-	float *Y,
-	int dim2,
-	float *Z,
-	int dim3,
-	float *vdw_cutoff,
-	int dim4, 
-	int dim5,
+int structure_checker(crystal *xtal,
+	float *vdw_matrix,
+	int total_atoms,
 	int *mol_id,
 	int num_mols
 	)
@@ -294,7 +282,12 @@ int structure_checker(float L[3][3],
 		printf("***ERROR: lattice_vectors should be a lower triangular matrix in row major form\n");
 		return -1;
 	}
-	*/	
+	*/
+
+	// Unpack
+	float *X = xtal->Xcord;
+	float *Y = xtal->Ycord;
+	float *Z = xtal->Zcord;
 
 	//find number of atoms in each molecule
 	int num_atoms_in_molecule[num_mols];
@@ -304,109 +297,178 @@ int structure_checker(float L[3][3],
 		//printf("%s = %d\n", "num_atoms_molecule = ", num_atoms_in_molecule[i]);
 	}
 	//for last mol:
-	num_atoms_in_molecule[num_mols-1] = dim1 - mol_id[num_mols-1];
+	num_atoms_in_molecule[num_mols-1] = total_atoms - mol_id[num_mols-1];
 
 	// estimate molecule lengths
 	float mol_len[num_mols];
 	for(int i = 0 ; i < num_mols; i++)
 	{
 		mol_len[i] = find_mol_len(X + mol_id[i],
-								 Y + mol_id[i],
-								 Z + mol_id[i],
-								 num_atoms_in_molecule[i]);
+					              Y + mol_id[i],
+								  Z + mol_id[i],
+								  num_atoms_in_molecule[i]);
 		//printf("molLen = %f\n", mol_len[i]);
 	}
 
 	// find com
-	float com[num_mols * 3];
+	float com[num_mols*3];
 	for(int i = 0; i < num_mols; i++)
 	{
 		//printf("num_atoms_in_molecule = %d\n", num_atoms_in_molecule[i]);
-		find_mol_com(X + mol_id[i], Y +  mol_id[i], Z +  mol_id[i], num_atoms_in_molecule[i], com + 3*i);
+		find_mol_com(X + mol_id[i], Y + mol_id[i], Z + mol_id[i],
+			num_atoms_in_molecule[i], com + 3*i);
 		//printf("i = %d , com  === %f, %f, %f\n",i, com[3*i], com[3*i +1], com[3*i+2] );
 	}
 
+	// Loop over molecules in a unit cell
 	for(int i = 0; i < num_mols; i++)
 	{
 		for(int j = i; j < num_mols; j++)
 		{
 			//check pair of selcted molecules.
 			//printf("i, j = %d, %d \n", i, j );
-			float sum_len = mol_len[i] + mol_len[j];
-			int verdict = check_pairwise_if_mol_close(L, vdw_cutoff, dim1, X, Y, Z, mol_id[i], num_atoms_in_molecule[i], mol_id[j], num_atoms_in_molecule[j], com+3*i, com+3*j, sum_len);
+			float max_dist = mol_len[i] + mol_len[j];
+			
+			xtal_molecule_pair mol_pair = {.L = xtal->lattice_vectors, .com1 = com + 3*i,
+				.com2 = com + 3*j, .X = X, .Y = Y, .Z = Z, .index1 = mol_id[i],
+			 	.num_atoms1 = num_atoms_in_molecule[i], .index2 = mol_id[j],
+			 	.num_atoms2 = num_atoms_in_molecule[j]};
+
+			int verdict = check_pairwise_if_mol_close(vdw_matrix, total_atoms, &mol_pair, max_dist);
+			
 			if (!verdict)
-			{
 				return 0 ;
-			}
 		}
 	}
 
 	return 1;
 }
 
-
-int check_pairwise_if_mol_close(float L[3][3], float *vdw_matrix, int dim, float *X, float *Y, float *Z, int id1, int N1, int id2, int N2, float com1[3], float com2[3], float sum_len)
+static inline float maxof(float a, float b)
 {
-	int xmax = fabs(sum_len/L[0][0]) + 5; // can't ignore nearest cells +2 ; loop goes until xmax-1
-	int ymax = (sum_len + xmax*fabs(L[1][0]/L[1][1]) ) + 2;
-	int zmax = (sum_len + xmax*fabs(L[2][0]) + ymax*fabs(L[2][0]/L[2][2]) ) + 2;
-	//printf("xmax, ymax, zmax = %d %d %d\n", xmax, ymax, zmax);
+	if(a > b)
+		return a;
+	else
+		return b;
+}
 
-	for(int i = xseq_generator(1); i < xmax; i = xseq_generator(0))
-	for(int j = yseq_generator(1); j < ymax; j = yseq_generator(0))
+
+int check_pairwise_if_mol_close( float *vdw_matrix,
+	int total_atoms, xtal_molecule_pair *mol_pair, float max_dist)
+{
+	// Unpack
+	float *com1 = mol_pair->com1;
+	float *com2 = mol_pair->com2;
+	float (*L)[3] = mol_pair->L;
+	int id1 = mol_pair->index1;
+	int id2 = mol_pair->index2;
+
+	float p[3] = {com1[0] - com2[0], com1[1] - com2[1], com1[2] - com2[2]} ;
+	int zmax = maxof( fabs(p[2] + max_dist), fabs(p[2] - max_dist) )/ fabs(L[2][2]) + 3;
+	//printf("zmax = %d\n", zmax );
+
 	for(int k = zseq_generator(1); k < zmax; k = zseq_generator(0))
 	{
-		// Skip checking the molecule with itself
-		if (id1 == id2 && i == 0 && j == 0 && k == 0)
+		// update max_dist
+		float loss1 = (p[2] - k*L[2][2])*(p[2] - k*L[2][2]);
+		float max_dist_sqr = max_dist*max_dist - loss1;
+		if (max_dist_sqr < 0)
 			continue;
+		float max_dist_z = sqrt(max_dist_sqr);
+		//max_dist_z = max_dist;
+		// find ymax
+		int ymax =  maxof( fabs(p[2] - L[2][1]*k + max_dist_z),
+			 fabs(p[2] - L[2][1]*k - max_dist_z) ) / fabs(L[1][1]) + 3;
+		//printf("ymax = %d\n", ymax );
 
-		float dist[3] = {com1[0] - com2[0] + i*L[0][0] + j*L[1][0] + k*L[2][0], 
-						 com1[1] - com2[1]             + j*L[1][1] + k*L[2][1],
-						 com1[2] - com2[2]                         + k*L[2][2]};
-
-		
-		if (NORMSQR(dist) < (sum_len/2 + MAXVDW)*(sum_len/2 + MAXVDW))
+		for(int j = yseq_generator(1); j < ymax; j = yseq_generator(0))
 		{
-			/*
-			printf("i, j, k = %d, %d, %d dist = %f %f %f\n",i, j, k, dist[0], dist[1], dist[2] );
-			printf("sumlen = %f\n", sum_len);
-			printf("dist = %f\n", NORMSQR(dist));
-			printf("close; ijk = %d %d %d\n", i,j,k );
-			*/
-			int ret_val = check_pairwise(L, vdw_matrix, dim, X, Y, Z, id1, id2, N1, N2, i, j, k);
-			if(!ret_val)
-			{
+			// update max_dist
+			float loss2 = (p[1] - L[1][1]*j - L[2][1]*k)*(p[1] - L[1][1]*j - L[2][1]*k);
+			float max_dist_sqr =  max_dist_z*max_dist_z - loss2;
+			if (max_dist_sqr < 0)
+				continue;
+			float max_dist_y = sqrt(max_dist_sqr);
+			//max_dist_y = max_dist;
+			//find xmax
+			int xmax = maxof( fabs(p[0] - L[1][0]*j - L[2][0]*k + max_dist_y),
+				fabs(p[0] - L[1][0]*j - L[2][0]*k - max_dist_y) )/ fabs(L[0][0]) + 3;
+			//printf("xmax = %d\n", xmax );
 
+			for(int i = xseq_generator(1); i < xmax; i = xseq_generator(0))
+			{
+				// Skip checking the molecule with itself
+				if (id1 == id2 && i == 0 && j == 0 && k == 0)
+					continue;
+
+				// Lattice displacement
+				float l_disp[3] = { i*L[0][0] + j*L[1][0] + k*L[2][0],
+					 j*L[1][1] + k*L[2][1], k*L[2][2] };
+
+				float dist[3] = {p[0] - l_disp[0], 
+								 p[1] - l_disp[1],
+								 p[2] - l_disp[2] };
+				
+				// Two molecules considered are within the search radius then 
+				// test if the molecules are too close
+				if (NORMSQR(dist) < (max_dist/2 + MAXVDW)*(max_dist/2 + MAXVDW))
+				{
+					/*
+					printf("i, j, k = %d, %d, %d dist = %f %f %f\n",i, j, k, dist[0], dist[1], dist[2] );
+					printf("max_dist = %f\n", max_dist);
+					printf("dist = %f\n", NORMSQR(dist));
+					printf("close; ijk = %d %d %d\n", i,j,k );
+					*/				
+					int ret_val = check_pairwise(vdw_matrix, total_atoms, mol_pair, l_disp);
+					
+					if(!ret_val)
+						return 0;
+					
+				}		
+			}
+		}
+	}
+	return 1;
+}
+
+int check_pairwise(float *vdw_matrix , int total_atoms,
+	xtal_molecule_pair *mol_pair, float l_disp[3])
+{
+	// Unpack
+	float *X = mol_pair->X;
+	float *Y = mol_pair->Y;
+	float *Z = mol_pair->Z;
+	int N1 = mol_pair->num_atoms1;
+	int N2 = mol_pair->num_atoms2;
+	int id1 = mol_pair->index1;
+	int id2 = mol_pair->index2;
+
+	//printf("num_atoms1 = %d num_atoms2 = %d\n", N1, N2);
+
+	for(int i1 = 0; i1 < N1; i1++)
+		for(int i2 = 0; i2 < N2; i2++)
+		{
+			// index of an atom in molecule 1 in cord arrays
+			// id1 is the index of molecule 1
+			int atom1 = i1 + id1;
+			int atom2 = i2 + id2;
+
+			float dist[3] = {X[atom1] - X[atom2] - l_disp[0],
+							 Y[atom1] - Y[atom2] - l_disp[1],
+							 Z[atom1] - Z[atom2] - l_disp[2]
+							};
+
+
+			if (NORMSQR(dist) < SQR(*(vdw_matrix + atom1*total_atoms + atom2)) )
+			{
+				/*
+				//printf("failedat i=%d, j=%d, k=%d, atom1 = %d, atom2=%d \n", i, j, k, atom1, atom2);
+				printf("cutoff = %f, dist = %f\n", *(vdw_matrix + atom1*total_atoms + atom2),  sqrt(NORMSQR(dist)) );
+				printf("atom1 = %f %f %f, atom2 = %f %f %f\n", X[atom1], Y[atom1], Z[atom1], X[atom2], Y[atom2], Z[atom2]);
+				*/
 				return 0;
 			}
 		}
-		
-	}
-	return 1;
-}
-
-int check_pairwise(float L[3][3], float *vdw_matrix, int dim, float *X, float *Y, float *Z, int id1, int id2, int N1, int N2, int i, int j, int k)
-{
-	for(int i1 = 0; i1 < N1; i1++)
-	for(int i2 = 0; i2 < N2; i2++)
-	{
-		int atom1 = i1 + id1;
-		int atom2 = i2 + id2;
-
-		float dist[3] = {X[atom1] - X[atom2] + i*L[0][0] + j*L[1][0] + k*L[2][0],
-						 Y[atom1] - Y[atom2] + j*L[1][1] + k*L[2][1],
-						 Z[atom1] - Z[atom2] + k*L[2][2]
-						};
-
-		if (NORMSQR(dist) < SQR(*(vdw_matrix + atom1*dim + atom2)) )
-		{
-			/*printf("failedat i=%d, j=%d, k=%d, atom1 = %d, atom2=%d \n", i, j, k, atom1, atom2);
-			printf("cutoff = %f, dist = %f\n", *(vdw_matrix + atom1*dim + atom2),  sqrt(NORMSQR(dist)) );
-			printf("atom1 = %f %f %f, atom2 = %f %f %f\n", X[atom1], Y[atom1], Z[atom1], X[atom2], Y[atom2], Z[atom2]);
-			*/
-			return 0;
-		}
-	}
 
 	return 1;
 }
@@ -519,10 +581,10 @@ float pdist(float T[3][3],
 							   T[2][i] * fractional_distance[2];
 	
 	//use pdist as radius of sphere are search
-	int search_safety = 2;
-	int limx = abs( int_floor ( p_dist/ T[0][0] ) ) + 1 + search_safety;
-	int limy = abs( int_floor ( p_dist/ T[1][1] ) ) + 1 + search_safety;
-	int limz = abs( int_floor ( p_dist/ T[2][2] ) ) + 1 + search_safety;
+	int search_radius = 4;
+	int limx = search_radius;
+	int limy = search_radius;
+	int limz = search_radius;
 	
 	float test_dist[3] = {0,0,0};
 	

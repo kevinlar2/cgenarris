@@ -4,15 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-typedef struct
-{ 
-	char *atoms;
-	float *X;
-	float *Y;
-	float *Z;
-	int num_of_atoms;
-}molecule;
+#include "molecule.h"
 
 void read_control(int* num_structures,
                   int* Z,

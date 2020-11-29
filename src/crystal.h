@@ -1,5 +1,5 @@
-#ifndef CRYSTAL_H
-#define CRYSTAL_H
+#ifndef _CRYSTAL_H
+#define _CRYSTAL_H
 
 typedef struct
 {
