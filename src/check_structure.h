@@ -40,16 +40,6 @@ int structure_checker(crystal *xtal,
 	int num_mols
 	);
 
-int fast_screener_vdw(crystal xtal, float *vdw_matrix);
-
-int check_pairwise_if_mol_close( float *vdw_matrix, int total_atoms,
-	xtal_molecule_pair *mol_pair, float max_dist);
-
-int check_pairwise(float *vdw_matrix , int total_atoms,
-	xtal_molecule_pair *mol_pair, float l_disp[3]);
-
-int check_lower_triangular(float L[3][3]);
-
 float find_mol_len(float *X, float *Y, float *Z, int len);
 
 void find_mol_com(float *X, float *Y, float *Z, int len, float com[3]);
@@ -67,11 +57,6 @@ void create_vdw_matrix_from_sr( molecule *mol,
 								float *vdw_matrix,
 								float sr,
 								int Z);
-/*
-static int xseq_generator(int reset);
-static int yseq_generator(int reset);
-static int zseq_generator(int reset);
-*/
 
 
 

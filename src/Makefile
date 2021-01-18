@@ -1,7 +1,7 @@
 
 CC=mpicc
-CFLAGS=-std=gnu99 -O3 -fPIC -Wall  
-PYTHON_H=/home/ritwit/anaconda3/include/python3.7m/
+CFLAGS=-std=gnu99 -O3 -fPIC -Wall -Wpedantic  
+PYTHON_H=/home/ritwit/anaconda3/include/python3.8/
 
 
 #cgenarris:  main.o read_input.o spg_generation.o lattice_generator.o algebra.o\

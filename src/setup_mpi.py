@@ -36,6 +36,7 @@ for package in packages:
 import mpi4py
 import numpy
 
+
 sources_spglib = ['arithmetic.c',
            'cell.c',
            'delaunay.c',
