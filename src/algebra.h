@@ -21,7 +21,6 @@ int hall_number_from_spg(int spg);
 void copy_floatmat3b3_intmat3b3(float a[3][3], int b[3][3]);
 void mat3b3_transpose(float b_trans[3][3], float b[3][3]);
 void print_mat3b3bN(float a[][3][3], int N);
-
 void copy_vector3_mat3b3(float a[3], float b[3][3],int index);
 void vector3_inverse(float a[3]);
 float vector3_norm(float a[3]);

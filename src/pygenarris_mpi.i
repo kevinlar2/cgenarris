@@ -35,11 +35,11 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 	int Z,
 	double volume_mean1,
 	double volume_std1,
-	double tol1, 
+	double tol1,
 	long max_attempts,
 	char *spg_dist_type,
-    int vol_attempt, 
-    int random_seed, 
+    int vol_attempt,
+    int random_seed,
 	MPI_Comm world_comm);
 
 int num_compatible_spacegroups(int Z, double tolerance);
@@ -48,19 +48,18 @@ int num_compatible_spacegroups(int Z, double tolerance);
 //void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);
 void find_allowed_positions_using_molecular_symmetry(char mol_sym[6],
 	int Z, int Zpp);
-	
+
 void allocate_xtal(crystal* xtal, int Z, int N);
 
 %include "crystal.h"
-
-
 %apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice_vector[3][3])};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Xc, int total_atoms1)};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Yc, int total_atoms2)};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Zc, int total_atoms3)};
-void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3], double *Xc,int total_atoms1,
-		double *Yc,int total_atoms2, double *Zc, int total_atoms3,char *atoms,  int total_atoms, int Z, int spg);
-
+void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3],
+	double *Xc,int total_atoms1, double *Yc,int total_atoms2,
+	double *Zc, int total_atoms3, char *atoms,  int total_atoms,
+	int Z, int spg);
 
 %apply (double INPLACE_ARRAY1[ANY]) {(double a[3])};
 

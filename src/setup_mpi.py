@@ -1,6 +1,6 @@
 
 """
-setup.py file 
+setup.py file
 """
 
 from setuptools import setup, Extension
@@ -12,8 +12,8 @@ mpicompiler = 'mpicc'
 # These flags may conflict with other compilers
 ccvars = sysconfig.get_config_vars()
 key_list1 = ['BASECFLAGS', 'CFLAGS', 'OPT', 'PY_CFLAGS',
-            'CCSHARED', 'CFLAGSFORSHARED', 'LINKFORSHARED',
-            'LIBS', 'SHLIBS']
+             'CCSHARED', 'CFLAGSFORSHARED', 'LINKFORSHARED',
+             'LIBS', 'SHLIBS']
 for key in key_list1:
     if key in ccvars:
         ccvars[key] = ' '
@@ -36,27 +36,26 @@ for package in packages:
 import mpi4py
 import numpy
 
-
 sources_spglib = ['arithmetic.c',
-           'cell.c',
-           'delaunay.c',
-           'determination.c',
-           'hall_symbol.c',
-           'kgrid.c',
-           'kpoint.c',
-           'mathfunc.c',
-           'niggli.c',
-           'overlap.c',
-           'pointgroup.c',
-           'primitive.c',
-           'refinement.c',
-           'sitesym_database.c',
-           'site_symmetry.c',
-           'spacegroup.c',
-           'spin.c',
-           'spg_database.c',
-           'spglib.c',
-           'symmetry.c']
+                  'cell.c',
+                  'delaunay.c',
+                  'determination.c',
+                  'hall_symbol.c',
+                  'kgrid.c',
+                  'kpoint.c',
+                  'mathfunc.c',
+                  'niggli.c',
+                  'overlap.c',
+                  'pointgroup.c',
+                  'primitive.c',
+                  'refinement.c',
+                  'sitesym_database.c',
+                  'site_symmetry.c',
+                  'spacegroup.c',
+                  'spin.c',
+                  'spg_database.c',
+                  'spglib.c',
+                  'symmetry.c']
 
 source_dir = "spglib_src"
 include_dirs = [source_dir, ]
