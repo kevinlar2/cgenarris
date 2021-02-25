@@ -14,6 +14,11 @@ cgenarris_mpi: cgenarris_mpi.o read_input.o spg_generation.o lattice_generator.o
                molecule_placement.o randomgen.o spglib.o pygenarris_mpi.o
 	$(CC) ${CFLAGS} *.o -o cgenarris_mpi.x -lm
 
+cgenarris_test: cgenarris_test.o read_input.o spg_generation.o lattice_generator.o algebra.o\
+               molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
+               molecule_placement.o randomgen.o spglib.o pygenarris_mpi.o
+	$(CC) ${CFLAGS} *.o -o cgenarris_test.x -lm
+
 swig:
 	swig -python pygenarris.i
 
@@ -36,6 +41,9 @@ pywrap: swig
 
 pywrap_pygenarris_mpi:swig_pygenarris_mpi
 	${CC} ${CFLAGS} -I${PYTHON_H} -c pygenarris_mpi.c pygenarris_mpi_wrap.c  -lpython3
+
+cgenarris_test.o: test_main.c
+	${CC} ${CFLAGS} -c test_main.c
 
 cgenarris_mpi.o:cgenarris_mpi.c
 	${CC} ${CFLAGS} -c cgenarris_mpi.c
