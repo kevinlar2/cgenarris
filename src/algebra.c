@@ -415,3 +415,11 @@ void array_shuffler_1(float *a, int len )
         *(a+3*j+2) = temp[2];
     }
 }
+
+
+int are_equal_floats(float a, float b, float ftol)
+{
+    if(fabsf(a - b) < ftol)
+        return 1;
+    return 0;
+}
