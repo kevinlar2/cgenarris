@@ -53,5 +53,7 @@ target_link_libraries(cgenarris_test m)
 target_link_libraries(cgenarris_test ${MPI_LIBRARIES})
 
 enable_testing()
-add_test(NAME cgenarris_test COMMAND cgenarris_test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/)
+add_test(NAME cgenarris_test
+         COMMAND cgenarris_test
+         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/regression_test1/)
 
