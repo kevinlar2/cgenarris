@@ -3,7 +3,7 @@ project("cgenarris")
 
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
-set(CMAKE_C_FLAGS "-Wall -Wpedantic -O3")
+set(CMAKE_C_FLAGS "-Wall -Wpedantic -O3 -std=gnu99")
 
 include_directories("${PROJECT_SOURCE_DIR}/src")
 set(SOURCES
