@@ -29,7 +29,7 @@ void read_control(int* num_structures,
     if(!fileptr)
     {
         printf("***ERROR: no control.in file \n");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     //defaults
@@ -122,7 +122,7 @@ void read_control(int* num_structures,
                   strcmp(spg_dist_type, "csd")       ) )
             {
                 printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
-                exit(0);
+                exit(EXIT_FAILURE);
             }
             continue;
         }
@@ -149,7 +149,7 @@ void read_geometry(molecule* mol)
     if(!fileptr)
     {
         printf("***ERROR: no geometry.in file \n");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
      while ((read = getline(&line, &len, fileptr)) != -1)

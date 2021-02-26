@@ -8,7 +8,6 @@ set(CMAKE_C_FLAGS "-Wall -Wpedantic -O3")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 set(SOURCES
 src/algebra.c
-src/cgenarris_mpi.c
 src/check_structure.c
 src/combinatorics.c
 src/crystal_utils.c
@@ -46,6 +45,13 @@ src/spglib_src/symmetry.c
 src/spglib_src/tetrahedron_method.c
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} src/cgenarris_mpi.c)
+add_executable(cgenarris_test ${SOURCES} src/test_main.c)
 target_link_libraries(${PROJECT_NAME} m)
 target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES})
+target_link_libraries(cgenarris_test m)
+target_link_libraries(cgenarris_test ${MPI_LIBRARIES})
+
+enable_testing()
+add_test(NAME cgenarris_test COMMAND cgenarris_test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/)
+
