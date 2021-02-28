@@ -42,9 +42,8 @@ int main(int argc, char **argv)
 
     //variable declarartion
 	molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
-
-	//added here//////
-	int crystal_generation //indicate whether its molecular crystal generation or layer generation
+	//////added here
+	int crystal_generation; //indicate whether its molecular crystal generation or layer generation
 	float interface_area_mean; //for layer
 	float interface_area_std; //for layer
 	int volume_multiplier; // for layer
@@ -67,30 +66,32 @@ int main(int argc, char **argv)
     int random_seed;    //seed for random gen
 
     read_geometry(mol);				//read molecule from geometry.in
-
-	if (crystal_generation)     // for molecular crystal generation
-	{
-		read_control(&num_structures,
+    read_control(&num_structures,
 				 &Z,
-				 &Zp_max,
+				 &Zp_max,			 
 				 &volume_mean,
 				 &volume_std,
 				 &sr,
 				 &max_attempts,
                  spg_dist_type,
                  &vol_attempt,
-                 &random_seed);	//get settings
-		tol = TOL;
-
-		int num_atoms_in_molecule = mol->num_of_atoms;
-		int dim_vdw_matrix = num_atoms_in_molecule * Z ;
-		float *vdw_cutoff_matrix = (float *) malloc( dim_vdw_matrix *
+                 &random_seed,
+				 &crystal_generation,
+				 &interface_area_mean,
+				 &interface_area_std,
+				 &volume_multiplier,
+				 lattice_vector_2d);	//get settings
+	tol = TOL;
+	int num_atoms_in_molecule = mol->num_of_atoms;
+	int dim_vdw_matrix = num_atoms_in_molecule * Z ;
+	float *vdw_cutoff_matrix = (float *) malloc( dim_vdw_matrix *
 								dim_vdw_matrix *
 								sizeof(float) ); //square matrix
 
-		create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
+	create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 
-		//call the generator from pygenarris_mpi
+	if (crystal_generation)     // for molecular crystal 
+	{
 		mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		vdw_cutoff_matrix,
 		dim_vdw_matrix,
@@ -110,29 +111,10 @@ int main(int argc, char **argv)
 
     	return 0;
 	}
-	else						// for layer generation
-	{
-		read_control_layer(&num_structures,
-				 &Z,
-				 &Zp_max,
-				 &volume_mean, 
-				 &volume_std,
-				 &interface_area_mean,
-				 &interface_area_std,
-				 &volume_multiplier,
-				 &sr,
-				 &max_attempts,
-                 spg_dist_type, lattice_vector_2d);	//get settings
-		tol = TOL;
-		int num_atoms_in_molecule = mol->num_of_atoms;
-		int dim_vdw_matrix = num_atoms_in_molecule * Z ;
-		float *vdw_cutoff_matrix = (float *) malloc( dim_vdw_matrix * 
-								dim_vdw_matrix *
-								sizeof(float) ); //square matrix
-	
-		create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 
-		mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+	else					// for layer generation
+	{
+		mpi_generate_layer_with_vdw_cutoff_matrix(
 		vdw_cutoff_matrix,
 		dim_vdw_matrix,
 		dim_vdw_matrix,
@@ -151,11 +133,10 @@ int main(int argc, char **argv)
 	
     	MPI_Finalize();
 
-    	return 0;	
-	
+    	return 0;
 	}
-    
 
+	
 	
 }
 

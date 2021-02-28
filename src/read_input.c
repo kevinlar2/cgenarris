@@ -6,136 +6,14 @@
 
 
 float TOL;
-
-
-void read_control(int* num_structures,
-                  int* Z,
-                  float* Zp_max,
-                  float* volume_mean,
-                  float* volume_std,
-                  float *sr,
-                  long *max_attempts,
-                  char *spg_dist_type,
-                  int *vol_attempt,
-                  int *random_seed)
-{
-    FILE *fileptr;
-    size_t len = 0;
-    char *line = NULL;
-    char *sub_line = NULL;
-    int read;
-    fileptr = fopen("control.in","r");
-
-    if(!fileptr)
-    {
-        printf("***ERROR: no control.in file \n");
-        exit(EXIT_FAILURE);
-    }
-
-    //defaults
-    *sr = 0.85;
-    *vol_attempt = 100000;
-    *random_seed = 0;
-
-    //read from control
-    while ((read = getline(&line, &len, fileptr)) != -1)
-    {
-        //printf("Retrieved line of length %zu :\n", read);
-        //if comment
-        if (strstr(line, "#") != NULL)
-            continue;
-
-        sub_line=strtok(line," ");
-        //printf("%s \n" , sub_line);
-        if(strcmp(sub_line, "Z") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *Z = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "sr") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *sr = atof(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "volume_mean") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *volume_mean = atof(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "volume_std") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *volume_std = atof(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "number_of_structures") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *num_structures = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "tolerance") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            TOL = atof(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "max_attempts") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *max_attempts = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "volume_attempts") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *vol_attempt = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "random_seed") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *random_seed = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "spg_distribution_type") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            sub_line = strtok(sub_line, "\n");
-            sub_line = strtok(sub_line, "\r");
-            strcpy(spg_dist_type, sub_line);
-            if(!( strcmp(spg_dist_type, "standard") ||
-                  strcmp(spg_dist_type, "uniform")  ||
-                  strcmp(spg_dist_type, "chiral")   ||
-                  strcmp(spg_dist_type, "csd")       ) )
-            {
-                printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
-                exit(EXIT_FAILURE);
-            }
-            continue;
-        }
-
-    }
-    fclose(fileptr);
-    *Zp_max = 192;
-}
-
-
-void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volume_mean,
-				 float* volume_std,float* interface_area_mean,
-				 float* interface_area_std,int* volume_multiplier, float *sr, long *max_attempts, char *spg_dist_type, float lattice_vector_2d[2][3])
+void read_control(int* num_structures, int* Z, float* Zp_max, 
+                 float* volume_mean,float* volume_std,
+                 float *sr,long *max_attempts, char *spg_dist_type, 
+                 int *vol_attempt,int *random_seed,
+                 int *crystal_generation,
+                 float* interface_area_mean,float* interface_area_std,
+                 int* volume_multiplier, 
+                 float lattice_vector_2d[2][3])
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -166,7 +44,7 @@ void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volum
 			*Z = atoi(sub_line);
 			continue;
 		}
-	if (strcmp(sub_line,"lattice_vector_a")==0)
+	    if (strcmp(sub_line,"lattice_vector_a")==0)
 		{
 
 			sub_line = strtok(NULL,"        ");
@@ -181,9 +59,10 @@ void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volum
 			//printf("sub_line: %s",sub_line);
 			//fflush(stdout);
             lattice_vector_2d[0][2] = atof(sub_line);
+            continue;
 			
 		}
-	if (strcmp(sub_line,"lattice_vector_b")==0)
+	    if (strcmp(sub_line,"lattice_vector_b")==0)
 		{
 			sub_line = strtok(NULL,"        ");
             lattice_vector_2d[1][0] = atof(sub_line);
@@ -191,8 +70,14 @@ void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volum
             lattice_vector_2d[1][1] = atof(sub_line);
             sub_line = strtok(NULL,"        ");
             lattice_vector_2d[1][2] = atof(sub_line);
-		}
-
+            continue;
+		}	
+        if (strcmp(sub_line,"crystal_generation")==0)
+		{
+			sub_line = strtok(NULL," ");
+			*crystal_generation = atof(sub_line);
+			continue;
+		}	
 		if(strcmp(sub_line, "sr") == 0)
 		{
 			sub_line = strtok(NULL," ");
@@ -271,6 +156,20 @@ void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volum
 			continue;
 		}
 
+        if(strcmp(sub_line, "random_seed") == 0)
+        {
+            sub_line = strtok(NULL," ");
+            *random_seed = atoi(sub_line);
+            continue;
+        }
+
+        if(strcmp(sub_line, "volume_attempt") == 0)
+        {
+            sub_line = strtok(NULL," ");
+            *vol_attempt = atoi(sub_line);
+            continue;
+        }
+
 
 			//printf("char = %c \n",mol->atoms[2*i+1]); exit(0);
             //printf("string = %c l %c \n", *sub_line, *(sub_line+1));	
@@ -287,6 +186,8 @@ void read_control_layer(int* num_structures, int* Z, float* Zp_max, float* volum
 	fclose(fileptr);
     *Zp_max = 192;
 }
+
+
 
 
 
