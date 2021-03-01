@@ -1,5 +1,0 @@
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles/rebuild_cache.dir
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles/edit_cache.dir
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles/test.dir
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles/cgenarris_test.dir
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles/cgenarris.dir
