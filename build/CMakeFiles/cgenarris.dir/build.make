@@ -200,9 +200,22 @@ CMakeFiles/cgenarris.dir/src/spg_generation.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/cgenarris.dir/src/spg_generation.c.s"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spg_generation.c -o CMakeFiles/cgenarris.dir/src/spg_generation.c.s
 
+CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o: CMakeFiles/cgenarris.dir/flags.make
+CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o: ../src/lattice_generator_layer.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o"
+	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.c
+
+CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.i"
+	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.c > CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.i
+
+CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.s"
+	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.c -o CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.s
+
 CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o: ../src/spglib_src/arithmetic.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/arithmetic.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.i: cmake_force
@@ -215,7 +228,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o: ../src/spglib_src/cell.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/cell.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.i: cmake_force
@@ -228,7 +241,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o: ../src/spglib_src/debug.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/debug.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.i: cmake_force
@@ -241,7 +254,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.o: ../src/spglib_src/delaunay.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/delaunay.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.i: cmake_force
@@ -254,7 +267,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/delaunay.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.o: ../src/spglib_src/determination.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/determination.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.i: cmake_force
@@ -267,7 +280,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/determination.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.o: ../src/spglib_src/hall_symbol.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/hall_symbol.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.i: cmake_force
@@ -280,7 +293,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/hall_symbol.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.o: ../src/spglib_src/kgrid.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/kgrid.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.i: cmake_force
@@ -293,7 +306,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/kgrid.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.o: ../src/spglib_src/kpoint.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/kpoint.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.i: cmake_force
@@ -306,7 +319,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/kpoint.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.o: ../src/spglib_src/mathfunc.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/mathfunc.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.i: cmake_force
@@ -319,7 +332,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/mathfunc.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.o: ../src/spglib_src/niggli.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/niggli.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.i: cmake_force
@@ -332,7 +345,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/niggli.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.o: ../src/spglib_src/overlap.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/overlap.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.i: cmake_force
@@ -345,7 +358,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/overlap.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.o: ../src/spglib_src/pointgroup.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/pointgroup.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.i: cmake_force
@@ -358,7 +371,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/pointgroup.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.o: ../src/spglib_src/primitive.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/primitive.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.i: cmake_force
@@ -371,7 +384,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/primitive.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.o: ../src/spglib_src/refinement.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/refinement.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.i: cmake_force
@@ -384,7 +397,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/refinement.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.o: ../src/spglib_src/sitesym_database.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/sitesym_database.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.i: cmake_force
@@ -397,7 +410,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/sitesym_database.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.o: ../src/spglib_src/site_symmetry.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/site_symmetry.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.i: cmake_force
@@ -410,7 +423,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/site_symmetry.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.o: ../src/spglib_src/spacegroup.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/spacegroup.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.i: cmake_force
@@ -423,7 +436,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/spacegroup.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.o: ../src/spglib_src/spg_database.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/spg_database.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.i: cmake_force
@@ -436,7 +449,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/spg_database.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.o: ../src/spglib_src/spglib.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/spglib.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.i: cmake_force
@@ -449,7 +462,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/spglib.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.o: ../src/spglib_src/spglib_f.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/spglib_f.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.i: cmake_force
@@ -462,7 +475,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/spglib_f.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.o: ../src/spglib_src/spin.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/spin.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.i: cmake_force
@@ -475,7 +488,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/spin.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.o: ../src/spglib_src/symmetry.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/symmetry.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.i: cmake_force
@@ -488,7 +501,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/symmetry.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.o: ../src/spglib_src/tetrahedron_method.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib_src/tetrahedron_method.c
 
 CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.i: cmake_force
@@ -501,7 +514,7 @@ CMakeFiles/cgenarris.dir/src/spglib_src/tetrahedron_method.c.s: cmake_force
 
 CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.o: CMakeFiles/cgenarris.dir/flags.make
 CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.o: ../src/cgenarris_mpi.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.o"
 	/opt/ohpc/pub/intel/intel18/compilers_and_libraries_2018.0.128/linux/bin/intel64/icc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.o   -c /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/cgenarris_mpi.c
 
 CMakeFiles/cgenarris.dir/src/cgenarris_mpi.c.i: cmake_force
@@ -525,6 +538,7 @@ cgenarris_OBJECTS = \
 "CMakeFiles/cgenarris.dir/src/randomgen.c.o" \
 "CMakeFiles/cgenarris.dir/src/read_input.c.o" \
 "CMakeFiles/cgenarris.dir/src/spg_generation.c.o" \
+"CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o" \
 "CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o" \
 "CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o" \
 "CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o" \
@@ -564,6 +578,7 @@ cgenarris: CMakeFiles/cgenarris.dir/src/pygenarris_mpi.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/randomgen.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/read_input.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/spg_generation.c.o
+cgenarris: CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/spglib_src/arithmetic.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/spglib_src/cell.c.o
 cgenarris: CMakeFiles/cgenarris.dir/src/spglib_src/debug.c.o
@@ -596,7 +611,7 @@ cgenarris: /lib64/libdl.so
 cgenarris: /lib64/librt.so
 cgenarris: /lib64/libpthread.so
 cgenarris: CMakeFiles/cgenarris.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Linking C executable cgenarris"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/wwen/Merged_Genarris/Fork_Version/cgenarris/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Linking C executable cgenarris"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cgenarris.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

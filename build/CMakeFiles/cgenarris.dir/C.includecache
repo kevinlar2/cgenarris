@@ -6,21 +6,39 @@
 
 #IncludeRegexTransform: 
 
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/algebra.h
 
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_utils.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/check_structure.h
 
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/read_input.c
-read_input.h
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/read_input.h
-molecule_utils.h
-/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_utils.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/combinatorics.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.c
 stdio.h
 -
-stdlib.h
+math.h
 -
 string.h
 -
+read_input.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/read_input.h
+spg_generation.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spg_generation.h
+crystal_utils.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.h
+algebra.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/algebra.h
+check_structure.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/check_structure.h
+spglib.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib.h
+combinatorics.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/combinatorics.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
 
 /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/read_input.h
 stdio.h
@@ -29,4 +47,10 @@ stdlib.h
 -
 molecule.h
 /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spg_generation.h
+crystal.h
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal.h
+
+/home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/spglib.h
 

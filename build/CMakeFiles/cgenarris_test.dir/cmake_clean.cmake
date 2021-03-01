@@ -10,6 +10,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/cgenarris_test.dir/src/randomgen.c.o"
   "CMakeFiles/cgenarris_test.dir/src/read_input.c.o"
   "CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o"
+  "CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o"
   "CMakeFiles/cgenarris_test.dir/src/spglib_src/arithmetic.c.o"
   "CMakeFiles/cgenarris_test.dir/src/spglib_src/cell.c.o"
   "CMakeFiles/cgenarris_test.dir/src/spglib_src/debug.c.o"

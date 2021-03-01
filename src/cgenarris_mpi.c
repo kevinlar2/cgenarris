@@ -129,6 +129,8 @@ int main(int argc, char **argv)
 		max_attempts,
 		spg_dist_type,
 		lattice_vector_2d,
+		vol_attempt,
+		random_seed,
 		world_comm);
 	
     	MPI_Finalize();

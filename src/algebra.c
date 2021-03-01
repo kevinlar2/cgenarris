@@ -175,6 +175,44 @@ void copy_mat3b3bN_mat3b3(float b[][3][3], float a[3][3], int index)
 
     return;
 }
+
+
+//added here for copy integer smaller matrix to bigger matrix
+void copy_intmat3b3bN_intmat3b3(int b[][3][3], int a[3][3], int index)
+{
+	b[index][0][0] = a[0][0];
+	b[index][0][1] = a[0][1];
+	b[index][0][2] = a[0][2];
+	
+	b[index][1][0] = a[1][0];
+	b[index][1][1] = a[1][1];
+	b[index][1][2] = a[1][2];
+	
+	 b[index][2][0] = a[2][0];
+	 b[index][2][1] = a[2][1];
+	 b[index][2][2] = a[2][2];
+	
+	return;	
+}
+//added here to copy const int to int
+void copy_intmat3b3_constintmat3b3bN(int a[3][3], int const b[][3][3], int index)
+{
+	a[0][0] = b[index][0][0];
+	a[0][1] = b[index][0][1];
+	a[0][2] = b[index][0][2];
+	
+	a[1][0] = b[index][1][0];
+	a[1][1] = b[index][1][1];
+	a[1][2] = b[index][1][2];
+	
+	a[2][0] = b[index][2][0];
+	a[2][1] = b[index][2][1];
+	a[2][2] = b[index][2][2];
+	
+	return;	
+
+
+}
 //for coying integer matrices
 void copy_intmat3b3_intmat3b3bN(int a[3][3], int b[][3][3], int index)
 {
@@ -198,6 +236,30 @@ void copy_vector3_vector3bN(float a[3], const float b[][3], int index)
     a[0] = b[index][0];
     a[1] = b[index][1];
     a[2] = b[index][2];
+}
+
+//added here to copy double n by 3 vector to 1 by 3
+void copy_doubvector3_vector3bN( double a[3], const double b[][3], int index)
+{
+	a[0] = b[index][0];
+	a[1] = b[index][1];
+	a[2] = b[index][2];
+}
+//added here to copy double 1 by 3 vector to n by 3
+void copy_doubvector3bN_vector3(double a[3], double b[][3], int index)
+{
+	b[index][0] = a[0];
+	b[index][1] = a[1];
+	b[index][2] = a[2];
+
+}
+//added here 
+void copy_vector3bN_vector3(float a[3], float b[][3], int index)
+{
+	b[index][0] = a[0];
+	b[index][1] = a[1];
+	b[index][2] = a[2];
+
 }
 
 //tested
@@ -422,4 +484,24 @@ int are_equal_floats(float a, float b, float ftol)
     if(fabsf(a - b) < ftol)
         return 1;
     return 0;
+}
+
+int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[192][3][3])
+{
+	int num_operation =  all_lg_operation_database[hall_number-1].num_operations;	
+	int i;
+	for (i=0; i < num_operation;i++)
+	{
+
+		int rot [3][3];
+		copy_intmat3b3_constintmat3b3bN(rot,all_lg_operation_database[hall_number-1].rotation,i);
+		copy_intmat3b3bN_intmat3b3(rotations, rot, i);
+		double trans [3];
+		copy_doubvector3_vector3bN(trans, all_lg_operation_database[hall_number-1].translation, i);
+		copy_doubvector3bN_vector3(trans, translations, i);
+
+
+	}
+	return num_operation;
+
 }

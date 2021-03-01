@@ -40,6 +40,7 @@ CMakeFiles/cgenarris.dir/src/combinatorics.c.o
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator.h
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_placement.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_utils.h
@@ -62,6 +63,11 @@ CMakeFiles/cgenarris.dir/src/crystal_utils.c.o
 CMakeFiles/cgenarris.dir/src/lattice_generator.c.o
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator.c
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator.h
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/randomgen.h
+CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/algebra.h
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.c
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/randomgen.h
 CMakeFiles/cgenarris.dir/src/molecule_placement.c.o
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/algebra.h
@@ -88,6 +94,7 @@ CMakeFiles/cgenarris.dir/src/pygenarris_mpi.c.o
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator.h
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_utils.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/pygenarris_mpi.c
@@ -112,6 +119,7 @@ CMakeFiles/cgenarris.dir/src/spg_generation.c.o
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/crystal_utils.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator.h
+ /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/lattice_generator_layer.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_placement.h
  /home/wwen/Merged_Genarris/Fork_Version/cgenarris/src/molecule_utils.h

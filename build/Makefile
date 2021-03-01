@@ -324,6 +324,36 @@ src/lattice_generator.c.s:
 	$(MAKE) -f CMakeFiles/cgenarris.dir/build.make CMakeFiles/cgenarris.dir/src/lattice_generator.c.s
 .PHONY : src/lattice_generator.c.s
 
+src/lattice_generator_layer.o: src/lattice_generator_layer.c.o
+
+.PHONY : src/lattice_generator_layer.o
+
+# target to build an object file
+src/lattice_generator_layer.c.o:
+	$(MAKE) -f CMakeFiles/cgenarris_test.dir/build.make CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o
+	$(MAKE) -f CMakeFiles/cgenarris.dir/build.make CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.o
+.PHONY : src/lattice_generator_layer.c.o
+
+src/lattice_generator_layer.i: src/lattice_generator_layer.c.i
+
+.PHONY : src/lattice_generator_layer.i
+
+# target to preprocess a source file
+src/lattice_generator_layer.c.i:
+	$(MAKE) -f CMakeFiles/cgenarris_test.dir/build.make CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.i
+	$(MAKE) -f CMakeFiles/cgenarris.dir/build.make CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.i
+.PHONY : src/lattice_generator_layer.c.i
+
+src/lattice_generator_layer.s: src/lattice_generator_layer.c.s
+
+.PHONY : src/lattice_generator_layer.s
+
+# target to generate assembly for a file
+src/lattice_generator_layer.c.s:
+	$(MAKE) -f CMakeFiles/cgenarris_test.dir/build.make CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.s
+	$(MAKE) -f CMakeFiles/cgenarris.dir/build.make CMakeFiles/cgenarris.dir/src/lattice_generator_layer.c.s
+.PHONY : src/lattice_generator_layer.c.s
+
 src/molecule_placement.o: src/molecule_placement.c.o
 
 .PHONY : src/molecule_placement.o
@@ -1250,6 +1280,9 @@ help:
 	@echo "... src/lattice_generator.o"
 	@echo "... src/lattice_generator.i"
 	@echo "... src/lattice_generator.s"
+	@echo "... src/lattice_generator_layer.o"
+	@echo "... src/lattice_generator_layer.i"
+	@echo "... src/lattice_generator_layer.s"
 	@echo "... src/molecule_placement.o"
 	@echo "... src/molecule_placement.i"
 	@echo "... src/molecule_placement.s"

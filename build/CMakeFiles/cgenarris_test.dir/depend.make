@@ -21,6 +21,7 @@ CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/combinatorics.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/crystal.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/crystal_utils.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/lattice_generator.h
+CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/lattice_generator_layer.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/molecule.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/molecule_placement.h
 CMakeFiles/cgenarris_test.dir/src/combinatorics.c.o: ../src/molecule_utils.h
@@ -44,6 +45,11 @@ CMakeFiles/cgenarris_test.dir/src/crystal_utils.c.o: ../src/spglib.h
 CMakeFiles/cgenarris_test.dir/src/lattice_generator.c.o: ../src/lattice_generator.c
 CMakeFiles/cgenarris_test.dir/src/lattice_generator.c.o: ../src/lattice_generator.h
 CMakeFiles/cgenarris_test.dir/src/lattice_generator.c.o: ../src/randomgen.h
+
+CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o: ../src/algebra.h
+CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o: ../src/lattice_generator_layer.c
+CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o: ../src/lattice_generator_layer.h
+CMakeFiles/cgenarris_test.dir/src/lattice_generator_layer.c.o: ../src/randomgen.h
 
 CMakeFiles/cgenarris_test.dir/src/molecule_placement.c.o: ../src/algebra.h
 CMakeFiles/cgenarris_test.dir/src/molecule_placement.c.o: ../src/combinatorics.h
@@ -69,6 +75,7 @@ CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/combinatorics.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/crystal.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/crystal_utils.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/lattice_generator.h
+CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/lattice_generator_layer.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/molecule.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/molecule_utils.h
 CMakeFiles/cgenarris_test.dir/src/pygenarris_mpi.c.o: ../src/pygenarris_mpi.c
@@ -93,6 +100,7 @@ CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/combinatorics.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/crystal.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/crystal_utils.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/lattice_generator.h
+CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/lattice_generator_layer.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/molecule.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/molecule_placement.h
 CMakeFiles/cgenarris_test.dir/src/spg_generation.c.o: ../src/molecule_utils.h
