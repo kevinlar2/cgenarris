@@ -213,35 +213,72 @@ void gen_cubic_lattice(float lattice_vector[3][3],
 void generate_lattice(float lattice_vector[3][3], int spg,
  float max_angle, float min_angle, float target_volume)
 {
+    //printf("I am in generate_lattice\n");
+    //fflush(stdout);
+    do 
+    {
 
-    if(spg < 1 || spg > 230)
-    printf("***ERROR: generate_lattice: spg out of bounds***");
+        if(spg < 1 || spg > 230)
+        printf("***ERROR: generate_lattice: spg out of bounds***");
 
-    else if (spg <= 2)
-    gen_triclinic_lattice(lattice_vector, target_volume, max_angle, min_angle);
+        else if (spg <= 2)
+        gen_triclinic_lattice(lattice_vector, target_volume, max_angle, min_angle);
 
-    else if (spg <= 15)
-    gen_monoclinic_lattice(lattice_vector, target_volume, max_angle, min_angle);
+        else if (spg <= 15)
+        gen_monoclinic_lattice(lattice_vector, target_volume, max_angle, min_angle);
 
-    else if (spg <= 74)
-    gen_orthorhombic_lattice(lattice_vector, target_volume);
+        else if (spg <= 74)
+        gen_orthorhombic_lattice(lattice_vector, target_volume);
 
-    else if (spg <= 142)
-    gen_tetragonal_lattice(lattice_vector, target_volume);
+        else if (spg <= 142)
+        gen_tetragonal_lattice(lattice_vector, target_volume);
 
-    else if (spg <= 167)
-    gen_hexagonal_lattice(lattice_vector, target_volume);
-    //same as heaxagonal?
+        else if (spg <= 167)
+        gen_hexagonal_lattice(lattice_vector, target_volume);
+        //same as heaxagonal?
 
-    else if (spg <= 194)
-    gen_hexagonal_lattice(lattice_vector, target_volume);
+        else if (spg <= 194)
+        gen_hexagonal_lattice(lattice_vector, target_volume);
 
-    else if (spg <= 230)
-    gen_cubic_lattice(lattice_vector, target_volume);
+        else if (spg <= 230)
+        gen_cubic_lattice(lattice_vector, target_volume);
 
-    standardise_lattice(lattice_vector, spg);
+    
+        standardise_lattice(lattice_vector, spg);
+
+       // printf("check_constraint(lattice_vector) is %d\n",check_constraint(lattice_vector));
+       // fflush(stdout);
+
+    
+    } while (check_constraint(lattice_vector));
+
+    //printf("this is good lattice, return now");
+    //fflush(stdout);
+
+
 
     return;
+}
+
+int check_constraint(float lattice_vector[3][3])
+{
+    // hack to the c length
+    float lattice_param_a = sqrt(pow(lattice_vector[0][0],2)+pow(lattice_vector[0][1],2)+pow(lattice_vector[0][2],2)); 
+    float lattice_param_b = sqrt(pow(lattice_vector[1][0],2)+pow(lattice_vector[1][1],2)+pow(lattice_vector[1][2],2));
+    float lattice_param_c = sqrt(pow(lattice_vector[2][0],2)+pow(lattice_vector[2][1],2)+pow(lattice_vector[2][2],2));
+    //printf("lattice_param_c is %f\n",lattice_param_c);
+    //printf("I am in check_constraint\n");
+    //fflush(stdout);
+
+    if (lattice_param_a > 25.0 || lattice_param_b > 25.0 || lattice_param_c > 25.0)
+    {
+		return 1 ; 
+    }
+    else
+    {
+        return 0 ;
+    }
+
 }
 
 //create a large volume lattice for testing compatiility

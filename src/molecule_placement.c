@@ -86,12 +86,12 @@ void apply_all_symmetry_ops(crystal *xtal,
 
 
 void apply_all_lg_symmetry_ops(crystal *xtal,
-							molecule *mol,
-							float* mol_Xfrac,
-							float *mol_Yfrac,
-							float *mol_Zfrac,
-							int N,
-							int hall_number)
+			       molecule *mol,
+			       float* mol_Xfrac,
+			       float *mol_Yfrac,
+			       float *mol_Zfrac,
+			       int N,
+			       int hall_number)
 {
 	//get symmetry operations from spglib database
 	double translations[192][3];
@@ -276,17 +276,15 @@ int auto_align_and_generate_at_position(crystal *Xtal,
 ///////////////// for layer group /////////////////////////
 
 int lg_auto_align_and_generate_at_position(crystal *Xtal,
-								molecule *mol,
-								int hall_number,
-								int spg,
-								int pos_index,
-								COMPATIBLE_SPG compatible_spg)
+					   molecule *mol,
+					   int hall_number,
+					   int spg,
+					   int pos_index,
+					   COMPATIBLE_SPG compatible_spg)
 {
 
 	//declare variables
 	//num of atoms in the molecule is N
-	//printf("Z at beginning of auto_align_and_generate_at_position: %d\n",(*Xtal).Z);
-	//fflush(stdout);
 	int N = mol->num_of_atoms;
 	//int Z = Xtal->Z;
 	int wyckoff_pos = compatible_spg.allowed_pos[pos_index];  //index of wykoff_pos
@@ -300,13 +298,9 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	//From a database, get first coordinates where mol is to be placed
 	//#TODO: get rot_mat and trans_vec from a databse of first position.
 	float rot_mat[3][3] = {{0,0,1},{0,1,0},{0,0,1}};
-	copy_mat3b3_intmat3b3bN(rot_mat, 
-							lg_positions[spg-1].first_position_rot,
-							wyckoff_pos);
+	copy_mat3b3_intmat3b3bN(rot_mat,lg_positions[spg-1].first_position_rot,wyckoff_pos);
 	float trans_vec[3] = {0, 0 ,0};
-	copy_vector3_vector3bN(trans_vec,
-						  lg_positions[spg-1].first_position_trans,
-						  wyckoff_pos);
+	copy_vector3_vector3bN(trans_vec,lg_positions[spg-1].first_position_trans,wyckoff_pos);
 
 	//if general position, rotate molecule randomly
 	//this is to check site symmetry
@@ -329,7 +323,7 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	float mol_Zfrac[N];
 	
 	float rand_frac_array[3] = {uniform_dist_01(),\
-								uniform_dist_01(),\
+							uniform_dist_01(),\
 								uniform_dist_01()};
 	vector3_mat3b3_multiply(rot_mat,rand_frac_array,rand_frac_array);
 	vector3_add(trans_vec,rand_frac_array,rand_frac_array);	
@@ -356,12 +350,12 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 
 	//now apply all the symmetry operations of spg
 	apply_all_lg_symmetry_ops(Xtal,
-						   mol,
-						   mol_Xfrac,
-						   mol_Yfrac,
-						   mol_Zfrac,
-						   N,
-						   hall_number);
+				  mol,
+			          mol_Xfrac,
+			          mol_Yfrac,
+				  mol_Zfrac,
+				  N,
+				  hall_number);
 	
 	//check if inv center or genral position
 	//printf("Z after apply_all_symmetry_ops: %d\n",(*Xtal).Z);
@@ -544,13 +538,13 @@ int align_using_std_orientations(crystal* xtal_1,
 
 
 int lg_align_using_std_orientations(crystal* xtal_1,
-								molecule* mol,
-								int hall_number,
-								float first_com[3],
-								int overlap_list[],
-								int len_overlap_list,
-								int dof,
-								COMPATIBLE_AXES compatible_axes)
+				    molecule* mol,
+				    int hall_number,
+				    float first_com[3],
+				    int overlap_list[],
+				    int len_overlap_list,
+			            int dof,
+				    COMPATIBLE_AXES compatible_axes)
 {
 	//take two pairs
 	//rotate molecule to average position
@@ -648,13 +642,13 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 
 
 	
-	apply_all_lg_symmetry_ops(	xtal,
-							mol,
-							mol_Xfrac,
-							mol_Yfrac,
-							mol_Zfrac,
-							N,
-							hall_number);
+	apply_all_lg_symmetry_ops(xtal,
+				  mol,
+				  mol_Xfrac,
+				  mol_Yfrac,
+				  mol_Zfrac,
+				  N,
+				  hall_number);
 	
 	//bring_molecules_to_origin(xtal);
 
@@ -662,9 +656,9 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 
 	
 	int result = check_overlap_xtal_cartesian(xtal,
-										overlap_list,
-										len_overlap_list,
-										N);
+						  overlap_list,
+						  len_overlap_list,
+						  N);
 		
 	if (result)
 	{

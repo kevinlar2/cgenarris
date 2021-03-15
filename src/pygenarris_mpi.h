@@ -44,7 +44,7 @@ void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);
 void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms);
 
 int num_compatible_spacegroups(int Z, double tolerance);
-int num_compatible_layergroups(int Z, double tolerance,float volume);
+int num_compatible_layergroups(int Z, double tolerance,float volume,float lattice_vector_2d_from_geo[2][3]);
 
 void generate_molecular_crystals(char *filename,int num_structures, int Z,
     double volume_mean1, double volume_std1, double sr1, double tol1,

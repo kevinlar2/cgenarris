@@ -17,7 +17,8 @@
 
 void generate_oblique_triclinic(float lattice_vector[3][3], 
 	float target_volume, float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,
+	float gamma)
 
 
 {	
@@ -72,7 +73,7 @@ void generate_oblique_triclinic(float lattice_vector[3][3],
 
 void generate_oblique_monoclinic(float lattice_vector[3][3], 
 	float target_volume, float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,        float gamma)
 
 
 {
@@ -97,7 +98,7 @@ void generate_oblique_monoclinic(float lattice_vector[3][3],
 
 void generate_rectangle_monoclinic(float lattice_vector[3][3], 
 	float target_volume,float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,	      float gamma)
 
 
 {
@@ -124,7 +125,7 @@ void generate_rectangle_monoclinic(float lattice_vector[3][3],
 
 void generate_rectangle_orthorhombic(float lattice_vector[3][3], 
 	float target_volume,float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-                                                        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,	      float gamma)
 {
 
 
@@ -145,7 +146,7 @@ void generate_rectangle_orthorhombic(float lattice_vector[3][3],
 
 void generate_hexagonal_hexagonal(float lattice_vector[3][3], 
 	float target_volume,float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-                                                        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,        float gamma)
 {
 	float c = target_volume / (sqrt(3)/2 * pow(tmp_lattice_vec_a_norm,2));
 	//printf("c generated is %f\n",c);
@@ -165,7 +166,7 @@ void generate_hexagonal_hexagonal(float lattice_vector[3][3],
 
 void generate_square_tetragonal(float lattice_vector[3][3], 
 	float target_volume,float max_angle, float min_angle,float tmp_lattice_vec_a [3],
-                                                        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,float gamma)
+        float tmp_lattice_vec_b [3],float tmp_lattice_vec_a_norm,float tmp_lattice_vec_b_norm,        float gamma)
 {
 	//printf("I am in square tetragonal");
 	//fflush(stdout);
@@ -186,7 +187,7 @@ void generate_square_tetragonal(float lattice_vector[3][3],
 
 
 int generate_substrate_lattice_combs(int *all_substrate_combo, float lattice_vector_2d[2][3],
-				 float target_volume, float max_angle,float min_angle )
+	float target_volume, float max_angle,float min_angle )
 {
 
 	//printf("I am in generate_substrate_lattice_combs \n");
@@ -298,8 +299,8 @@ int generate_substrate_lattice_combs(int *all_substrate_combo, float lattice_vec
 
 
 void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3], int spg,
- float max_angle, float min_angle, float target_volume, float lattice_vector_2d[2][3],int num_combo,
- float interface_area_mean,float interface_area_std,int volume_multiplier,int SET_INTERFACE_AREA)
+	float max_angle, float min_angle, float target_volume, float lattice_vector_2d[2][3],	      int num_combo,float interface_area_mean,float interface_area_std,
+	int volume_multiplier,int SET_INTERFACE_AREA)
 {	
 	
 	//printf("num combo is %d\n",num_combo);
@@ -382,12 +383,12 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
 
 	    }	
 	  while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) < epsilon_length 
-	  		|| fabs(gamma_in_deg - 90) < epsilon || fabs(gamma_in_deg - 120) < epsilon ||
-	  new_area > (interface_area_mean + interface_area_std ) || new_area < (interface_area_mean - interface_area_std));
+	  	|| fabs(gamma_in_deg - 90) < epsilon || fabs(gamma_in_deg - 120) < epsilon ||
+	        new_area > (interface_area_mean + interface_area_std ) || 
+		new_area < (interface_area_mean - interface_area_std));
 	  
 	  
-	  generate_oblique_triclinic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-							tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+	  generate_oblique_triclinic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
 	}
 
 
@@ -445,12 +446,12 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
 		
 			
         }
-      while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) < epsilon_length || fabs(gamma_in_deg - 90) < epsilon || 
-	  fabs(gamma_in_deg - 120) < epsilon || new_area > (interface_area_mean + interface_area_std ) || 
-	  new_area < (interface_area_mean - interface_area_std));
+      while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) < epsilon_length ||
+	     fabs(gamma_in_deg - 90) < epsilon || fabs(gamma_in_deg - 120) < epsilon || 
+	     new_area > (interface_area_mean + interface_area_std ) || 
+	     new_area < (interface_area_mean - interface_area_std));
 
-	  generate_oblique_monoclinic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-							tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+	  generate_oblique_monoclinic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
         }   
 	
 
@@ -510,12 +511,12 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
         }
 
           while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) < epsilon_length || 
-		  fabs(gamma_in_deg - 90) > epsilon || new_area > (interface_area_mean + interface_area_std ) || 
-		  new_area < (interface_area_mean - interface_area_std));
+		 fabs(gamma_in_deg - 90) > epsilon || 
+	         new_area > (interface_area_mean + interface_area_std ) || 
+		 new_area < (interface_area_mean - interface_area_std));
           
 		  
-		  generate_rectangle_monoclinic(lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-							tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+		  generate_rectangle_monoclinic(lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
     }
 
 	 else if (spg <= 48)   //rectangle_orthorombic
@@ -575,11 +576,11 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
         }
 
           while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) < epsilon_length || 
-		  fabs(gamma_in_deg - 90) > epsilon || new_area > (interface_area_mean + interface_area_std ) || 
-	  	  new_area < (interface_area_mean - interface_area_std));
+		 fabs(gamma_in_deg - 90) > epsilon || 
+	         new_area > (interface_area_mean + interface_area_std ) || 
+	  	 new_area < (interface_area_mean - interface_area_std));
           
-		  generate_rectangle_orthorhombic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-					       tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+		  generate_rectangle_orthorhombic( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
     }
 
 	else if (spg <= 64)  //square_tetragonal
@@ -635,12 +636,12 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
 
         }
           while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) >= epsilon_length || 
-		  fabs(gamma_in_deg - 90) > epsilon || new_area > (interface_area_mean + interface_area_std ) || 
-	      new_area < (interface_area_mean - interface_area_std));
+		 fabs(gamma_in_deg - 90) > epsilon || 
+	         new_area > (interface_area_mean + interface_area_std ) || 
+	         new_area < (interface_area_mean - interface_area_std));
           
 		  
-		  generate_square_tetragonal( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-                                    tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+		  generate_square_tetragonal( lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
     }
 
 	else if (spg <= 80)  //hexagonal_trigonnal, hexagonal_hexagonal
@@ -696,13 +697,13 @@ void generate_layer_lattice(int *all_substrate_combo,float lattice_vector[3][3],
 
 
         }
-          while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) >= epsilon_length || 
-		  fabs(gamma_in_deg - 120) > epsilon || new_area > (interface_area_mean + interface_area_std ) || 
-	      new_area < (interface_area_mean - interface_area_std));
+          while (fabs(norm_tmp_lattice_vec_a - norm_tmp_lattice_vec_b) >= epsilon_length ||
+		 fabs(gamma_in_deg - 120) > epsilon || 
+		 new_area > (interface_area_mean + interface_area_std ) || 
+	      	 new_area < (interface_area_mean - interface_area_std));
 
 
-          generate_hexagonal_hexagonal(lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,
-                                    tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
+          generate_hexagonal_hexagonal(lattice_vector,target_volume * volume_multiplier,max_angle, min_angle, tmp_lattice_vec_a,tmp_lattice_vec_b,norm_tmp_lattice_vec_a,norm_tmp_lattice_vec_b,gamma);
     }
 
 
@@ -865,14 +866,11 @@ void standardise_layer_lattice( float lattice[3][3], int spg)
 void get_lower_triangle(float lattice_vector[3][3],float lower_lattice_vector[3][3])
 {
 	
-	float norm_lattice_vectors_a = sqrt(pow(lattice_vector[0][0],2)+pow(lattice_vector[0][1],2)+
-																			pow(lattice_vector[0][2],2));
-	float norm_lattice_vectors_b = sqrt(pow(lattice_vector[1][0],2)+pow(lattice_vector[1][1],2)+
-																			pow(lattice_vector[1][2],2));
+	float norm_lattice_vectors_a = sqrt(pow(lattice_vector[0][0],2)+pow(lattice_vector[0][1],2)+pow(lattice_vector[0][2],2));
+	float norm_lattice_vectors_b = sqrt(pow(lattice_vector[1][0],2)+pow(lattice_vector[1][1],2)+pow(lattice_vector[1][2],2));
 	//float norm_lattice_vectors_c = sqrt(pow(tmp_lattice_vectors[2][0],2)+pow(tmp_lattice_vectors[2][1],2)+
 	//																		pow(tmp_lattice_vectors[2][2],2));
-	float dot_product_ab = lattice_vector[0][0] * lattice_vector[1][0] + lattice_vector[0][1] * 
-											lattice_vector[1][1]+lattice_vector[0][2] * lattice_vector[1][2];
+	float dot_product_ab = lattice_vector[0][0] * lattice_vector[1][0] + lattice_vector[0][1] * lattice_vector[1][1]+lattice_vector[0][2] * lattice_vector[1][2];
 	//float dot_product_bc = tmp_lattice_vectors[1][0] * tmp_lattice_vectors[2][0] + tmp_lattice_vectors[1][1] * 
 	//										tmp_lattice_vectors[2][1]+tmp_lattice_vectors[1][2] * tmp_lattice_vectors[2][2];
 	//float dot_product_ac = tmp_lattice_vectors[0][0] * tmp_lattice_vectors[2][0] + tmp_lattice_vectors[0][1] * 

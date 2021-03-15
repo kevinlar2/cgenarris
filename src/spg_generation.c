@@ -42,7 +42,8 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
     hall_number = hall_number_from_spg(spg);
 
     generate_lattice(random_crystal->lattice_vectors, spg, max_angle, min_angle, volume);
-
+    //printf("I am done generating lattice");
+    //fflush(stdout);
     //find a random pos
     int pos_index = rand_r(seed2) % compatible_spg[compatible_spg_index].num_allowed_pos;
     int pos = compatible_spg[compatible_spg_index].allowed_pos[pos_index];
@@ -57,6 +58,9 @@ int generate_crystal(crystal* random_crystal, molecule* mol,float volume,
                             compatible_spg[compatible_spg_index]);
     //copy back to mol
     copy_positions_to_mol(mol, Xm, Ym, Zm);
+
+    //printf("I am done auto_align_and_generate_at_position");
+    //fflush(stdout);
 
     if(!result)
     {
@@ -78,7 +82,7 @@ int generate_layer_crystal(crystal* random_crystal, molecule* mol,float volume,
 	//printf("I am in generate_crystal and Z is %f\n ",Z);
 
 	Zp_max = 192; //stupid argument
-    len_compatible_spg += 1; // not needed now; stupid argument 
+        len_compatible_spg += 1; // not needed now; stupid argument 
 	
     //crystal random_crystal;
 	float max_angle = 150 * PI/180;
@@ -98,8 +102,8 @@ int generate_layer_crystal(crystal* random_crystal, molecule* mol,float volume,
 	hall_number = spg;
 	
 	generate_layer_lattice(all_substrate_combo,random_crystal->lattice_vectors, spg, max_angle, min_angle,
-				volume,lattice_vector_2d,num_combo,interface_area_mean,interface_area_std,volume_multiplier,
-                SET_INTERFACE_AREA);
+				volume,lattice_vector_2d,num_combo,interface_area_mean,interface_area_std,
+				volume_multiplier,SET_INTERFACE_AREA);
 	//printf("lg is %d and lattice vector is %f, %f, %f\n", spg, random_crystal->lattice_vectors[0][0],random_crystal->lattice_vectors[0][1]
 	//,random_crystal->lattice_vectors[0][2]);
 	//printf("I am after generate_lattice\n");

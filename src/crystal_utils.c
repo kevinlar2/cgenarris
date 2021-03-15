@@ -104,20 +104,16 @@ void print_layer2file(crystal* xtal, FILE* out_file)
     fprintf(out_file, "#structure_number = %d\n", counter);
     fprintf(out_file, "#Z = %d\n", xtal->Z);
     fprintf(out_file, "#number_of_atoms_in_molecule = %d \n",
-     xtal->num_atoms_in_molecule);
-
+    xtal->num_atoms_in_molecule);
     fprintf(out_file, "#unit_cell_volume = %f cubic Angstrom\n", get_crystal_volume(xtal));
 
-
     //print surface area and angle
-	float cross[3];
-	float lattice_vec_a[3];
-	float lattice_vec_b[3];
-	float norm_a = 0;
-	float norm_b = 0;
-
-
-	for (int i = 0; i < 3; i++)
+    float cross[3];
+    float lattice_vec_a[3];
+    float lattice_vec_b[3];
+    float norm_a = 0;
+    float norm_b = 0;
+    for (int i = 0; i < 3; i++)
 	{
 		lattice_vec_a[i] = xtal->lattice_vectors[0][i];
 		lattice_vec_b[i] = xtal->lattice_vectors[1][i];
@@ -125,16 +121,16 @@ void print_layer2file(crystal* xtal, FILE* out_file)
 		norm_b = norm_b + pow(lattice_vec_b[i],2);
 
 	}
-	norm_a = sqrt(norm_a);
-	norm_b = sqrt(norm_b);
-	cross_vector3_vector3(cross, lattice_vec_a,lattice_vec_b);
-	float surface_area = sqrt(pow(cross[0],2)+pow(cross[1],2)+pow(cross[2],2));
-	fprintf(out_file, "#surface_area = %f square Angstrom\n",surface_area);
 
-	float dot_product = lattice_vec_a[0] * lattice_vec_b[0] + lattice_vec_a[1] * lattice_vec_b[1] 
+    norm_a = sqrt(norm_a);
+    norm_b = sqrt(norm_b);
+    cross_vector3_vector3(cross, lattice_vec_a,lattice_vec_b);
+    float surface_area = sqrt(pow(cross[0],2)+pow(cross[1],2)+pow(cross[2],2));
+    fprintf(out_file, "#surface_area = %f square Angstrom\n",surface_area);
+    float dot_product = lattice_vec_a[0] * lattice_vec_b[0] + lattice_vec_a[1] * lattice_vec_b[1] 
 								+lattice_vec_a[2] * lattice_vec_b[2] ;
-	float angle = acos(dot_product/(norm_a * norm_b)) * 180/PI;
-	fprintf(out_file, "#gamma = %f degree\n",angle);
+    float angle = acos(dot_product/(norm_a * norm_b)) * 180/PI;
+    fprintf(out_file, "#gamma = %f degree\n",angle);
 
 
 

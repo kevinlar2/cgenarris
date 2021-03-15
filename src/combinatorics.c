@@ -376,11 +376,11 @@ void find_compatible_spg_positions(molecule *mol,
 ////////////////// For layer group ////////////////////
 
 void find_compatible_lg_positions(molecule *mol,
-									int Z,
-									COMPATIBLE_SPG compatible_spg[],
-									int *num_compatible_spg,
-									float lattice_vector_2d [2][3],float volume,
-									int thread_num)
+				  int Z,
+				  COMPATIBLE_SPG compatible_spg[],
+				  int *num_compatible_spg,
+				  float lattice_vector_2d [2][3],float volume,
+				  int thread_num)
 {
 
 

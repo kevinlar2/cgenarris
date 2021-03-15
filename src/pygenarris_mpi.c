@@ -24,7 +24,7 @@
 
 unsigned int *seed;
 unsigned int *seed2;
-float global_lattice_vector_2d[2][3];
+//float global_lattice_vector_2d[2][3];
 int SET_INTERFACE_AREA = 0;
 
 extern float TOL;
@@ -260,6 +260,8 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                                      num_compatible_spg,
                                      spg_index);
 
+                    //printf("I am done generate_crystal");
+                    //fflush(stdout);
                     //reset volume after volume attempts
                     if( (i+j) % vol_attempt == 0 && i+j != 0)
                     {
@@ -432,21 +434,18 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	long max_attempts,
 	char *spg_dist_type,
 	float lattice_vector_2d_from_geo[2][3], 
-    int vol_attempt,
-    int random_seed,
+        int vol_attempt,
+        int random_seed,
 	MPI_Comm world_comm)
 {
-    //printf("I am in layer generation\n");
-    //fflush(stdout);
-
 	float Zp_max=1;
-    float volume_mean = volume_mean1;
-    float volume_std = volume_std1;
+    	float volume_mean = volume_mean1;
+    	float volume_std = volume_std1;
 
 	//added interface surface area mean and std 
 	float interface_area_mean = interface_area_mean1;
 	float interface_area_std = interface_area_std1;
-    TOL = tol1;
+    	TOL = tol1;
 
 	// if dont want to manually set it, set interface_area_mean = 0 in ui.conf
 	if (interface_area_mean != 0)
@@ -454,14 +453,14 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 		SET_INTERFACE_AREA = 1;
 	}
 
-    if (dim1 != dim2)
+    	if (dim1 != dim2)
 	{printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
 
 	//Initialise MPI 
 	int total_ranks;
-    MPI_Comm_size(world_comm, &total_ranks);
-    int my_rank;
-    MPI_Comm_rank(world_comm, &my_rank);
+    	MPI_Comm_size(world_comm, &total_ranks);
+    	int my_rank;
+   	MPI_Comm_rank(world_comm, &my_rank);
 
 	//random number seeding
 	srand((unsigned int)time(NULL));
@@ -472,26 +471,14 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	int spg_index = 0;	//space group to be generated
 	FILE *out_file;		//file to output geometries
 
-
+	/*
 	global_lattice_vector_2d[0][0]=lattice_vector_2d_from_geo[0][0];
 	global_lattice_vector_2d[0][1]=lattice_vector_2d_from_geo[0][1];
 	global_lattice_vector_2d[0][2]=lattice_vector_2d_from_geo[0][2];
 	global_lattice_vector_2d[1][0]=lattice_vector_2d_from_geo[1][0];
 	global_lattice_vector_2d[1][1]=lattice_vector_2d_from_geo[1][1];
 	global_lattice_vector_2d[1][2]=lattice_vector_2d_from_geo[1][2];
-  
-	/*
-	if (my_rank == 0)
-	{printf( "global_lattice_vector_2d[0][0] %f",global_lattice_vector_2d[0][0]);
-	printf( "global_lattice_vector_2d[0][1] %f",global_lattice_vector_2d[0][1]);
-	printf( "global_lattice_vector_2d[0][2] %f",global_lattice_vector_2d[0][2]);
-	printf( "global_lattice_vector_2d[1][0] %f",global_lattice_vector_2d[1][0]);
-	printf( "global_lattice_vector_2d[1][1] %f",global_lattice_vector_2d[1][1]);
-	printf( "global_lattice_vector_2d[1][2] %f",global_lattice_vector_2d[1][2]);
-	fflush(stdout);
-	}*/
-	
-
+ 	*/
 	if (my_rank == 0)
 	{
 		out_file = fopen("geometry.out","w");
@@ -500,7 +487,6 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 			printf("***ERROR: cannot create geometry.out \n");
 			exit(0);
 		}
-		//fprintf(out_file, "my_rank=%d\n", my_rank);
 	}
     else
     {
@@ -510,11 +496,11 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	//random number seeding, different seeds for different threads
 	seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
 	seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
-    //using random seed from user
+    	//using random seed from user
 	//*seed = (unsigned int)abs(my_rank*7 + random_seed);  //some random seed private for each threads
-    //*seed2 = (unsigned int)abs(my_rank*17 + random_seed);
-    //does not use random seed from user
-    *seed += my_rank*7 + seed_shift*13; //some random seed private for each threads
+    	//*seed2 = (unsigned int)abs(my_rank*17 + random_seed);
+    	//does not use random seed from user
+    	*seed += my_rank*7 + seed_shift*13; //some random seed private for each threads
 	*seed2 = my_rank*17 + seed_shift*11;
 	init_genrand(abs(*seed));
 	
@@ -557,7 +543,7 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	}
 	MPI_Barrier(world_comm);
 
-    read_geometry(mol);				//read molecule from geometry.in
+    	read_geometry(mol);				//read molecule from geometry.in
 	
 	//recenter molecule to origin
 	recenter_molecule(mol);
@@ -570,21 +556,21 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 							 &Zp_max,
 							 &volume_mean, 
 							 &volume_std,
-                             &interface_area_mean,
-                             &interface_area_std,
-                             &volume_multiplier,
+                             				 &interface_area_mean,
+                             				 &interface_area_std,
+                             				 &volume_multiplier,
 							 &sr,
-                             global_lattice_vector_2d,
+                             				 lattice_vector_2d_from_geo,
 							 &max_attempts,
 							 spg_dist_type,
-                             &vol_attempt,
-                             &random_seed);
+                             				 &vol_attempt,
+                             				 &random_seed);
 	}
 
 	MPI_Barrier(world_comm);
 
-    //inititalise volume
-    do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
+    	//inititalise volume
+    	do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
 	int N = mol->num_of_atoms;
 	allocate_xtal(random_crystal, ZMAX, N); //allcate memory
 	random_crystal->num_atoms_in_molecule = mol->num_of_atoms;
@@ -594,7 +580,7 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	int max_num_combo = 100000000;
 	int *all_substrate_combo= (int *) malloc(max_num_combo * 4 * sizeof (int));   //max 100000000 combinations
 	int num_combo = generate_substrate_lattice_combs(all_substrate_combo,lattice_vector_2d_from_geo,volume, 
-																					MAX_ANGLE,MIN_ANGLE);
+							 MAX_ANGLE,MIN_ANGLE);
 																					
 
 	
@@ -610,11 +596,12 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	//object definition in spg_generation.h
 	//every thread has its own copy
 	find_compatible_lg_positions(mol,
-								  Z,
-								  compatible_spg,
-								  &num_compatible_spg,
-								  global_lattice_vector_2d,volume,
-								  my_rank+1);
+				     Z,
+				     compatible_spg,
+				     &num_compatible_spg,
+				     lattice_vector_2d_from_geo,
+				     volume,
+				     my_rank+1);
 			
 	if(my_rank == 0)
 	{
@@ -660,8 +647,6 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 			spg_index++;
 			continue;
 		}
-		//printf("I am after find_num_structure_for_lg!!!!!!!!!!!!!!!!!\n");
-		//fflush(stdout);
 		//print attempted space group 
 		if (my_rank == 0)
 			{printf("Attempting to generate %d structures in layergroup number %d....\n", spg_num_structures, spg);}
@@ -688,8 +673,14 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 									 spg,
 									 compatible_spg,
 									 num_compatible_spg,
-									 spg_index,global_lattice_vector_2d,all_substrate_combo,num_combo,
-									 interface_area_mean,interface_area_std,volume_multiplier,SET_INTERFACE_AREA);
+									 spg_index,
+									 lattice_vector_2d_from_geo,
+									 all_substrate_combo,
+									 num_combo,
+									 interface_area_mean,
+									 interface_area_std,
+									 volume_multiplier,
+									 SET_INTERFACE_AREA);
 		
 					//printf("I am after generate_crystal\n");
 					
@@ -935,7 +926,7 @@ int num_compatible_spacegroups(int Z, double tolerance)
 
 ///////////////// for layer group /////////////////////
 
-int num_compatible_layergroups(int Z, double tolerance,float volume)
+int num_compatible_layergroups(int Z, double tolerance,float volume,float lattice_vector_2d_from_geo[2][3])
 {
 	//set global variable tolerance
 	TOL = tolerance;
@@ -951,24 +942,14 @@ int num_compatible_layergroups(int Z, double tolerance,float volume)
 											//{2.8837579999999998,4.9948160000000001,0.0000000000000000}};
 	//hard code global lattice vector here for now, delete latter
 	find_compatible_lg_positions(mol,
-								  Z,
-								  compatible_spg,
-								  &num_compatible_lg,
-								  global_lattice_vector_2d,volume,
-								  thread_num);
+				     Z,
+				     compatible_spg,
+				     &num_compatible_lg,
+			             lattice_vector_2d_from_geo,
+				     volume,
+			             thread_num);
 
 	free(mol);
-
-	/*
-    printf("global_lattice_vector_2d[0][0] %f\n",global_lattice_vector_2d[0][0]);
-	printf("global_lattice_vector_2d[0][1] %f\n",global_lattice_vector_2d[0][1]);
-	printf("global_lattice_vector_2d[0][2] %f\n",global_lattice_vector_2d[0][2]);
-	printf("global_lattice_vector_2d[1][0] %f\n",global_lattice_vector_2d[1][0]);
-	printf("global_lattice_vector_2d[1][1] %f\n",global_lattice_vector_2d[1][1]);
-	printf("global_lattice_vector_2d[1][2] %f\n",global_lattice_vector_2d[1][2]);
-	fflush(stdout);
-
-	*/
 	return num_compatible_lg;
 
 }
