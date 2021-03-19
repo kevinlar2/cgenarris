@@ -7,6 +7,7 @@
 #include "algebra.h"
 #include "spglib.h"
 #include "combinatorics.h"
+#include "layer_group_position_database.h"
 #include "randomgen.h"
 #include "molecule_placement.h"
 #include "crystal_utils.h"

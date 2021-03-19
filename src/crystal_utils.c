@@ -8,6 +8,7 @@
 #include "check_structure.h"
 #include "spglib.h"
 #include "combinatorics.h"
+#include "layer_group_position_database.h"
 
 extern float TOL;
 #define PI 3.141592653

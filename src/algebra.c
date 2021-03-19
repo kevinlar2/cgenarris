@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "algebra.h"
+#include "layer_group_operation_database.h"
 #include "randomgen.h"
 
 #define PI 3.141592653

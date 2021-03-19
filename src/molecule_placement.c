@@ -10,6 +10,7 @@
 #include "crystal_utils.h"
 #include "randomgen.h"
 #include "combinatorics.h"
+#include "layer_group_position_database.h"
 
 #define PI 3.141592653
 extern unsigned int *seed2;

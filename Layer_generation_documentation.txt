@@ -1,0 +1,19 @@
+In control.in file, there are several tags associated with layer structure generation:
+
+crystal_generation:   if molecular crystal generation, enter 1, else 0 for generate layer
+
+lattice_vector_a:        lattice verctor a of substrate, each coordinate separated by spaces
+
+lattice_vector_b:        lattice verctor b of substrate, each coordinate separated by spaces
+
+interface_area_mean:     the mean value specified for interface area
+
+interface_area_std      the standard deviation of generated interface area
+
+volume_multiplier       an integer multiplier specified for layer structure, to sample a diverse pool, it is suggested 			      to try values from 1 to 5. Default setting is 3.
+
+For molecular crystal generation, except for "crystal_generation", all those inputs will be overlooked so they need not to be left blank for molecular crystal generation. 
+
+
+
+

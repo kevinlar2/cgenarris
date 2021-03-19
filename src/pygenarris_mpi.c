@@ -25,7 +25,7 @@
 unsigned int *seed;
 unsigned int *seed2;
 //float global_lattice_vector_2d[2][3];
-int SET_INTERFACE_AREA = 0;
+//int SET_INTERFACE_AREA = 0;
 
 extern float TOL;
 
@@ -446,6 +446,7 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	float interface_area_mean = interface_area_mean1;
 	float interface_area_std = interface_area_std1;
     	TOL = tol1;
+	int SET_INTERFACE_AREA = 0;
 
 	// if dont want to manually set it, set interface_area_mean = 0 in ui.conf
 	if (interface_area_mean != 0)

@@ -270,7 +270,7 @@ int check_constraint(float lattice_vector[3][3])
     //printf("I am in check_constraint\n");
     //fflush(stdout);
 
-    if (lattice_param_a > 25.0 || lattice_param_b > 25.0 || lattice_param_c > 25.0)
+    if (lattice_param_a > 20.0 || lattice_param_b > 20.0 || lattice_param_c > 20.0)
     {
 		return 1 ; 
     }

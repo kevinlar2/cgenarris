@@ -32,7 +32,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	*sr = 0.85;
 	*vol_attempt = 100000;
         *random_seed = 0;
-	
+	*volume_multiplier = 3;	
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
 	{
