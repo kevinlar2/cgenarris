@@ -732,7 +732,9 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 					if(verdict)
 					{
 						if (counter < spg_num_structures)
-						{							
+						{				
+                            //add a layer group check here
+                            check_layer_group(random_crystal);			
 							print_layer2file(random_crystal, out_file);
 							printf("#Rank %8d: Generation successful.\n", my_rank);
 							counter++;
