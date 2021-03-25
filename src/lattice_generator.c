@@ -213,10 +213,6 @@ void gen_cubic_lattice(float lattice_vector[3][3],
 void generate_lattice(float lattice_vector[3][3], int spg,
  float max_angle, float min_angle, float target_volume)
 {
-    //printf("I am in generate_lattice\n");
-    //fflush(stdout);
-    do 
-    {
 
         if(spg < 1 || spg > 230)
         printf("***ERROR: generate_lattice: spg out of bounds***");
@@ -249,8 +245,6 @@ void generate_lattice(float lattice_vector[3][3], int spg,
        // printf("check_constraint(lattice_vector) is %d\n",check_constraint(lattice_vector));
        // fflush(stdout);
 
-    
-    } while (check_constraint(lattice_vector));
 
     //printf("this is good lattice, return now");
     //fflush(stdout);
@@ -260,26 +254,6 @@ void generate_lattice(float lattice_vector[3][3], int spg,
     return;
 }
 
-int check_constraint(float lattice_vector[3][3])
-{
-    // hack to the c length
-    float lattice_param_a = sqrt(pow(lattice_vector[0][0],2)+pow(lattice_vector[0][1],2)+pow(lattice_vector[0][2],2)); 
-    float lattice_param_b = sqrt(pow(lattice_vector[1][0],2)+pow(lattice_vector[1][1],2)+pow(lattice_vector[1][2],2));
-    float lattice_param_c = sqrt(pow(lattice_vector[2][0],2)+pow(lattice_vector[2][1],2)+pow(lattice_vector[2][2],2));
-    //printf("lattice_param_c is %f\n",lattice_param_c);
-    //printf("I am in check_constraint\n");
-    //fflush(stdout);
-
-    if (lattice_param_a > 20.0 || lattice_param_b > 20.0 || lattice_param_c > 20.0)
-    {
-		return 1 ; 
-    }
-    else
-    {
-        return 0 ;
-    }
-
-}
 
 //create a large volume lattice for testing compatiility
 void generate_fake_lattice(float lattice_vector[3][3], int spg)
