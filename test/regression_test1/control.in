@@ -19,7 +19,7 @@ volume_std              40
 tolerance               0.1
 
 #number of attempts before moving to next space group
-max_attempts            20000000
+max_attempts            200000
 
 #spacegroup distribution type
 spg_distribution_type   uniform

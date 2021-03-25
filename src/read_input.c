@@ -6,131 +6,206 @@
 
 
 float TOL;
-
-
-void read_control(int* num_structures,
-                  int* Z,
-                  float* Zp_max,
-                  float* volume_mean,
-                  float* volume_std,
-                  float *sr,
-                  long *max_attempts,
-                  char *spg_dist_type,
-                  int *vol_attempt,
-                  int *random_seed)
+void read_control(int* num_structures, int* Z, float* Zp_max, 
+                 float* volume_mean,float* volume_std,
+                 float *sr,long *max_attempts, char *spg_dist_type, 
+                 int *vol_attempts,int *random_seed,
+                 int *crystal_generation,
+                 float* interface_area_mean,float* interface_area_std,
+                 int* volume_multiplier, 
+                 float lattice_vector_2d[2][3])
 {
-    FILE *fileptr;
-    size_t len = 0;
-    char *line = NULL;
-    char *sub_line = NULL;
-    int read;
-    fileptr = fopen("control.in","r");
-
-    if(!fileptr)
-    {
-        printf("***ERROR: no control.in file \n");
-        exit(EXIT_FAILURE);
-    }
-
-    //defaults
-    *sr = 0.85;
-    *vol_attempt = 100000;
+	FILE *fileptr;
+	size_t len = 0;
+	char *line = NULL;
+	char *sub_line = NULL;
+	int read;
+	fileptr = fopen("control.in","r");
+	
+	if(!fileptr)
+	{
+		printf("***ERROR: no control.in file \n");
+		exit(EXIT_FAILURE);
+	}
+	
+	//defaults
+	*sr = 0.85;
+	*vol_attempts = 100000;
     *random_seed = 0;
+	*volume_multiplier = 3;	
+    *interface_area_mean = 0;
+    *interface_area_std = 0;
+    lattice_vector_2d[0][0] = 0;
+    lattice_vector_2d[0][1] = 0;
+    lattice_vector_2d[0][2] = 0;
+    lattice_vector_2d[1][0] = 0;
+    lattice_vector_2d[1][2] = 0;
+    lattice_vector_2d[1][3] = 0;
+    *crystal_generation = 1;
 
-    //read from control
-    while ((read = getline(&line, &len, fileptr)) != -1)
-    {
-        //printf("Retrieved line of length %zu :\n", read);
-        //if comment
-        if (strstr(line, "#") != NULL)
-            continue;
+	//read from control
+	while ((read = getline(&line, &len, fileptr)) != -1)
+	{
+	    //printf("Retrieved line of length %zu :\n", read);
+	    //if comment
+            if (strstr(line, "#") != NULL)
+                continue;
 
-        sub_line=strtok(line," ");
-        //printf("%s \n" , sub_line);
-        if(strcmp(sub_line, "Z") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *Z = atoi(sub_line);
-            continue;
-        }
+	    sub_line=strtok(line," ");
+	    //printf("%s \n" , sub_line);
+            if(strcmp(sub_line, "Z") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *Z = atoi(sub_line);
+		    continue;
+		}
+	    if (strcmp(sub_line,"lattice_vector_a")==0)
+		{
 
-        if(strcmp(sub_line, "sr") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *sr = atof(sub_line);
-            continue;
-        }
+		    sub_line = strtok(NULL,"        ");
+		    //printf("sub_line: %s",sub_line);
+		    //fflush(stdout);
+		    lattice_vector_2d[0][0] = atof(sub_line);
+		    sub_line = strtok(NULL,"        ");
+		    //printf("sub_line: %s",sub_line);
+		    //fflush(stdout);
+		    lattice_vector_2d[0][1] = atof(sub_line);
+		    sub_line = strtok(NULL,"        ");
+		    //printf("sub_line: %s",sub_line);
+		    //fflush(stdout);
+                    lattice_vector_2d[0][2] = atof(sub_line);
+                    continue;
+			
+		}
+	    if (strcmp(sub_line,"lattice_vector_b")==0)
+		{
+		    sub_line = strtok(NULL,"        ");
+                    lattice_vector_2d[1][0] = atof(sub_line);
+            	    sub_line = strtok(NULL,"        ");
+            	    lattice_vector_2d[1][1] = atof(sub_line);
+                    sub_line = strtok(NULL,"        ");
+                    lattice_vector_2d[1][2] = atof(sub_line);
+                    continue;
+		}	
+            if (strcmp(sub_line,"crystal_generation")==0)
+		{
+		    sub_line = strtok(NULL," ");
+	            *crystal_generation = atof(sub_line);
+		    continue;
+		}	
+	    if(strcmp(sub_line, "sr") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *sr = atof(sub_line);
+		    continue;
+		}
+		
+	    if(strcmp(sub_line, "volume_mean") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *volume_mean = atof(sub_line);
+		    continue;
+		}
+		
+	    if(strcmp(sub_line, "volume_std") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *volume_std = atof(sub_line);
+		    continue;
+		}
 
-        if(strcmp(sub_line, "volume_mean") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *volume_mean = atof(sub_line);
-            continue;
-        }
+	    if(strcmp(sub_line, "interface_area_mean") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *interface_area_mean = atof(sub_line);
+		    continue;
+		}
+		
+	    if(strcmp(sub_line, "interface_area_std") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *interface_area_std = atof(sub_line);
+		    continue;
+		}
+	
+	    if(strcmp(sub_line, "volume_multiplier") == 0)
+                {
+                    sub_line = strtok(NULL," ");
+                    *volume_multiplier = atof(sub_line);
+                    continue;
+                }	
+	    if(strcmp(sub_line, "number_of_structures") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *num_structures = atoi(sub_line);
+		    continue;
+		}
+		
+	    if(strcmp(sub_line, "tolerance") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    TOL = atof(sub_line);
+		    continue;
+		}	
+		
+	    if(strcmp(sub_line, "max_attempts") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    *max_attempts = atoi(sub_line);
+		    continue;
+		}
 
-        if(strcmp(sub_line, "volume_std") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *volume_std = atof(sub_line);
-            continue;
-        }
+	    if(strcmp(sub_line, "spg_distribution_type") == 0)
+		{
+		    sub_line = strtok(NULL," ");
+		    sub_line = strtok(sub_line, "\n");
+		    strcpy(spg_dist_type, sub_line);
+		    if(!( strcmp(spg_dist_type, "standard") ||
+			  strcmp(spg_dist_type, "uniform")  ||
+			  strcmp(spg_dist_type, "chiral")   ||      
+			  strcmp(spg_dist_type, "csd")       ) )
+			{
+				printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
+				exit(0);
+			}
+			continue;
+		}
 
-        if(strcmp(sub_line, "number_of_structures") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *num_structures = atoi(sub_line);
-            continue;
-        }
+            if(strcmp(sub_line, "random_seed") == 0)
+        	{
+            	    sub_line = strtok(NULL," ");
+            	    *random_seed = atoi(sub_line);
+            	    continue;
+       		}	
 
-        if(strcmp(sub_line, "tolerance") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            TOL = atof(sub_line);
-            continue;
-        }
+            if(strcmp(sub_line, "volume_attempts") == 0)
+        	{
+            	    sub_line = strtok(NULL," ");
+                    int inp = atoi(sub_line);
+                    if(inp != 0)
+                        *vol_attempts = inp;
+                    continue;
+        	}
 
-        if(strcmp(sub_line, "max_attempts") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *max_attempts = atoi(sub_line);
-            continue;
-        }
 
-        if(strcmp(sub_line, "volume_attempts") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *vol_attempt = atoi(sub_line);
-            continue;
-        }
+			//printf("char = %c \n",mol->atoms[2*i+1]); exit(0);
+            //printf("string = %c l %c \n", *sub_line, *(sub_line+1));	
 
-        if(strcmp(sub_line, "random_seed") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *random_seed = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "spg_distribution_type") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            sub_line = strtok(sub_line, "\n");
-            sub_line = strtok(sub_line, "\r");
-            strcpy(spg_dist_type, sub_line);
-            if(!( strcmp(spg_dist_type, "standard") ||
-                  strcmp(spg_dist_type, "uniform")  ||
-                  strcmp(spg_dist_type, "chiral")   ||
-                  strcmp(spg_dist_type, "csd")       ) )
-            {
-                printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
-                exit(EXIT_FAILURE);
-            }
-            continue;
-        }
-
-    }
-    fclose(fileptr);
-    *Zp_max = 192;
+   	}
+	
+	/*
+    *num_structures = 1;
+    *volume_mean = 1200;
+    *volume_std  = 100;
+	*Z = 6;
+	*sr = 0.75;
+	*/     
+	fclose(fileptr);
+        *Zp_max = 192;
 }
+
+
+
 
 
 void read_geometry(molecule* mol)
@@ -237,6 +312,44 @@ void print_input_settings(int* num_structures,
     printf("Spacegroup distribution type:                 %s\n", spg_dist_type);
     //printf("Specific radius proportion:                   %f\n", *sr );
     printf("Maximum attempts per space group:             %ld\n", *max_attempts);
+    printf("Volume attempts:                              %d\n", *vol_attempt);
+    printf("Random seed:                                  %d\n", *random_seed);
+    printf("Tolerance:                                    %f\n", TOL);
+    printf("-----------------------------\n\n");
+
+}
+
+void print_input_settings_layer(int* num_structures,
+                          	int* Z,
+                          	float* Zp_max,
+                          	float* volume_mean,
+                          	float* volume_std,
+                          	float* interface_area_mean,
+                          	float* interface_area_std,
+                          	int* volume_multiplier,
+                          	float *sr,
+                         	float global_lattice_vector_2d[2][3],
+                          	long *max_attempts,
+                          	char * spg_dist_type,
+                          	int *vol_attempt,
+                          	int *random_seed)
+{
+    *Zp_max = 192; //useless argument
+    printf("INPUT SETTINGS:\n");
+    printf("-----------------------------\n");
+    printf("Number of structures per layer group:         %d \n", *num_structures);
+    printf("Number of molecules in the cell:              %d\n", *Z);
+    printf("Mean volume of unit cell:                     %f\n", *volume_mean);
+    printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
+    printf("Mean interface area:                          %f\n", *interface_area_mean);
+    printf("Standard deviation of interface area:         %f\n", *interface_area_std);
+    printf("Volume Multiplier:                            %d\n", *volume_multiplier);
+    printf("Layergroup distribution type:                 %s\n", spg_dist_type);
+    printf("Lattice vector:                               [[%f,%f,%f],[%f,%f,%f]]\n",global_lattice_vector_2d[0][0],
+                                                global_lattice_vector_2d[0][1],global_lattice_vector_2d[0][2],
+                                                global_lattice_vector_2d[1][0],global_lattice_vector_2d[1][1],
+                                                global_lattice_vector_2d[1][2]  );
+    printf("Maximum attempts per layer group:             %ld\n", *max_attempts);
     printf("Volume attempts:                              %d\n", *vol_attempt);
     printf("Random seed:                                  %d\n", *random_seed);
     printf("Tolerance:                                    %f\n", TOL);
