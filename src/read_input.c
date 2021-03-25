@@ -9,7 +9,7 @@ float TOL;
 void read_control(int* num_structures, int* Z, float* Zp_max, 
                  float* volume_mean,float* volume_std,
                  float *sr,long *max_attempts, char *spg_dist_type, 
-                 int *vol_attempt,int *random_seed,
+                 int *vol_attempts,int *random_seed,
                  int *crystal_generation,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier, 
@@ -25,14 +25,24 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	if(!fileptr)
 	{
 		printf("***ERROR: no control.in file \n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 	
 	//defaults
 	*sr = 0.85;
-	*vol_attempt = 100000;
-        *random_seed = 0;
+	*vol_attempts = 100000;
+    *random_seed = 0;
 	*volume_multiplier = 3;	
+    *interface_area_mean = 0;
+    *interface_area_std = 0;
+    lattice_vector_2d[0][0] = 0;
+    lattice_vector_2d[0][1] = 0;
+    lattice_vector_2d[0][2] = 0;
+    lattice_vector_2d[1][0] = 0;
+    lattice_vector_2d[1][2] = 0;
+    lattice_vector_2d[1][3] = 0;
+    *crystal_generation = 1;
+
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
 	{
@@ -168,10 +178,12 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             	    continue;
        		}	
 
-            if(strcmp(sub_line, "volume_attempt") == 0)
+            if(strcmp(sub_line, "volume_attempts") == 0)
         	{
             	    sub_line = strtok(NULL," ");
-                    *vol_attempt = atoi(sub_line);
+                    int inp = atoi(sub_line);
+                    if(inp != 0)
+                        *vol_attempts = inp;
                     continue;
         	}
 

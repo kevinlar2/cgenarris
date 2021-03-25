@@ -260,7 +260,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                                      num_compatible_spg,
                                      spg_index);
 
-                    //printf("I am done generate_crystal");
                     //fflush(stdout);
                     //reset volume after volume attempts
                     if( (i+j) % vol_attempt == 0 && i+j != 0)
