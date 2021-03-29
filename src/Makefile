@@ -1,6 +1,6 @@
 
 CC=mpicc
-CFLAGS=-std=gnu99 -g -fPIC -Wall -Wpedantic
+CFLAGS=-std=gnu99 -O3 -fPIC -Wall -Wpedantic
 PYTHON_H=/home/ritwit/anaconda3/include/python3.8/
 
 

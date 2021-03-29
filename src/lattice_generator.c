@@ -27,12 +27,10 @@ static void gen_principal_comps(float *ax,
 
 void generate_lattice(float lattice_vector[3][3],
                       int spg,
-                      float max_angle,
-                      float min_angle,
+                      float norm_std,
+                      float angle_std,
                       float target_volume)
 {
-    float norm_std = 0.4;
-    float angle_std = 8;
 
     if(spg < 1 || spg > 230)
     {
