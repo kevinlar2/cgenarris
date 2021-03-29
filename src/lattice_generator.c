@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 #include "lattice_generator.h"
 #include "randomgen.h"
 //#include "niggli.h"
@@ -31,6 +33,39 @@ void generate_lattice(float lattice_vector[3][3],
                       float angle_std,
                       float target_volume)
 {
+    static int first_time = 1;
+    static FILE *lattice_file = NULL;
+    static float const_lattice[3][3];
+
+    // If there's a lattice file, donot generate random lattices.
+    if(first_time)
+    {
+        if(access("lattice.dat", F_OK) == 0)
+        {
+            lattice_file = fopen("lattice.dat", "r");
+            int nmatches = 0;
+            nmatches = fscanf(lattice_file, "%f %f %f", &const_lattice[0][0],
+                &const_lattice[0][1], &const_lattice[0][2]);
+            nmatches += fscanf(lattice_file, "%f %f %f", &const_lattice[1][0],
+                &const_lattice[1][1], &const_lattice[1][2]);
+            nmatches += fscanf(lattice_file, "%f %f %f", &const_lattice[2][0],
+                &const_lattice[2][1], &const_lattice[2][2]);
+            // Check if read correctly
+            if(nmatches != 9)
+            {
+                printf("***ERROR: bad lattice.dat file; unable to read\n");
+                exit(EXIT_FAILURE);
+            }
+            fclose(lattice_file);
+        }
+        first_time = 0;
+    }
+
+    if(lattice_file != NULL)
+    {
+        memcpy(lattice_vector, const_lattice, 9*sizeof(lattice_vector[0][0]));
+        return;
+    }
 
     if(spg < 1 || spg > 230)
     {
