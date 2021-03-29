@@ -66,6 +66,8 @@ void generate_lattice(float lattice_vector[3][3],
     return;
 }
 
+////////////////////// FUNCTIONS FOR GENERATING DIFFERENT LATTICES ///////////////
+
 void gen_triclinic_lattice(float lattice_vector[3][3],
                            float target_volume,
                            float norm_std,
@@ -331,7 +333,7 @@ static float gen_angle(float angle_std)
 {
     float ang;
     do{
-        ang = normal_dist_ab(90, angle_std);
+        ang = normal_dist_ab(PI/2, angle_std*PI/180);
     }
     while(ang > MAX_ANGLE || ang < MIN_ANGLE);
 
