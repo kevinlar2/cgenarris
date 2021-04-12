@@ -104,7 +104,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
     *seed = (unsigned int)abs(my_rank*7 + random_seed);  //some random seed private for each threads
     *seed2 = (unsigned int)abs(my_rank*17 + random_seed);
-    init_genrand(abs(*seed));
+    init_genrand(*seed);
 
     //storing information for compatible space groups
     COMPATIBLE_SPG compatible_spg[230];

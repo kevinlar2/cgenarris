@@ -126,7 +126,7 @@ void gen_triclinic_lattice(float lattice_vector[3][3],
         cosbeta2 = (cos(alpha) - cos(gamma)*cos(beta))/sin(gamma);
         cosbeta3 = sqrt(1 - cos(beta)*cos(beta) - cosbeta2*cosbeta2);
     }
-    while( abs(cosbeta2) >= 1 || (cos(beta)*cos(beta) + cosbeta2*cosbeta2) > 1 );
+    while( fabs(cosbeta2) >= 1 || (cos(beta)*cos(beta) + cosbeta2*cosbeta2) > 1 );
 
     float bx = by/tan(gamma);
     float modc = cz/cosbeta3;
