@@ -28,19 +28,21 @@ import_array();
 %apply ( float* IN_ARRAY2, int DIM1, int DIM2) {(float *vdw_matrix, int dim1, int dim2)};
 
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
-	float *vdw_matrix,
-	int dim1,
-	int dim2,
-	int num_structures,
-	int Z,
-	double volume_mean1,
-	double volume_std1,
-	double tol1,
-	long max_attempts,
-	char *spg_dist_type,
+    float *vdw_matrix,
+    int dim1,
+    int dim2,
+    int num_structures,
+    int Z,
+    double volume_mean1,
+    double volume_std1,
+    double tol1,
+    long max_attempts,
+    char *spg_dist_type,
     int vol_attempt,
     int random_seed,
-	MPI_Comm world_comm);
+    float norm_dev,
+    float angle_std,
+    MPI_Comm world_comm);
 
 int num_compatible_spacegroups(int Z, double tolerance);
 

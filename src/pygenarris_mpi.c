@@ -50,6 +50,8 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     char *spg_dist_type,
     int vol_attempt,
     int random_seed,
+    float norm_dev,
+    float angle_std,
     MPI_Comm world_comm)
 {
     float Zp_max=1;
@@ -160,7 +162,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                              &max_attempts,
                              spg_dist_type,
                              &vol_attempt,
-                             &random_seed);
+                             &random_seed,
+                             &norm_dev,
+                             &angle_std);
     }
 
     MPI_Barrier(world_comm);
@@ -215,9 +219,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     {
         MPI_Barrier(world_comm);
         //counter counts the number of structures generated
-        //if (spg_index > 44)
-        //  break;
-        //spg_index = 44;
+
         spg = compatible_spg[spg_index].spg; //pick a spg
 
         //time information
@@ -235,7 +237,10 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 
         //print attempted space group
         if (my_rank == 0)
-            {printf("Attempting to generate %d structures in spacegroup number %d....\n", spg_num_structures, spg);}
+            {
+                printf("Attempting to generate %d structures in spacegroup number %d....\n",
+                spg_num_structures, spg);
+            }
 
         while( counter < spg_num_structures )
         {
@@ -251,16 +256,18 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                 {
                     //generate
                     int result = generate_crystal(random_crystal,
-                                     mol,
-                                     volume,
-                                     Z,
-                                     Zp_max,
-                                     spg,
-                                     compatible_spg,
-                                     num_compatible_spg,
-                                     spg_index);
+                                                  mol,
+                                                  volume,
+                                                  Z,
+                                                  Zp_max,
+                                                  spg,
+                                                  compatible_spg,
+                                                  num_compatible_spg,
+                                                  spg_index,
+                                                  norm_dev,
+                                                  angle_std);
 
-                    //fflush(stdout);
+
                     //reset volume after volume attempts
                     if( (i+j) % vol_attempt == 0 && i+j != 0)
                     {
@@ -268,7 +275,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                         if(my_rank == 0)
                             printf("#Rank %8d: Completed %d attempts.\n", 0, (i+j)*total_ranks);
                         //printf("fail count - %d / %d \n", fail_count, i);
-                        //print_crystal(random_crystal);
                         fflush(stdout);
                     }
 
@@ -280,18 +286,16 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                     }
                     //check if molecules are too close with sr
                     verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);
-                                        //if generation is successful
+                    //if generation is successful
                     if (verdict == 1 )
                     {
                         random_crystal->spg = spg;
                         break;
                     }
 
-
                 }//end of GRAIN loop
 
                 int found_poll[total_ranks];
-                //printf("verdict = %d\n", verdict);
                 MPI_Gather(&verdict, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, world_comm);
                 if (my_rank == 0)
                 {
@@ -321,7 +325,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                         if (found_poll[rank] == 1)
                         {
                             receive_xtal(world_comm, rank, random_crystal, total_atoms);
-                            //print_crystal(random_crystal);
                             success_flag = 1;
                             if(counter < spg_num_structures)
                             {
@@ -347,14 +350,17 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                 MPI_Bcast(&success_flag, 1, MPI_INT, 0, world_comm);
                 MPI_Bcast(&stop_flag, 1, MPI_INT, 0, world_comm);
 
+                // Atleast one structure was generated succesfully.
+                // Reset counter and unit cell volume.
                 if (success_flag)
                 {
                     i = 0;
                     do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
                 }
+
+                // Enough structures were generated.
                 if (stop_flag)
                     break;
-
 
             }//end of attempt loop
 
@@ -381,7 +387,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
         }//end of numof structures whileloop
 
         //move to next spacegroup
-//exit(0);
         counter = 0;
         spg_index++;
         if (my_rank == 0)
