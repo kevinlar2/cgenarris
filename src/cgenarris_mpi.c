@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         		 lattice_vector_2d,
                  &norm_dev,
                  &angle_std,
-                 stoic,
+                 &stoic,
                  &mol_types);	//get settings
 
     tol = TOL;
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
     if (crystal_generation)     // for molecular crystal
 	{
-	    mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+	    mpi_generate_cocrystals_with_vdw_matrix(
 		vdw_cutoff_matrix,
 		dim_vdw_matrix,
 		dim_vdw_matrix,
@@ -111,12 +111,31 @@ int main(int argc, char **argv)
 		random_seed,
         norm_dev,
         angle_std,
+        stoic,
+        mol_types,
 		world_comm);
-
-    	MPI_Finalize();
-
-        return 0;
 	}
+
+    else if(crystal_generation == 2)
+    {
+        mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+        vdw_cutoff_matrix,
+        dim_vdw_matrix,
+        dim_vdw_matrix,
+        num_structures,
+        Z,
+        volume_mean,
+        volume_std,
+        tol,
+        max_attempts,
+        spg_dist_type,
+        vol_attempt,
+        random_seed,
+        norm_dev,
+        angle_std,
+        world_comm);
+
+    }
 
 	else			// for layer generation
 	{
@@ -139,11 +158,9 @@ int main(int argc, char **argv)
 		random_seed,
 		world_comm);
 
-    	MPI_Finalize();
-        return 0;
 	}
 
-
-
+    MPI_Finalize();
+    return 0;
 }
 

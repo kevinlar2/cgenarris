@@ -14,7 +14,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
-                 float* angle_std, int *stoic, int *mol_types)
+                 float* angle_std, int **stoic, int *mol_types)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -213,12 +213,12 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 
         if(strcmp(sub_line, "stochiometry") == 0)
         {
-            stoic = (int *)malloc(2*sizeof(int));
+            *stoic = (int *)malloc(2*sizeof(int));
+            sub_line = strtok(NULL, " ");
+            (*stoic)[0] = atoi(sub_line);
+            sub_line = strtok(NULL, " ");
+            (*stoic)[1] = atoi(sub_line);
 
-            sub_line = strtok(NULL, " ");
-            stoic[0] = atoi(sub_line);
-            sub_line = strtok(NULL, " ");
-            stoic[1] = atoi(sub_line);
         }
 
    	}
@@ -344,10 +344,14 @@ void print_input_settings(int* num_structures,
     printf("Tolerance:                                    %f\n", TOL);
     if(mol_types != 0)
     {
-        printf("Number of Molecules:                      %d\n", *mol_types);
-        printf("Stochiometry: ");
+        printf("Number of Molecules:                          %d\n", *mol_types);
+        printf("Stochiometry:                                 ");
         for(int i = 0; i < *mol_types; i++)
-            printf("%d ", stoic[i]);
+        {
+            printf("%d", stoic[i]);
+            if(i != *mol_types - 1)
+                printf(":");
+        }
         printf("\n");
     }
     printf("-----------------------------\n\n");

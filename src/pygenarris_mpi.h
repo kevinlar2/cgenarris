@@ -23,6 +23,25 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float angle_std,
     MPI_Comm world_comm);
 
+void mpi_generate_cocrystals_with_vdw_matrix(
+    float *vdw_matrix,
+    int dim1,
+    int dim2,
+    int num_structures,
+    int Z,
+    double volume_mean1,
+    double volume_std1,
+    double tol1,
+    long max_attempts,
+    char *spg_dist_type,
+    int vol_attempt,
+    int random_seed,
+    float norm_dev,
+    float angle_std,
+    int *stoic,
+    int mol_types,
+    MPI_Comm world_comm);
+
 void mpi_generate_layer_with_vdw_cutoff_matrix(
 	float *vdw_matrix,
 	int dim1,

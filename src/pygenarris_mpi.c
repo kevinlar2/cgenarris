@@ -29,14 +29,13 @@ unsigned int *seed2;
 //int SET_INTERFACE_AREA = 0;
 
 extern float TOL;
-/*
+
 void mpi_generate_cocrystals_with_vdw_matrix(
     float *vdw_matrix,
     int dim1,
     int dim2,
     int num_structures,
     int Z,
-    int Zp,
     double volume_mean1,
     double volume_std1,
     double tol1,
@@ -46,11 +45,14 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int random_seed,
     float norm_dev,
     float angle_std,
+    int *stoic,
+    int mol_types,
     MPI_Comm world_comm)
 {
     float volume_mean = volume_mean1;
     float volume_std = volume_std1;
     TOL = tol1;
+    float sr = -1;
 
     if (dim1 != dim2)
     {printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
@@ -61,6 +63,22 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int my_rank;
     MPI_Comm_rank(world_comm, &my_rank);
 
+    print_input_settings(&num_structures,
+                             &Z,
+                             &sr, //Useless arg
+                             &volume_mean,
+                             &volume_std,
+                             &sr,
+                             &max_attempts,
+                             spg_dist_type,
+                             &vol_attempt,
+                             &random_seed,
+                             &norm_dev,
+                             &angle_std,
+                             stoic,
+                             &mol_types);
+
+    /*
     //variable declarations
     //int fail_count;
     int stop_flag = 0;  // to stop threads if limit is reached
@@ -68,10 +86,10 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int counter = 0;    //counts number of structures
     int spg_index = 0;  //space group to be generated
     FILE *out_file = open_output_file(my_rank);     //file to output geometries
-
+    */
 
 }
-*/
+
 
 void print_time(void)
 {
