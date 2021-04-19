@@ -18,7 +18,6 @@
 
 //maximum mulipicity possible
 #define ZMAX 192
-#define VOL_ATTEMPT  100000
 #define GRAIN_SIZE 10000
 
 int *seed;
@@ -62,25 +61,30 @@ int main(int argc, char **argv)
     int random_seed;    //seed for random gen
     float norm_dev;
     float angle_std;
+    int mol_types;  // No. of distinct molecule types
+    int *stoic;  // Stochiometry for the co-crystal. Array of length mol_types.
 
     read_geometry(mol);				//read molecule from geometry.in
     read_control(&num_structures,
-		 &Z,
-		 &Zp_max,
-		 &volume_mean,
-		 &volume_std,
-		 &sr,
-		 &max_attempts,
-         spg_dist_type,
-         &vol_attempt,
-         &random_seed,
-		 &crystal_generation,
-		 &interface_area_mean,
-		 &interface_area_std,
-		 &volume_multiplier,
-		 lattice_vector_2d,
-         &norm_dev,
-         &angle_std);	//get settings
+        		 &Z,
+        		 &Zp_max,
+        		 &volume_mean,
+        		 &volume_std,
+        		 &sr,
+        		 &max_attempts,
+                 spg_dist_type,
+                 &vol_attempt,
+                 &random_seed,
+        		 &crystal_generation,
+        		 &interface_area_mean,
+        		 &interface_area_std,
+        		 &volume_multiplier,
+        		 lattice_vector_2d,
+                 &norm_dev,
+                 &angle_std,
+                 stoic,
+                 &mol_types);	//get settings
+
     tol = TOL;
     int num_atoms_in_molecule = mol->num_of_atoms;
     int dim_vdw_matrix = num_atoms_in_molecule * Z ;

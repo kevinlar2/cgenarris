@@ -14,7 +14,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
-                 float* angle_std);
+                 float* angle_std, int *stoic, int *mol_types);
 
 void read_geometry(molecule* mol);
 

@@ -14,7 +14,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
-                 float* angle_std)
+                 float* angle_std, int *stoic, int *mol_types)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -55,12 +55,14 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                 continue;
 
 	    sub_line=strtok(line," ");
-            if(strcmp(sub_line, "Z") == 0)
+
+        if(strcmp(sub_line, "Z") == 0)
 		{
 		    sub_line = strtok(NULL," ");
 		    *Z = atoi(sub_line);
 		    continue;
 		}
+
 	    if (strcmp(sub_line,"lattice_vector_a")==0)
 		{
 
@@ -84,12 +86,14 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             lattice_vector_2d[1][2] = atof(sub_line);
             continue;
 		}
-            if (strcmp(sub_line,"crystal_generation")==0)
+
+        if (strcmp(sub_line,"crystal_generation")==0)
 		{
 		    sub_line = strtok(NULL," ");
 	            *crystal_generation = atof(sub_line);
 		    continue;
 		}
+
 	    if(strcmp(sub_line, "sr") == 0)
 		{
 		    sub_line = strtok(NULL," ");
@@ -197,6 +201,23 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             if(inp != 0)
                 *vol_attempts = inp;
             continue;
+        }
+
+        if(strcmp(sub_line, "molecule_types") == 0)
+        {
+            sub_line = strtok(NULL, " ");
+            *mol_types = atoi(sub_line);
+            continue;
+        }
+
+        if(strcmp(sub_line, "stochiometry") == 0)
+        {
+            stoic = (int *)malloc(2*sizeof(int));
+
+            sub_line = strtok(NULL, " ");
+            stoic[0] = atoi(sub_line);
+            sub_line = strtok(NULL, " ");
+            stoic[1] = atoi(sub_line);
         }
 
    	}
