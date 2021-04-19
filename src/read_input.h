@@ -33,7 +33,9 @@ void print_input_settings(int* num_structures,
                           int *vol_attempt,
                           int *random_seed,
                           float *norm_dev,
-                          float *angle_std);
+                          float *angle_std,
+                          int *stoic,
+                          int *mol_types);
 
 void print_input_settings_layer(int* num_structures,
                           int* Z,

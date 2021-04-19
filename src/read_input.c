@@ -45,6 +45,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
     lattice_vector_2d[1][2] = 0;
     lattice_vector_2d[1][3] = 0;
     *crystal_generation = 1;
+    *mol_types = 0;
 
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
@@ -322,7 +323,9 @@ void print_input_settings(int* num_structures,
                           int *vol_attempt,
                           int *random_seed,
                           float *norm_dev,
-                          float *angle_std)
+                          float *angle_std,
+                          int *stoic,
+                          int *mol_types)
 {
     *Zp_max = 192; //useless argument
     printf("INPUT SETTINGS:\n");
@@ -339,6 +342,14 @@ void print_input_settings(int* num_structures,
     printf("Lattice angle standard deviation:             %f\n", *angle_std);
     printf("Lattice principal component deviation:        %f\n", *norm_dev);
     printf("Tolerance:                                    %f\n", TOL);
+    if(mol_types != 0)
+    {
+        printf("Number of Molecules:                      %d\n", *mol_types);
+        printf("Stochiometry: ");
+        for(int i = 0; i < *mol_types; i++)
+            printf("%d ", stoic[i]);
+        printf("\n");
+    }
     printf("-----------------------------\n\n");
 
 }

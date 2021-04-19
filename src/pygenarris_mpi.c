@@ -15,6 +15,7 @@
 #include "randomgen.h"
 #include "algebra.h"
 #include "pygenarris_mpi.h"
+#include "pygenarris_mpi_utils.h"
 
 #define ZMAX 192
 #define GRAIN_SIZE 10000
@@ -28,6 +29,49 @@ unsigned int *seed2;
 //int SET_INTERFACE_AREA = 0;
 
 extern float TOL;
+/*
+void mpi_generate_cocrystals_with_vdw_matrix(
+    float *vdw_matrix,
+    int dim1,
+    int dim2,
+    int num_structures,
+    int Z,
+    int Zp,
+    double volume_mean1,
+    double volume_std1,
+    double tol1,
+    long max_attempts,
+    char *spg_dist_type,
+    int vol_attempt,
+    int random_seed,
+    float norm_dev,
+    float angle_std,
+    MPI_Comm world_comm)
+{
+    float volume_mean = volume_mean1;
+    float volume_std = volume_std1;
+    TOL = tol1;
+
+    if (dim1 != dim2)
+    {printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
+
+    //Initialise MPI
+    int total_ranks;
+    MPI_Comm_size(world_comm, &total_ranks);
+    int my_rank;
+    MPI_Comm_rank(world_comm, &my_rank);
+
+    //variable declarations
+    //int fail_count;
+    int stop_flag = 0;  // to stop threads if limit is reached
+    int success_flag = 0;
+    int counter = 0;    //counts number of structures
+    int spg_index = 0;  //space group to be generated
+    FILE *out_file = open_output_file(my_rank);     //file to output geometries
+
+
+}
+*/
 
 void print_time(void)
 {
@@ -164,7 +208,9 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                              &vol_attempt,
                              &random_seed,
                              &norm_dev,
-                             &angle_std);
+                             &angle_std,
+                             NULL,
+                             0);
     }
 
     MPI_Barrier(world_comm);
