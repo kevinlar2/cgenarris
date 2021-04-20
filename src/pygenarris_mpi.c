@@ -55,7 +55,10 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     float sr = -1;
 
     if (dim1 != dim2)
-    {printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
+    {
+        printf("***ERROR:vdw cutoff matrix is not square***\n");
+        exit(EXIT_FAILURE);
+    }
 
     //Initialise MPI
     int total_ranks;
@@ -78,26 +81,32 @@ void mpi_generate_cocrystals_with_vdw_matrix(
                              stoic,
                              &mol_types);
 
-    /*
+
     //variable declarations
-    //int fail_count;
     int stop_flag = 0;  // to stop threads if limit is reached
-    int success_flag = 0;
+    int success_flag = 0;  // Check if any rank generated successfully
     int counter = 0;    //counts number of structures
     int spg_index = 0;  //space group to be generated
-    FILE *out_file = open_output_file(my_rank);     //file to output geometries
-    */
+
+    //file to output geometries
+    FILE *out_file = open_output_file(my_rank);
+
+    // Init Random seeding
+    seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
+    seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
+    init_random_seed(seed, seed2, random_seed, my_rank);
+    printf("%d\n", *seed);
+    printf("%d\n", *seed2);
+
+
+
+
+
+
+
 
 }
 
-
-void print_time(void)
-{
-    time_t current_time = time(NULL);
-    struct tm *loc_time;
-    loc_time = localtime (&current_time);
-    printf("The local time is now: %s", asctime (loc_time));
-}
 
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float *vdw_matrix,
