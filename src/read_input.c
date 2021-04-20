@@ -235,7 +235,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 }
 
 
-void read_geometry(molecule* mol)
+void read_geometry(molecule* mol, char* filename)
 {
     FILE *fileptr;
     size_t len = 0;
@@ -246,11 +246,11 @@ void read_geometry(molecule* mol)
     int atom_count = 0;
 
     //find_number_of atoms
-    fileptr = fopen("geometry.in","r");
+    fileptr = fopen(filename,"r");
     //check if file exits
     if(!fileptr)
     {
-        printf("***ERROR: no geometry.in file \n");
+        printf("***ERROR: no %s file \n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -308,7 +308,34 @@ void read_geometry(molecule* mol)
    // printf("atoms = %d \n", atom_count);
     mol->num_of_atoms = N;
 
+}
 
+void read_molecules(molecule *mol, int mol_types)
+{
+    for(int i = 0; i < mol_types; i++)
+    {
+        char filename[25];
+
+        if(i == 0)
+            sprintf(filename, "geometry.in");
+        else
+            sprintf(filename, "geometry_%d.in", i);
+
+        read_geometry(mol + i, filename);
+    }
+
+}
+
+void print_input_geometries(molecule *mol, int mol_types)
+{
+    printf("Total number of molecule geometries = %d\n\n", mol_types);
+    for(int i = 0; i < mol_types; i++)
+    {
+        printf("MOLECULE GEOMETRY %d:\n", i);
+        printf("-----------------------------\n");
+        print_molecule(mol + i);
+        printf("-----------------------------\n\n");
+    }
 }
 
 

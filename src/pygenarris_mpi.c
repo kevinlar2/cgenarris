@@ -87,6 +87,12 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int success_flag = 0;  // Check if any rank generated successfully
     int counter = 0;    //counts number of structures
     int spg_index = 0;  //space group to be generated
+    COMPATIBLE_SPG compatible_spg[230]; //storing information for compatible space groups
+    int num_compatible_spg = 0;
+    int spg;
+    float volume;
+    crystal *xtal = (crystal*)malloc(sizeof(crystal));//dummy crystal
+    molecule *mol = (molecule*)malloc(mol_types*sizeof(molecule));//store molecule
 
     //file to output geometries
     FILE *out_file = open_output_file(my_rank);
@@ -95,15 +101,12 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
     seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
     init_random_seed(seed, seed2, random_seed, my_rank);
-    printf("%d\n", *seed);
-    printf("%d\n", *seed2);
 
+    // Read molecules
+    read_molecules(mol, mol_types);
 
-
-
-
-
-
+    //print molecule geometries
+    print_input_geometries(mol, mol_types);
 
 }
 
@@ -216,7 +219,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     }
     MPI_Barrier(world_comm);
 
-    read_geometry(mol);             //read molecule from geometry.in
+    read_geometry(mol, "geometry.in");             //read molecule from geometry.in
 
     //recenter molecule to origin
     recenter_molecule(mol);
@@ -621,7 +624,7 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	}
 	MPI_Barrier(world_comm);
 
-    	read_geometry(mol);				//read molecule from geometry.in
+    read_geometry(mol, "geometry.in");				//read molecule from geometry.in
 
 	//recenter molecule to origin
 	recenter_molecule(mol);
@@ -990,7 +993,7 @@ int num_compatible_spacegroups(int Z, double tolerance)
     molecule *mol = (molecule*)malloc(sizeof(molecule));
 
     //read geometry from geometry.in
-    read_geometry(mol);
+    read_geometry(mol, "geometry.in");
 
     find_compatible_spg_positions(mol,
                                   Z,
@@ -1017,7 +1020,7 @@ int num_compatible_layergroups(int Z, double tolerance,float volume,float lattic
 	molecule *mol = (molecule*)malloc(sizeof(molecule));
 
 	//read geometry from geometry.in
-	read_geometry(mol);
+	read_geometry(mol, "geometry.in");
     //float global_lattice_vector_2d[2][3] = {{5.7675159999999996,0.0000000000000000,0.0000000000000000},
 											//{2.8837579999999998,4.9948160000000001,0.0000000000000000}};
 	//hard code global lattice vector here for now, delete latter

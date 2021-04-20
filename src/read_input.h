@@ -16,7 +16,8 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float lattice_vector_2d[2][3], float* norm_dev,
                  float* angle_std, int **stoic, int *mol_types);
 
-void read_geometry(molecule* mol);
+void read_geometry(molecule* mol, char* filename);
+void read_molecules(molecule *mol, int mol_types);
 
 void print_input_geometry(molecule* mol);
 
