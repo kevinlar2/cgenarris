@@ -148,7 +148,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	    if(strcmp(sub_line, "max_attempts") == 0)
 		{
 		    sub_line = strtok(NULL," ");
-		    *max_attempts = atoi(sub_line);
+		    *max_attempts = atol(sub_line);
 		    continue;
 		}
 
