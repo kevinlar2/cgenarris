@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "molecule_utils.h"
 #include "randomgen.h"
 
 void print_time(void)
@@ -45,4 +47,36 @@ void init_random_seed(unsigned int *seed, unsigned int *seed2, int random_seed, 
     *seed2 = (unsigned int)abs(rank*17 + random_seed);
     init_genrand(*seed);
 
+}
+
+void recenter_molecules(molecule* mol, int mol_types)
+{
+    for(int i = 0; i < mol_types; i++)
+    {
+        recenter_molecule(mol + i);
+    }
+}
+
+float draw_volume(float volume_mean, float volume_std)
+{
+    float volume;
+
+    do
+    {
+        volume = normal_dist_ab(volume_mean, volume_std);
+    }while(volume < 1);
+
+    return volume;
+}
+
+int find_total_atoms(molecule* mol, int *stoic, int mol_types)
+{
+    int total_atoms = 0;
+    for(int m = 0; m < mol_types; m++)
+    {
+        // Number of atoms x stochiometry
+        total_atoms += (mol + m)->num_of_atoms * stoic[m];
+    }
+
+    return total_atoms;
 }

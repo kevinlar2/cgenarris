@@ -91,6 +91,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int num_compatible_spg = 0;
     int spg;
     float volume;
+    int total_atoms;  // Max number of atoms in a crystal
     crystal *xtal = (crystal*)malloc(sizeof(crystal));//dummy crystal
     molecule *mol = (molecule*)malloc(mol_types*sizeof(molecule));//store molecule
 
@@ -102,11 +103,17 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
     init_random_seed(seed, seed2, random_seed, my_rank);
 
-    // Read molecules
+    // Read molecules and recenter mol to orgin
     read_molecules(mol, mol_types);
+    recenter_molecules(mol, mol_types);
 
-    //print molecule geometries
+    // Print molecule geometries
     print_input_geometries(mol, mol_types);
+    MPI_Barrier(world_comm);
+
+    // Initialzations
+    volume = draw_volume(volume_mean, volume_std);
+    total_atoms = find_total_atoms(mol, stoic, mol_types);
 
 }
 

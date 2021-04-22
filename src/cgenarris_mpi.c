@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     int mol_types;  // No. of distinct molecule types
     int *stoic;  // Stochiometry for the co-crystal. Array of length mol_types.
 
-    read_geometry(mol);				//read molecule from geometry.in
+    read_geometry(mol, "geometry.in");				//read molecule from geometry.in
     read_control(&num_structures,
         		 &Z,
         		 &Zp_max,

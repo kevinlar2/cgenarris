@@ -20,9 +20,8 @@ void read_geometry(molecule* mol, char* filename);
 void read_molecules(molecule *mol, int mol_types);
 
 void print_input_geometry(molecule* mol);
-
+void print_input_geometries(molecule *mol, int mol_types);
 void print_molecule(molecule *mol);
-
 void print_input_settings(int* num_structures,
                           int* Z,
                           float* Zp_max,
