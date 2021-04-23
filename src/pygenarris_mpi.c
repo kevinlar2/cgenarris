@@ -245,12 +245,12 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
         while( counter < spg_num_structures )
         {
             int verdict = 0; //for structure check
-            int i = 0;       //counts attempts for spg
+            long i = 0;       //counts attempts for spg
             //attempts for an spg.
             stop_flag = 0;
-            for(; i < max_attempts/total_ranks; i = i + GRAIN_SIZE)
+            for(; i < (long) max_attempts/total_ranks; i = i + GRAIN_SIZE)
             {
-                int j = 0;
+                long j = 0;
                 success_flag = 0;
                 for(; j < GRAIN_SIZE; j++)
                 {
@@ -273,7 +273,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                     {
                         do {volume = normal_dist_ab(volume_mean, volume_std);} while(volume < 0.1);
                         if(my_rank == 0)
-                            printf("#Rank %8d: Completed %d attempts.\n", 0, (i+j)*total_ranks);
+                            printf("#Rank %8d: Completed %ld attempts.\n", 0, (long)(i+j)*total_ranks);
                         //printf("fail count - %d / %d \n", fail_count, i);
                         fflush(stdout);
                     }
