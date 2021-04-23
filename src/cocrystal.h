@@ -7,12 +7,18 @@ typedef struct
     float *Xcord;
     float *Ycord;
     float *Zcord;
-    char *atoms;
-    int *num_atoms_in_molecule;
-    int spg;
-    int *wyckoff_position;
-    int Z;
-    int Zp;
+    char  *atoms;
+    int   *mol_index;
+    int   *mol_types;
+    int   *n_atoms_in_mol;
+    int   *wyckoff_position;
+    int   *stoic;
+    int   n_mols;
+    int   n_mol_types;
+    int   n_atoms;
+    int   spg;
+    int   Z;
+    int   Zp;
 }cocrystal;
 
 
