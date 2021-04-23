@@ -69,14 +69,15 @@ float draw_volume(float volume_mean, float volume_std)
     return volume;
 }
 
-int find_total_atoms(molecule* mol, int *stoic, int mol_types)
+/*
+Finds the number of atoms in each molecule from molecule array
+and constructs n_atoms_in_mol array of length n_mol_types
+*/
+void get_n_atoms_in_mol(int *n_atoms_in_mol, molecule *mol, int n_mol_types)
 {
-    int total_atoms = 0;
-    for(int m = 0; m < mol_types; m++)
+    for(int m = 0; m < n_mol_types; m++)
     {
-        // Number of atoms x stochiometry
-        total_atoms += (mol + m)->num_of_atoms * stoic[m];
+        n_atoms_in_mol[m] = (mol + m)->num_of_atoms;
     }
-
-    return total_atoms;
 }
+
