@@ -7,7 +7,7 @@ void init_random_seed(unsigned int *seed, unsigned int *seed2,
                       int random_seed, int rank);
 void recenter_molecules(molecule* mol, int mol_types);
 float draw_volume(float volume_mean, float volume_std);
-int find_total_atoms(molecule* mol, int *stoic, int mol_types);
+void get_n_atoms_in_mol(int *n_atoms_in_mol, molecule *mol, int n_mol_types);
 
 
 #endif //  pygenarris_mpi_utils.h

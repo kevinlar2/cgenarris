@@ -9,6 +9,7 @@
 #include "combinatorics.h"
 #include "check_structure.h"
 #include "crystal_utils.h"
+#include "cocrystal_utils.h"
 #include "molecule_utils.h"
 #include "lattice_generator.h"
 #include "lattice_generator_layer.h"
@@ -46,7 +47,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     float norm_dev,
     float angle_std,
     int *stoic,
-    int mol_types,
+    int n_mol_types,
     MPI_Comm world_comm)
 {
     float volume_mean = volume_mean1;
@@ -79,7 +80,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
                              &norm_dev,
                              &angle_std,
                              stoic,
-                             &mol_types);
+                             &n_mol_types);
 
 
     //variable declarations
@@ -91,9 +92,9 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int num_compatible_spg = 0;
     int spg;
     float volume;
-    int total_atoms;  // Max number of atoms in a crystal
-    crystal *xtal = (crystal*)malloc(sizeof(crystal));//dummy crystal
-    molecule *mol = (molecule*)malloc(mol_types*sizeof(molecule));//store molecule
+    int n_atoms;  // Max number of atoms in a crystal
+    cocrystal *cxtal = (cocrystal*)malloc(sizeof(cocrystal));     //dummy cocrystal
+    molecule *mol = (molecule*)malloc(n_mol_types*sizeof(molecule));//store molecules
 
     //file to output geometries
     FILE *out_file = open_output_file(my_rank);
@@ -104,16 +105,42 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     init_random_seed(seed, seed2, random_seed, my_rank);
 
     // Read molecules and recenter mol to orgin
-    read_molecules(mol, mol_types);
-    recenter_molecules(mol, mol_types);
+    read_molecules(mol, n_mol_types);
+    recenter_molecules(mol, n_mol_types);
 
     // Print molecule geometries
-    print_input_geometries(mol, mol_types);
+    print_input_geometries(mol, n_mol_types);
     MPI_Barrier(world_comm);
 
     // Initialzations
+    int n_atoms_in_mol[n_mol_types];
     volume = draw_volume(volume_mean, volume_std);
-    total_atoms = find_total_atoms(mol, stoic, mol_types);
+    get_n_atoms_in_mol(n_atoms_in_mol, mol, n_mol_types);
+    cxtal_init(cxtal, stoic, n_atoms_in_mol, n_mol_types, Z);
+
+    // Find compatible space groups
+    int allowed_spg[230];
+    int num_allowed_spg = 0;
+    find_allowed_spg(allowed_spg, &num_allowed_spg, Z);
+
+    for(int spg_index = 0; spg_index < num_allowed_spg; spg_index++)
+    {
+        MPI_Barrier(world_comm);
+
+        // Get ready for generation
+        spg = allowed_spg[spg_index];
+        time_t start_time = time(NULL);
+        int spg_num_structures = find_num_structure_for_spg(num_structures,\
+            spg_dist_type, spg, Z);  // Number of structures for spg
+        //print_start_spg(spg, spg_num_structures);
+
+
+
+
+    }
+
+
+
 
 }
 
