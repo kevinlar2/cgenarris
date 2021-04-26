@@ -1,5 +1,6 @@
 #include "read_input.h"
 #include "molecule_utils.h"
+#include "input_settings.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -339,44 +340,30 @@ void print_input_geometries(molecule *mol, int mol_types)
 }
 
 
-void print_input_settings(int* num_structures,
-                          int* Z,
-                          float* Zp_max,
-                          float* volume_mean,
-                          float* volume_std,
-                          float *sr,
-                          long *max_attempts,
-                          char * spg_dist_type,
-                          int *vol_attempt,
-                          int *random_seed,
-                          float *norm_dev,
-                          float *angle_std,
-                          int *stoic,
-                          int *mol_types)
+void print_input_settings(Settings set)
 {
-    *Zp_max = 192; //useless argument
     printf("INPUT SETTINGS:\n");
     printf("-----------------------------\n");
-    printf("Number of structures per space group:         %d \n", *num_structures);
-    printf("Number of molecules in the cell:              %d\n", *Z);
-    printf("Mean volume of unit cell:                     %f\n", *volume_mean);
-    printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
-    printf("Spacegroup distribution type:                 %s\n", spg_dist_type);
+    printf("Number of structures per space group:         %d \n", set.num_structures);
+    printf("Number of molecules in the cell:              %d\n", set.Z);
+    printf("Mean volume of unit cell:                     %f\n", set.vol_mean);
+    printf("Standard deviation of unit cell volume:       %f\n", set.vol_std);
+    printf("Spacegroup distribution type:                 %s\n", set.spg_dist_type);
     //printf("Specific radius proportion:                   %f\n", *sr );
-    printf("Maximum attempts per space group:             %ld\n", *max_attempts);
-    printf("Volume attempts:                              %d\n", *vol_attempt);
-    printf("Random seed:                                  %d\n", *random_seed);
-    printf("Lattice angle standard deviation:             %f\n", *angle_std);
-    printf("Lattice principal component deviation:        %f\n", *norm_dev);
+    printf("Maximum attempts per space group:             %ld\n",set.max_attempts);
+    printf("Volume attempts:                              %d\n", set.vol_attempts);
+    printf("Random seed:                                  %d\n", set.random_seed);
+    printf("Lattice angle standard deviation:             %f\n", set.angle_std);
+    printf("Lattice principal component deviation:        %f\n", set.norm_dev);
     printf("Tolerance:                                    %f\n", TOL);
-    if(mol_types != 0)
+    if(set.n_mol_types != 0)
     {
-        printf("Number of Molecules:                          %d\n", *mol_types);
+        printf("Number of Molecules:                          %d\n", set.n_mol_types);
         printf("Stochiometry:                                 ");
-        for(int i = 0; i < *mol_types; i++)
+        for(int i = 0; i < set.n_mol_types; i++)
         {
-            printf("%d", stoic[i]);
-            if(i != *mol_types - 1)
+            printf("%d", set.stoic[i]);
+            if(i != set.n_mol_types - 1)
                 printf(":");
         }
         printf("\n");
