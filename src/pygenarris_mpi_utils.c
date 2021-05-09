@@ -98,20 +98,18 @@ void print_allowed_spg(int *allowed_spg, int num_spg)
 /*
 main structure generation loop
 */
-int try_crystal_generation(cocrystal cxtal,
+int try_crystal_generation(cocrystal *cxtal,
                            Settings set,
+                           molecule *mol,
                            float *volume,
-                           float *vdw_matrix,
                            long attempts,
-                           long batch_size,
-                           int spg)
+                           long batch_size)
 {
-    cxtal.spg = spg;
     // Loop over the batch. bat = batch attempt
     for(long bat = 0; bat < batch_size; bat++)
     {
         // Attempt one generation
-        int result = generate_cocrystal(cxtal, set, *volume, vdw_matrix);
+        int result = generate_cocrystal(cxtal, set, mol, volume);
 
         // Alignment failures
         if(!result)
@@ -125,7 +123,7 @@ int try_crystal_generation(cocrystal cxtal,
         }
 
         // Structure check
-        int verdict = cxtal_check_structure(cxtal, vdw_matrix);
+        int verdict = cxtal_check_structure(cxtal, set.vdw_matrix);
         if(verdict)
             break;
     }

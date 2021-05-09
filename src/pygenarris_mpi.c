@@ -73,6 +73,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     set.angle_std = angle_std;
     set.sr = sr;
     set.spg_dist_type = spg_dist_type;
+    set.vdw_matrix = vdw_matrix;
 
     if (dim1 != dim2)
     {
@@ -140,6 +141,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
 
         // Get ready for generation
         spg = allowed_spg[spg_index];
+        cxtal->spg = spg;
         time_t start_time = time(NULL);
         int spg_num_structures = find_num_structure_for_spg(num_structures,\
             spg_dist_type, spg, Z);  // Number of structures for spg
@@ -153,7 +155,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         for(; attempt < max_attempts/total_ranks; attempt += BATCH_SIZE )
         {
             int found_poll[total_ranks];
-            int result = try_crystal_generation(cxtal, set, attempts, BATCH_SIZE);
+            int result = try_crystal_generation(cxtal, set,
+                                mol, &volume, attempt, BATCH_SIZE);
 
             // Poll to see which ranks succeded
             MPI_Gather(&result, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, world_comm);
