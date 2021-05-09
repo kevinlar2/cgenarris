@@ -48,3 +48,20 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
     cxtal->atoms = (char *)  malloc(total_atoms * sizeof(char) * 2);
 }
 
+void cxtal_print(cocrystal *cxtal, FILE* out)
+{
+    for(int ltt = 0; ltt < 3; ltt++)
+    {
+        fprintf(out,"lattice_vector %12f %12f %12f \n",
+                cxtal->lattice_vectors[ltt][0],
+                cxtal->lattice_vectors[ltt][1],
+                cxtal->lattice_vectors[ltt][2]);
+    }
+
+    for(int at = 0; at < cxtal->n_atoms; at++)
+    {
+        fprintf(out, "atom %12f %12f %12f  %c%c \n", cxtal->Xcord[at],
+                cxtal->Ycord[at],  cxtal->Zcord[at],  cxtal->atoms[2*at],
+                cxtal->atoms[2*at + 1]);
+    }
+}
