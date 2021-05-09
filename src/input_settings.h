@@ -16,6 +16,7 @@ typedef struct
     float norm_dev;
     float angle_std;
     float sr;
+    float *vdw_matrix;
 
 }Settings;
 
