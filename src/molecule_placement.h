@@ -1,6 +1,12 @@
 #ifndef MOLECULE_PLACEMENT_H
 #define MOLECULE_PLACEMENT_H
 
+#include "molecule.h"
+#include "cocrystal.h"
+#include "input_settings.h"
+
+int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol);
+
 void apply_all_symmetry_ops(crystal *xtal,
                             molecule *mol,
                             float* mol_Xfrac,
@@ -8,7 +14,7 @@ void apply_all_symmetry_ops(crystal *xtal,
                             float *mol_Zfrac,
                             int N,
                             int hall_number);
-                    
+
 void apply_all_lg_symmetry_ops(crystal *xtal,
 							molecule *mol,
 							float* mol_Xfrac,

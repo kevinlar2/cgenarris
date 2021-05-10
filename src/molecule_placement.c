@@ -15,6 +15,101 @@
 #define PI 3.141592653
 extern unsigned int *seed2;
 
+
+void generate_random_translation_vector(float trans[3])
+{
+    trans[0] = uniform_dist_01();
+    trans[1] = uniform_dist_01();
+    trans[2] = uniform_dist_01();
+}
+
+
+int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
+{
+    float random_rot[3][3];
+    float random_trans[3];
+    float frac[cxtal->n_atoms][3];
+    float inv_lat_vec[3][3];
+    inverse_mat3b3(inv_lat_vec, cxtal->lattice_vectors);
+    mat3b3_transpose(inv_lat_vec, inv_lat_vec);
+
+    // Get fractional coordinates for asym unit
+    int asym_atoms = cxtal->n_atoms/ set.Z;
+    int at = 0; // atom index over asym unit
+    for(int m = 0; m < cxtal->n_mol_types; m++)
+    {
+        for(int st = 0; st < cxtal->stoic[m]; st++)
+        {
+            generate_random_rotation_matrix(random_rot);
+            generate_random_translation_vector(random_trans);
+
+            for(int mat = 0; mat < cxtal->n_atoms_in_mol[m]; mat++)
+            {
+                float atom[3] = {mol[m].X[mat], mol[m].Y[mat], mol[m].Z[mat]};
+                vector3_mat3b3_multiply(random_rot, atom, atom);
+
+                // Convert to fractional and translate
+                vector3_mat3b3_multiply(inv_lat_vec, atom, atom);
+                vector3_add(atom, random_trans, atom);
+
+                cxtal->Xcord[at] = atom[0];
+                cxtal->Ycord[at] = atom[1];
+                cxtal->Zcord[at] = atom[2];
+                cxtal->atoms[2*at] = mol[m].atoms[2*mat];
+                cxtal->atoms[2*at + 1] = mol[m].atoms[2*mat + 1];
+                at++;
+            }
+        }
+    }
+
+    cxtal_apply_symmetry_ops(cxtal);
+    cxtal_print(cxtal, stdout);
+    exit(0);
+}
+
+/*
+Apply symmetry operation to generate the full crystal.
+The fractional coordinates of the asym unit is present within cxtal.
+*/
+void cxtal_apply_symmetry_ops(cocrystal *cxtal)
+{
+    //get symmetry operations from spglib database
+    double translations[192][3];
+    int rotations[192][3][3];
+    int hall_number = hall_number_from_spg(cxtal->spg);
+    int num_of_operations = spg_get_symmetry_from_database(rotations,
+                            translations, hall_number);
+    int n_atoms_asym = cxtal->n_atoms / cxtal->Z;
+    float lat_vec_trans[3][3];
+    mat3b3_transpose(lat_vec_trans, cxtal->lattice_vectors);
+
+
+    for(int op = 0; op < num_of_operations; op++)
+    {
+        float *trans = translations[op];
+        int **rot = rotations[op];
+
+        for(int at = 0; at < cxtal->n_atoms; at++)
+        {
+            int asym_id = at%n_atoms_asym;
+            float atom[3] = {cxtal->Xcord[asym_id],
+                             cxtal->Ycord[asym_id],
+                             cxtal->Zcord[asym_id]};
+            vector3_intmat3b3_multiply(rot, atom, atom);
+            vector3_add(trans, atom, atom);
+            // Convert to cartesian
+            vector3_mat3b3_multiply(lat_vec_trans, atom, atom);
+
+            cxtal->Xcord[at] = atom[0];
+            cxtal->Ycord[at] = atom[1];
+            cxtal->Zcord[at] = atom[2];
+            cxtal->atoms[2*at] = cxtal->atoms[2*asym_id];
+            cxtal->atoms[2*at + 1] = cxtal->atoms[2*asym_id + 1];
+        }
+    }
+
+}
+
 void apply_all_symmetry_ops(crystal *xtal,
                             molecule *mol,
                             float* mol_Xfrac,
@@ -96,7 +191,7 @@ void apply_all_lg_symmetry_ops(crystal *xtal,
 {
 	//get symmetry operations from spglib database
 	double translations[192][3];
-	int rotations[192][3][3];	
+	int rotations[192][3][3];
 
 	//this is from spglib, need to be changed
 	//int num_of_operations = get_spg_symmetry(hall_number,translations,rotations);
@@ -104,19 +199,19 @@ void apply_all_lg_symmetry_ops(crystal *xtal,
 
 	int Z = num_of_operations;
 	xtal->Z = Z;
-	
+
 	//get lattice_vector inverse and transpose
 	float inverse_lattice_vectors[3][3];
 	inverse_mat3b3(inverse_lattice_vectors, xtal->lattice_vectors);
 	float lattice_vectors_transpose[3][3];
 	copy_mat3b3_mat3b3(lattice_vectors_transpose, xtal->lattice_vectors);
 	mat3b3_transpose(lattice_vectors_transpose, lattice_vectors_transpose);
-	
+
 	//i loops over all the operations
 	for(int i = 0; i < num_of_operations; i++)
 	{
-		int molecule_index = i*N; 
-		
+		int molecule_index = i*N;
+
 		//rot and trans are ith symmetry operation
 		int rot[3][3];
 		copy_intmat3b3_intmat3b3bN(rot, rotations, i);
@@ -124,31 +219,31 @@ void apply_all_lg_symmetry_ops(crystal *xtal,
 		trans[0] = translations[i][0];
 		trans[1] = translations[i][1];
 		trans[2] = translations[i][2];
-		
+
 		//j loops over all atoms in a molecule
 		for(int j = 0; j < N; j++)
 		{
 			float atomj_array[3];
 			atomj_array[0] = mol_Xfrac[j];
 			atomj_array[1] = mol_Yfrac[j];
-			atomj_array[2] = mol_Zfrac[j]; 
-			
+			atomj_array[2] = mol_Zfrac[j];
+
 			//apply operation
 			vector3_intmat3b3_multiply(rot, atomj_array, atomj_array);
 			vector3_add(trans, atomj_array, atomj_array);
-			
+
 			//temp_array has the fractional cord of jth atom in ith mol
 			//convert to cartesian
 			vector3_mat3b3_multiply(lattice_vectors_transpose,
 				atomj_array, atomj_array);
-			
+
 			//copy to the structure
 			xtal->Xcord[molecule_index+j] = atomj_array[0];
 			xtal->Ycord[molecule_index+j] = atomj_array[1];
 			xtal->Zcord[molecule_index+j] = atomj_array[2];
 			xtal->atoms[2*(molecule_index+j)] = (*mol).atoms[2*j];
-            xtal->atoms[2*(molecule_index+j)+1] = (*mol).atoms[2*j+1];	
-		}	
+            xtal->atoms[2*(molecule_index+j)+1] = (*mol).atoms[2*j+1];
+		}
 	}
 	//printf("before bring all mol to first Z is : %d\n",(*xtal).Z);
 	//fflush(stdout);
@@ -291,7 +386,7 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	int wyckoff_pos = compatible_spg.allowed_pos[pos_index];  //index of wykoff_pos
 	int order = lg_positions[spg-1].multiplicity[0]/\
 		lg_positions[spg-1].multiplicity[wyckoff_pos];
-	
+
 	//get overlap list from the data compatible_spg structure
 	int *overlap_list = compatible_spg.pos_overlap_list[pos_index];
 	//int num_atoms_in_cell = N*Z;
@@ -313,8 +408,8 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 		//randomly rotate
 		molecule_rotate(mol, random_rotation_matrix);
 	}
-	
-	
+
+
 	// place the first molecule
 	float inverse_lattice_vectors[3][3];
 	inverse_mat3b3(inverse_lattice_vectors, Xtal->lattice_vectors);
@@ -322,14 +417,14 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	float mol_Xfrac[N]; //stores fractional coordinates of first mol
 	float mol_Yfrac[N];
 	float mol_Zfrac[N];
-	
+
 	float rand_frac_array[3] = {uniform_dist_01(),\
 							uniform_dist_01(),\
 								uniform_dist_01()};
 	vector3_mat3b3_multiply(rot_mat,rand_frac_array,rand_frac_array);
-	vector3_add(trans_vec,rand_frac_array,rand_frac_array);	
+	vector3_add(trans_vec,rand_frac_array,rand_frac_array);
 	//rand_frac_array is the postion of the first mol
-	
+
 	//compute fractional coordiates of the first position and
 	//move molecule to the position
 	for(int i = 0; i < N; i++)
@@ -338,12 +433,12 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 		vector3_mat3b3_multiply(inverse_lattice_vectors,
 								atom_i,
 								atom_i);
-		vector3_add(atom_i, rand_frac_array, atom_i); //translate	
+		vector3_add(atom_i, rand_frac_array, atom_i); //translate
 		mol_Xfrac[i] = atom_i[0];
 		mol_Yfrac[i] = atom_i[1];
 		mol_Zfrac[i] = atom_i[2];
 
-	} 
+	}
 	//now mol_frac has the first mol in fractional coordinates
 	// at the given wyckoff position.
 	//printf("Z after align first molecule: %d\n",(*Xtal).Z);
@@ -357,7 +452,7 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 				  mol_Zfrac,
 				  N,
 				  hall_number);
-	
+
 	//check if inv center or genral position
 	//printf("Z after apply_all_symmetry_ops: %d\n",(*Xtal).Z);
 	//fflush(stdout);
@@ -365,17 +460,17 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	//this is to check site symmetry
 	int dof = lg_get_degrees_of_freedom(spg, wyckoff_pos);
 	if ( dof == 2)
-	{	
+	{
 		//if inv centre remove overlap molecules
-		if( strcmp(lg_positions[spg-1].site_symmetry[wyckoff_pos], "-1") == 0 ) 
+		if( strcmp(lg_positions[spg-1].site_symmetry[wyckoff_pos], "-1") == 0 )
 			combine_close_molecules(Xtal);
 
 		//printf("dof is 2,Z after apply_all_symmetry_ops: %d\n",(*Xtal).Z);
 		//fflush(stdout);
 		return 1;
 	}
-						   
-	Xtal->spg = spg;		 
+
+	Xtal->spg = spg;
 	bring_molecules_to_origin(Xtal);
 
 	int result = lg_align_using_std_orientations(Xtal, mol, hall_number,
@@ -386,13 +481,13 @@ int lg_auto_align_and_generate_at_position(crystal *Xtal,
 	printf("Z at end of auto_align_and_generate_at_position: %d\n",(*Xtal).Z);
 	fflush(stdout);
 	*/
-		
+
 	if (!result)
 	{
 		//printf("spg: %d , pos: %d unable to align\n", spg, wyckoff_pos);
 		return 0;
 	}
-	
+
     //printf("spg: %d , pos: %d aligned\n", spg, wyckoff_pos);
 	return 1;
 
@@ -560,11 +655,11 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 	copy_mat3b3_mat3b3(lattice_vectors, xtal_1->lattice_vectors);
 	inverse_mat3b3(inv_lattice_vectors, lattice_vectors);
 	mat3b3_transpose(inv_lattice_vectors, inv_lattice_vectors);
-	
+
 	float *mol_axes = compatible_axes.usable_mol_axes;
 	float *viewing_directions = compatible_axes.usable_view_dir;
 	int comb = compatible_axes.num_combinations;
-	
+
 	//create a temp xtal
 	crystal *xtal = (crystal *)malloc(sizeof(crystal) );
 	allocate_xtal(xtal, Z, N);
@@ -573,36 +668,36 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 	//int spg = xtal_1->spg;
 	//generate_lattice(xtal->lattice_vectors, spg, 60, 120, 1000000);
 	//generate_fake_lattice(xtal->lattice_vectors, spg);
-	
+
 	//rotate about axis if allowed
 	float random_rotation_about_axis[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-	
+
 	int i = rand_r(seed2) % comb;
 
 	float mol_axis[3] = {*(mol_axes+3*i + 0),
 						 *(mol_axes+3*i + 1),
-						 *(mol_axes+3*i + 2) };		
+						 *(mol_axes+3*i + 2) };
 	float view_dir[3] = { *(viewing_directions + 3*i + 0),
 						  *(viewing_directions + 3*i + 1),
 						  *(viewing_directions + 3*i + 2)};
 	normalise_vector3(view_dir);
 	normalise_vector3(mol_axis);
-	
+
 	//create rotation matrix
 	rotation_matrix_from_vectors(rotation_matrix, mol_axis, view_dir);
-	//rotate and store first molecule in fractional coord 
+	//rotate and store first molecule in fractional coord
 	//in mol_frac
 	if(dof == 1)
 	{
 		float psi = 2*PI*uniform_dist_01();
 		rotation_mat_around_axis(random_rotation_about_axis, view_dir, psi);
 	}
-	
+
 	if(dof == 0)
 	{
 		float axis[3];
 		int draw = rand_r(seed2) % 3;
-		
+
 		if (draw == 1)
 		{
 			float x[3] = {1, 0, 0};
@@ -620,14 +715,14 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 		}
 		rotation_mat_around_axis(random_rotation_about_axis, axis, PI/2);
 	}
-	
+
 	for(int z = 0; z < N; z++)
 	{
 		float temp[3] = {xtal_1->Xcord[z] ,
 						 xtal_1->Ycord[z] ,
 						 xtal_1->Zcord[z] };
 		vector3_mat3b3_multiply(rotation_matrix, temp, temp);
-		
+
 		vector3_mat3b3_multiply(random_rotation_about_axis, temp, temp);
 		//vector3_add(temp,com,temp);
 		//convert to frac
@@ -642,7 +737,7 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 
 
 
-	
+
 	apply_all_lg_symmetry_ops(xtal,
 				  mol,
 				  mol_Xfrac,
@@ -650,17 +745,17 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 				  mol_Zfrac,
 				  N,
 				  hall_number);
-	
+
 	//bring_molecules_to_origin(xtal);
 
 
 
-	
+
 	int result = check_overlap_xtal_cartesian(xtal,
 						  overlap_list,
 						  len_overlap_list,
 						  N);
-		
+
 	if (result)
 	{
 		int Z_gen = xtal->Z;
@@ -682,7 +777,7 @@ int lg_align_using_std_orientations(crystal* xtal_1,
 	success:
 		free_xtal(xtal);
 		return 1;
-	
+
 }
 
 
