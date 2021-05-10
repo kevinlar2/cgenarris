@@ -38,8 +38,24 @@ void cxtal_init(cocrystal *cxtal, int *stoic, int *n_atoms_in_mol, int n_mol_typ
     cxtal->n_mols = n_mol_asym * Z;
     cxtal->spg = 0;
     cxtal->Zp = 0;
-}
 
+    // Get molecule index
+    int at = 0;
+    int mol_id = 0;
+    for(int z = 0; z < Z; z++)
+    {
+        for(int m = 0; m < n_mol_types; m++)
+        {
+            for(int st = 0; st < cxtal->stoic[m]; st++)
+            {
+                cxtal->mol_types[mol_id] = m;
+                cxtal->mol_index[mol_id] = at;
+                at += n_atoms_in_mol[m];
+                mol_id++;
+            }
+        }
+    }
+}
 
 void cxtal_allocate(cocrystal *cxtal, int total_atoms)
 {
@@ -55,6 +71,16 @@ void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
     printf("#Number of molecules = %d\n", cxtal->n_mols);
     printf("#Number of molecule types = %d\n", cxtal->n_mol_types);
     printf("#Z = %d\n", cxtal->Z);
+
+    // Print mol index
+    printf("#mol_index = ");
+    for(int i = 0; i < cxtal->n_mols; i++)
+        printf("%d ", cxtal->mol_index[i]);
+    printf("\n#mol_types = ");
+    for(int i = 0; i < cxtal->n_mols; i++)
+        printf("%d ", cxtal->mol_types[i]);
+    printf("\n");
+
     for(int ltt = 0; ltt < 3; ltt++)
     {
         fprintf(out,"lattice_vector %12f %12f %12f \n",
@@ -76,4 +102,9 @@ void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
                     cxtal->atoms[2*at + 1]);
 
     }
+}
+
+void cxtal_bring_molecules_first_cell(cocrystal *cxtal)
+{
+
 }

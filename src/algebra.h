@@ -33,8 +33,9 @@ float cart_dist(float p1[3], float p2[3]);
 void array_shuffler_1(float *a, int len );
 void array_shuffler_2(float a[][3], int len );
 void generate_random_rotation_matrix( float rotation_matrix[3][3] );
+void generate_random_translation_vector(float trans[3]);
 int are_equal_floats(float a, float b, float ftol);
-
+void vector3_frac(float a[3]);
 
 void copy_intmat3b3bN_intmat3b3(int b[][3][3], int a[3][3], int index);//added here
 void copy_intmat3b3_constintmat3b3bN(int a[3][3], int const b[][3][3], int index);//added here
