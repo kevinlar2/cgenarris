@@ -49,7 +49,7 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
     cxtal->atoms = (char *)  malloc(total_atoms * sizeof(char) * 2);
 }
 
-void cxtal_print(cocrystal *cxtal, FILE* out)
+void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
 {
     printf("#Number of atoms = %d\n", cxtal->n_atoms);
     printf("#Number of molecules = %d\n", cxtal->n_mols);
@@ -63,10 +63,17 @@ void cxtal_print(cocrystal *cxtal, FILE* out)
                 cxtal->lattice_vectors[ltt][2]);
     }
 
+
     for(int at = 0; at < cxtal->n_atoms; at++)
     {
-        fprintf(out, "atom %12f %12f %12f  %c%c \n", cxtal->Xcord[at],
-                cxtal->Ycord[at],  cxtal->Zcord[at], cxtal->atoms[2*at],
-                cxtal->atoms[2*at + 1]);
+        if(!fractional)
+            fprintf(out, "atom %12f %12f %12f  %c%c \n", cxtal->Xcord[at],
+                    cxtal->Ycord[at],  cxtal->Zcord[at], cxtal->atoms[2*at],
+                    cxtal->atoms[2*at + 1]);
+        else
+            fprintf(out, "atom_frac %12f %12f %12f  %c%c \n", cxtal->Xcord[at],
+                    cxtal->Ycord[at],  cxtal->Zcord[at], cxtal->atoms[2*at],
+                    cxtal->atoms[2*at + 1]);
+
     }
 }
