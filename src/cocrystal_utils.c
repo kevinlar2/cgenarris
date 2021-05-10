@@ -35,6 +35,7 @@ void cxtal_init(cocrystal *cxtal, int *stoic, int *n_atoms_in_mol, int n_mol_typ
     memcpy(cxtal->n_atoms_in_mol, n_atoms_in_mol, tbytes);
     cxtal->n_mol_types = n_mol_types;
     cxtal->n_atoms = n_atoms;
+    cxtal->n_mols = n_mol_asym * Z;
     cxtal->spg = 0;
     cxtal->Zp = 0;
 }
@@ -50,6 +51,10 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
 
 void cxtal_print(cocrystal *cxtal, FILE* out)
 {
+    printf("#Number of atoms = %d\n", cxtal->n_atoms);
+    printf("#Number of molecules = %d\n", cxtal->n_mols);
+    printf("#Number of molecule types = %d\n", cxtal->n_mol_types);
+    printf("#Z = %d\n", cxtal->Z);
     for(int ltt = 0; ltt < 3; ltt++)
     {
         fprintf(out,"lattice_vector %12f %12f %12f \n",
@@ -61,7 +66,7 @@ void cxtal_print(cocrystal *cxtal, FILE* out)
     for(int at = 0; at < cxtal->n_atoms; at++)
     {
         fprintf(out, "atom %12f %12f %12f  %c%c \n", cxtal->Xcord[at],
-                cxtal->Ycord[at],  cxtal->Zcord[at],  cxtal->atoms[2*at],
+                cxtal->Ycord[at],  cxtal->Zcord[at], cxtal->atoms[2*at],
                 cxtal->atoms[2*at + 1]);
     }
 }
