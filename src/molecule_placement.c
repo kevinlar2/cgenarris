@@ -28,13 +28,13 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
 {
     float random_rot[3][3];
     float random_trans[3];
-    float frac[cxtal->n_atoms][3];
+    int asym_atoms = cxtal->n_atoms/ set.Z;
+    float frac[asym_atoms][3];
     float inv_lat_vec[3][3];
     inverse_mat3b3(inv_lat_vec, cxtal->lattice_vectors);
     mat3b3_transpose(inv_lat_vec, inv_lat_vec);
 
     // Get fractional coordinates for asym unit
-    int asym_atoms = cxtal->n_atoms/ set.Z;
     int at = 0; // atom index over asym unit
     for(int m = 0; m < cxtal->n_mol_types; m++)
     {
@@ -52,9 +52,7 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
                 vector3_mat3b3_multiply(inv_lat_vec, atom, atom);
                 vector3_add(atom, random_trans, atom);
 
-                cxtal->Xcord[at] = atom[0];
-                cxtal->Ycord[at] = atom[1];
-                cxtal->Zcord[at] = atom[2];
+                memcpy(frac[at], atom, 3*sizeof(float));
                 cxtal->atoms[2*at] = mol[m].atoms[2*mat];
                 cxtal->atoms[2*at + 1] = mol[m].atoms[2*mat + 1];
                 at++;
@@ -62,16 +60,18 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
         }
     }
 
-    cxtal_apply_symmetry_ops(cxtal);
-    cxtal_print(cxtal, stdout);
+    cxtal_print(cxtal, stdout, 1);
+    cxtal_apply_symmetry_ops(cxtal, frac);
+    cxtal_print(cxtal, stdout, 0);
+
     exit(0);
 }
 
 /*
 Apply symmetry operation to generate the full crystal.
-The fractional coordinates of the asym unit is present within cxtal.
+The fractional coordinates of the asym unit is frac.
 */
-void cxtal_apply_symmetry_ops(cocrystal *cxtal)
+void cxtal_apply_symmetry_ops(cocrystal *cxtal, float (*frac)[3])
 {
     //get symmetry operations from spglib database
     double translations[192][3];
@@ -83,18 +83,16 @@ void cxtal_apply_symmetry_ops(cocrystal *cxtal)
     float lat_vec_trans[3][3];
     mat3b3_transpose(lat_vec_trans, cxtal->lattice_vectors);
 
-
+    int at = 0;
     for(int op = 0; op < num_of_operations; op++)
     {
         float *trans = translations[op];
-        int **rot = rotations[op];
+        int (*rot)[3] = rotations[op];
 
-        for(int at = 0; at < cxtal->n_atoms; at++)
+        for(int asym = 0; asym < n_atoms_asym; asym++)
         {
-            int asym_id = at%n_atoms_asym;
-            float atom[3] = {cxtal->Xcord[asym_id],
-                             cxtal->Ycord[asym_id],
-                             cxtal->Zcord[asym_id]};
+            float atom[3];
+            memcpy(atom, frac[asym], 3*sizeof(float));
             vector3_intmat3b3_multiply(rot, atom, atom);
             vector3_add(trans, atom, atom);
             // Convert to cartesian
@@ -103,8 +101,9 @@ void cxtal_apply_symmetry_ops(cocrystal *cxtal)
             cxtal->Xcord[at] = atom[0];
             cxtal->Ycord[at] = atom[1];
             cxtal->Zcord[at] = atom[2];
-            cxtal->atoms[2*at] = cxtal->atoms[2*asym_id];
-            cxtal->atoms[2*at + 1] = cxtal->atoms[2*asym_id + 1];
+            cxtal->atoms[2*at] = cxtal->atoms[2*asym];
+            cxtal->atoms[2*at + 1] = cxtal->atoms[2*asym + 1];
+            at++;
         }
     }
 
