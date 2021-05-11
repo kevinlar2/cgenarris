@@ -267,7 +267,6 @@ void read_geometry(molecule* mol, char* filename)
         else
             continue;
     }
-    fclose(fileptr);
 
     //printf("Total number of atoms in molecule = %d\n", atom_count);
     int N = atom_count;
@@ -277,8 +276,7 @@ void read_geometry(molecule* mol, char* filename)
     (*mol).Y = (float *)malloc(N*sizeof(float));
     (*mol).Z = (float *)malloc(N*sizeof(float));
 
-    //creates a file pointer and opens geometry.in
-    fileptr = fopen("geometry.in","r");
+    fseek(fileptr, 0, SEEK_SET);
     while ((read = getline(&line, &len, fileptr)) != -1)
     {
         //printf("%s", line);
