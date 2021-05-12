@@ -11,7 +11,7 @@
 #include "lattice_generator_layer.h"
 #include "algebra.h"
 #include "crystal_utils.h"
-#include "cocrystal.h"
+#include "cocrystal_utils.h"
 #include "molecule_utils.h"
 #include "molecule_placement.h"
 #include "spglib.h"
@@ -24,8 +24,9 @@ int generate_cocrystal(cocrystal *cxtal, Settings set, molecule *mol, float *vol
 {
     generate_lattice(cxtal->lattice_vectors, cxtal->spg,
                      set.norm_dev, set.angle_std, *volume);
-
-    return cxtal_place_molecules(cxtal, set, mol);
+    int result = cxtal_place_molecules(cxtal, set, mol);
+    cxtal_bring_molecules_first_cell(cxtal);
+    return result;
 }
 
 
