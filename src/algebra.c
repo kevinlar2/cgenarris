@@ -495,17 +495,17 @@ int are_equal_floats(float a, float b, float ftol)
 /*
 Get fractional part of the vector.
 */
-void vector3_frac(float a[3])
+void vector3_int(float a[3])
 {
     int b[3];
     for(int i = 0; i < 3; i++)
     {
-        b[i] = a[i] - (int)a[i];
+        b[i] = (int)a[i];
 
-        if(b[i] < 0)
+        if(a[i] < 0)
             b[i] -= 1;
 
-        a[i] -= b[i];
+        a[i] = b[i];
     }
 }
 
