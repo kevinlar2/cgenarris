@@ -7,6 +7,7 @@ typedef struct
     float *Xcord;                  // Size n_atoms
     float *Ycord;                  // Size n_atoms
     float *Zcord;                  // Size n_atoms
+    float (*com)[3];               // Size n_mols
     char  *atoms;                  // Size 2 x n_atoms
     int   *mol_index;              // Size n_mols
     int   *mol_types;              // Size n_mols
