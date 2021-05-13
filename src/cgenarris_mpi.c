@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 
-    if (crystal_generation)     // for molecular crystal
+    if (crystal_generation == 1)     // for molecular crystal
 	{
 	    mpi_generate_cocrystals_with_vdw_matrix(
 		vdw_cutoff_matrix,

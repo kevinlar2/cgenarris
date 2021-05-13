@@ -55,6 +55,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int n_mol_types,
     MPI_Comm world_comm)
 {
+
     TOL = tol1;
     float sr = -1;
 
@@ -97,13 +98,11 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int spg_index = 0;  //space group to be generated
     int verdict = 0;
     long attempt = 0;
-    COMPATIBLE_SPG compatible_spg[230]; //storing information for compatible space groups
-    int num_compatible_spg = 0;
     int spg;
     float volume;
-    int n_atoms;  // Max number of atoms in a crystal
-    cocrystal *cxtal = (cocrystal*)malloc(sizeof(cocrystal));     //dummy cocrystal
-    molecule *mol = (molecule*)malloc(n_mol_types*sizeof(molecule));//store molecules
+
+    cocrystal *cxtal = malloc(sizeof(cocrystal));     //dummy cocrystal
+    molecule *mol = malloc(n_mol_types*sizeof(molecule));//store molecules
 
     //file to output geometries
     FILE *out_file = open_output_file(my_rank);
@@ -121,6 +120,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     if(my_rank == 0)
         print_input_geometries(mol, n_mol_types);
     MPI_Barrier(world_comm);
+
 
     // Initialzations
     int n_atoms_in_mol[n_mol_types];
@@ -192,13 +192,16 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         else if(stop_flag == ENOUGH_STOP)
         {
             if(my_rank == 0)
-                printf("Completed structure generation next\n");
+                printf("Completed structure generation.\n");
         }
 
         end_spg_loop:
-            if(my_rank == 0)
-                printf("Moving to next spacegroup\n");
-            struct_counter = 0;
+        if(my_rank == 0)
+        {
+            printf("Generated %d structures in spg %d\n", struct_counter, spg);
+            printf("Moving to next spacegroup\n");
+        }
+        struct_counter = 0;
 
     }// spg generation loop
 

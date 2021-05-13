@@ -16,14 +16,6 @@
 extern unsigned int *seed2;
 
 
-void generate_random_translation_vector(float trans[3])
-{
-    trans[0] = uniform_dist_01();
-    trans[1] = uniform_dist_01();
-    trans[2] = uniform_dist_01();
-}
-
-
 int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
 {
     float random_rot[3][3];
@@ -35,7 +27,7 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
     mat3b3_transpose(inv_lat_vec, inv_lat_vec);
 
     // Get fractional coordinates for asym unit
-    int at = 0; // atom index over asym unit
+    int at = 0;
     for(int m = 0; m < cxtal->n_mol_types; m++)
     {
         for(int st = 0; st < cxtal->stoic[m]; st++)
@@ -60,11 +52,7 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
         }
     }
 
-    cxtal_print(cxtal, stdout, 1);
     cxtal_apply_symmetry_ops(cxtal, frac);
-    cxtal_print(cxtal, stdout, 0);
-
-    exit(0);
 }
 
 /*

@@ -123,9 +123,9 @@ int try_crystal_generation(cocrystal *cxtal,
         }
 
         // Structure check
-        int verdict = cxtal_check_structure(cxtal, set.vdw_matrix);
-        if(verdict)
-            break;
+        // int verdict = cxtal_check_structure(cxtal, set.vdw_matrix);
+        //if(verdict)
+        //    break;
     }
 
 }
