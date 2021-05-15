@@ -1,7 +1,10 @@
 #ifndef _CHECK_STRUCTURE_H
 #define _CHECK_STRUCTURE_H
 
-typedef struct 
+#include "molecule.h"
+#include "crystal.h"
+
+typedef struct
 {
 	float (*L)[3];
 	float *com1;
@@ -26,13 +29,13 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 //void vector_cpy(float A[], float B[][3], int index);
 float pdist(float T[3][3],
 			float T_inv[3][3],
-			float x1, 
+			float x1,
 			float x2,
 			float x3,
 			float y1,
 			float y2,
 			float y3  );
-			
+
 int structure_checker(crystal *xtal,
 	float *vdw_cutoff,
 	int total_atoms,
@@ -46,7 +49,7 @@ void find_mol_com(float *X, float *Y, float *Z, int len, float com[3]);
 
 float pdist_appx(float T[3][3],
 			float T_inv[3][3],
-			float x1, 
+			float x1,
 			float x2,
 			float x3,
 			float y1,
