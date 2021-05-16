@@ -1,6 +1,8 @@
 #ifndef _PYGENARRIS_MPI_UTILS_H_
 #define _PYGENARRIS_MPI_UTILS_H_
 
+#include "mpi.h"
+
 #include "input_settings.h"
 #include "cocrystal.h"
 #include "molecule.h"
@@ -19,6 +21,11 @@ int try_crystal_generation(cocrystal *cxtal,
                            float *volume,
                            long attempts,
                            long batch_size);
+
+int write_structures(cocrystal *cxtal, int *found_poll,
+                     int *struct_count, int max_structs,
+                     FILE *out_file, int total_ranks,
+                     MPI_Comm world_comm);
 
 
 #endif //  pygenarris_mpi_utils.h

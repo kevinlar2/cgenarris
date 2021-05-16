@@ -145,6 +145,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         time_t start_time = time(NULL);
         int spg_num_structures = find_num_structure_for_spg(num_structures,\
             spg_dist_type, spg, Z);  // Number of structures for spg
+
+        printf("Num structures per spg = %d\n", spg_num_structures);
         //print_start_spg(spg, spg_num_structures);
         if(!spg_num_structures)
             goto end_spg_loop;
@@ -152,18 +154,22 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         // Loop over attempts
         // Each rank performs `BATCH_SIZE` attempts before talking to master rank
         attempt = 0;
-        for(; attempt < max_attempts/total_ranks; attempt += BATCH_SIZE )
+        double max_attempt_per_rank = max_attempts/total_ranks;
+        for(; attempt < max_attempt_per_rank; attempt += BATCH_SIZE )
         {
             int found_poll[total_ranks];
+            printf("Start\n");
             int result = try_crystal_generation(cxtal, set,
-                                mol, &volume, attempt, BATCH_SIZE);
+                                                mol, &volume, attempt, BATCH_SIZE);
 
             // Poll to see which ranks succeded
             MPI_Gather(&result, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, world_comm);
 
             // Write structures send by slave ranks to output file
             if(my_rank == 0)
-                write_structures(cxtal, found_poll, &struct_counter);
+                write_structures(cxtal, found_poll, &struct_counter,
+                                 spg_num_structures, out_file, total_ranks,
+                                 world_comm);
             // Sends structures to master
             else
                 send_structures(cxtal);
