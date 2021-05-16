@@ -141,7 +141,6 @@ int structure_checker(crystal *xtal,
                                   Y + mol_id[i],
                                   Z + mol_id[i],
                                   num_atoms_in_molecule[i]);
-        //printf("molLen = %f\n", mol_len[i]);
     }
 
     // find com
@@ -312,7 +311,6 @@ static int check_pairwise_if_mol_close( float *vdw_matrix,
 
     float p[3] = {com1[0] - com2[0], com1[1] - com2[1], com1[2] - com2[2]} ;
     int zmax = maxof( fabs(p[2] + max_dist), fabs(p[2] - max_dist) )/ fabs(L[2][2]) + 3;
-    //printf("zmax = %d\n", zmax );
 
     for(int k = zseq_generator(1); k < zmax; k = zseq_generator(0))
     {

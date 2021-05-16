@@ -53,6 +53,7 @@ int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol)
     }
 
     cxtal_apply_symmetry_ops(cxtal, frac);
+    return 1;
 }
 
 /*
