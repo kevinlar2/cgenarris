@@ -7,6 +7,11 @@
 #include "cocrystal.h"
 #include "molecule.h"
 
+#define NO_STOP        0
+#define ENOUGH_STOP    1
+#define ATTEMPTS_STOP  2
+
+
 void print_time(void);
 FILE* open_output_file(int my_rank);
 void init_random_seed(unsigned int *seed, unsigned int *seed2,
@@ -26,6 +31,11 @@ int write_structures(cocrystal *cxtal, int *found_poll,
                      int *struct_count, int max_structs,
                      FILE *out_file, int total_ranks,
                      MPI_Comm world_comm);
+void send_structures(cocrystal *cxtal, int verdict, MPI_Comm world_comm);
+
+int cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal);
+int cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to);
+
 
 
 #endif //  pygenarris_mpi_utils.h
