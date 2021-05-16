@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "algebra.h"
 #include "cocrystal_utils.h"
 #include "check_structure.h"
 
@@ -149,9 +150,9 @@ void cxtal_bring_molecules_first_cell(cocrystal *cxtal)
         // Compute COM shift - integer part of com in fractional cords
         float com_frac[3];
         memcpy(com_frac, cxtal->com[mol], 3*sizeof(float));
-        vector3_mat3b3_multiply(inv_lat_vec, com_frac);
+        vector3_mat3b3_multiply(inv_lat_vec, com_frac, com_frac);
         vector3_int(com_frac);
-        vector3_mat3b3_multiply(trans_lat_vec, com_frac);
+        vector3_mat3b3_multiply(trans_lat_vec, com_frac, com_frac);
 
         int n_atom_mol = cxtal->n_atoms_in_mol[cxtal->mol_types[mol]];
         int start_id = cxtal->mol_index[mol];
