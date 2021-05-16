@@ -25,9 +25,7 @@
 #define MAX_ANGLE 150 * PI/180
 #define MIN_ANGLE 30 * PI/180
 
-#define NO_STOP        0
-#define ENOUGH_STOP    1
-#define ATTEMPTS_STOP  2
+
 
 unsigned int *seed;
 unsigned int *seed2;
@@ -154,11 +152,11 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         // Loop over attempts
         // Each rank performs `BATCH_SIZE` attempts before talking to master rank
         attempt = 0;
-        double max_attempt_per_rank = max_attempts/total_ranks;
-        for(; attempt < max_attempt_per_rank; attempt += BATCH_SIZE )
+        long max_attempt_per_rank = max_attempts/total_ranks;
+        for(; 1; attempt += BATCH_SIZE)
         {
             int found_poll[total_ranks];
-            printf("Start\n");
+
             int result = try_crystal_generation(cxtal, set,
                                                 mol, &volume, attempt, BATCH_SIZE);
 
@@ -175,7 +173,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
                 send_structures(cxtal);
 
             // Time to stop? -  enough structures or ran out of attempts
-            stop_flag = check_stop_condition();
+            stop_flag = check_stop_condition(struct_counter, spg_num_structures,
+                                             attempt, max_attempt_per_rank);
             MPI_Bcast(&stop_flag, 1, MPI_INT, 0, world_comm);
             if(stop_flag)
                 break;

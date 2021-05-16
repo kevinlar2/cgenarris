@@ -137,9 +137,19 @@ Checks if structure generation can be stopped.
 Check if enough structures were generated. OR
 ran out of attempts
 */
-int check_stop_condition()
+int check_stop_condition(int struct_counter, int max_struct,
+                         long attempt, long max_attempt)
 {
-    return 1;
+    if(struct_counter > max_struct)
+        return ENOUGH_STOP;
+
+    if(attempt > max_attempt)
+    {
+        printf("attempts = %ld\n", max_attempt );
+        return ATTEMPTS_STOP;
+    }
+
+    return NO_STOP;
 }
 
 
