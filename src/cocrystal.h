@@ -22,5 +22,4 @@ typedef struct
     int   Zp;
 }cocrystal;
 
-
 #endif  // Cocrystal.h

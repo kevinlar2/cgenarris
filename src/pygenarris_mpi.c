@@ -170,7 +170,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
                                  world_comm);
             // Sends structures to master
             else
-                send_structures(cxtal);
+                send_structures(cxtal, result, world_comm);
 
             // Time to stop? -  enough structures or ran out of attempts
             stop_flag = check_stop_condition(struct_counter, spg_num_structures,
