@@ -10,11 +10,13 @@ set(SOURCES
 src/algebra.c
 src/check_structure.c
 src/combinatorics.c
+src/cocrystal_utils.c
 src/crystal_utils.c
 src/lattice_generator.c
 src/molecule_placement.c
 src/molecule_utils.c
 src/pygenarris_mpi.c
+src/pygenarris_mpi_utils.c
 src/randomgen.c
 src/read_input.c
 src/spg_generation.c
