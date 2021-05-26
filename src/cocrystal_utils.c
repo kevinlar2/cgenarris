@@ -75,10 +75,15 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
 
 void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
 {
+    static int struct_num = 1;
+    fprintf(out, "#Structure Number = %d\n", struct_num);
+    struct_num++;
+
     fprintf(out, "#Number of atoms = %d\n", cxtal->n_atoms);
     fprintf(out, "#Number of molecules = %d\n", cxtal->n_mols);
     fprintf(out, "#Number of molecule types = %d\n", cxtal->n_mol_types);
     fprintf(out, "#Z = %d\n", cxtal->Z);
+    fprintf(out, "#attempted_spacegroup = %d\n", cxtal->spg);
 
     // Print mol index
     fprintf(out, "#mol_index = ");
@@ -181,4 +186,11 @@ int cxtal_check_structure(cocrystal *cxtal, Settings *set)
     return structure_checker(&xtal, set->vdw_matrix,
         cxtal->n_atoms, cxtal->mol_index, cxtal->n_mols);
 
+}
+
+float cxtal_get_cell_volume(cocrystal *cxtal)
+{
+    return cxtal->lattice_vectors[0][0]*
+           cxtal->lattice_vectors[1][1]*
+           cxtal->lattice_vectors[2][2];
 }
