@@ -87,7 +87,11 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     MPI_Comm_rank(world_comm, &my_rank);
 
     if(my_rank ==0)
+    {
         print_input_settings(set);
+        printf("Generation type :cocrystal\n");
+    }
+
 
     //variable declarations
     int stop_flag = 0;  // to stop threads if limit is reached
@@ -98,6 +102,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     long attempt = 0;
     int spg;
     float volume;
+    int found_poll[total_ranks];
 
     cocrystal *cxtal = malloc(sizeof(cocrystal));     //dummy cocrystal
     molecule *mol = malloc(n_mol_types*sizeof(molecule));//store molecules
@@ -138,13 +143,15 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         MPI_Barrier(world_comm);
 
         // Get ready for generation
-        spg = allowed_spg[spg_index];
+        //spg = allowed_spg[spg_index];
+        spg = 7;
         cxtal->spg = spg;
         time_t start_time = time(NULL);
         int spg_num_structures = find_num_structure_for_spg(num_structures,\
             spg_dist_type, spg, Z);  // Number of structures for spg
 
-        printf("Num structures per spg = %d\n", spg_num_structures);
+        if(my_rank == 0)
+            printf("Num structures per spg = %d\n", spg_num_structures);
         //print_start_spg(spg, spg_num_structures);
         if(!spg_num_structures)
             goto end_spg_loop;
@@ -155,13 +162,12 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         long max_attempt_per_rank = max_attempts/total_ranks;
         for(; 1; attempt += BATCH_SIZE)
         {
-            int found_poll[total_ranks];
 
             int result = try_crystal_generation(cxtal, set,
                                                 mol, &volume, attempt, BATCH_SIZE);
 
             // Poll to see which ranks succeded
-            MPI_Gather(&result, 1, MPI_INT, &found_poll, 1, MPI_INT, 0, world_comm);
+            MPI_Gather(&result, 1, MPI_INT, found_poll, 1, MPI_INT, 0, world_comm);
 
             // Write structures send by slave ranks to output file
             if(my_rank == 0)
@@ -175,6 +181,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
             // Time to stop? -  enough structures or ran out of attempts
             stop_flag = check_stop_condition(struct_counter, spg_num_structures,
                                              attempt, max_attempt_per_rank);
+            //printf("stop = %d\n", stop_flag);
             MPI_Bcast(&stop_flag, 1, MPI_INT, 0, world_comm);
             if(stop_flag)
                 break;
@@ -207,6 +214,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
             printf("Moving to next spacegroup\n");
         }
         struct_counter = 0;
+        break;
 
     }// spg generation loop
 

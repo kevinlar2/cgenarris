@@ -106,6 +106,7 @@ int try_crystal_generation(cocrystal *cxtal,
                            long batch_size)
 {
     // Loop over the batch. bat = batch attempt
+    //printf("starting batch %d\n", attempts);
     for(long bat = 0; bat < batch_size; bat++)
     {
 
@@ -117,6 +118,7 @@ int try_crystal_generation(cocrystal *cxtal,
         if( (attempts + bat) % set.vol_attempts == 0)
         {
             *volume = draw_volume(set.vol_mean, set.vol_std);
+            //printf("draing new vol - total attempts = %ld\n", attempts+bat);
             fflush(stdout);
         }
 
@@ -128,7 +130,8 @@ int try_crystal_generation(cocrystal *cxtal,
             return 1;
         }
     }
-
+    //printf("Completed try_crystal_generation\n");
+    fflush(stdout);
     return 0;
 }
 
@@ -257,5 +260,5 @@ int cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to)
     MPI_Send(cxtal->wyckoff_position, M2, MPI_INT, to, 16, comm);
     MPI_Send(cxtal->stoic, M2, MPI_INT, to, 17, comm);
 
-    cxtal_print(cxtal,stdout, 0);
+    //cxtal_print(cxtal,stdout, 0);
 }

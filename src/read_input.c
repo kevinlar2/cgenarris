@@ -11,7 +11,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* volume_mean,float* volume_std,
                  float *sr,long *max_attempts, char *spg_dist_type,
                  int *vol_attempts,int *random_seed,
-                 int *crystal_generation,
+                 char *generation_type,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
@@ -45,7 +45,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
     lattice_vector_2d[1][0] = 0;
     lattice_vector_2d[1][2] = 0;
     lattice_vector_2d[1][3] = 0;
-    *crystal_generation = 1;
+    strcpy(generation_type, "crystal");
     *mol_types = 0;
 
 	//read from control
@@ -89,10 +89,11 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             continue;
 		}
 
-        if (strcmp(sub_line,"crystal_generation")==0)
+        if (strcmp(sub_line,"generation_type") == 0)
 		{
 		    sub_line = strtok(NULL," ");
-	            *crystal_generation = atof(sub_line);
+	        strcpy(generation_type, sub_line);
+            generation_type[strcspn(generation_type, "\n")] = 0;
 		    continue;
 		}
 
@@ -224,13 +225,6 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 
    	}
 
-	/*
-    *num_structures = 1;
-    *volume_mean = 1200;
-    *volume_std  = 100;
-	*Z = 6;
-	*sr = 0.75;
-	*/
 	fclose(fileptr);
     *Zp_max = 192;
 }

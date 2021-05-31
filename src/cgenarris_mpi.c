@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <stddef.h>
@@ -42,12 +43,11 @@ int main(int argc, char **argv)
     //variable declarartion
     molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
     //////added here
-    int crystal_generation; //indicate whether its molecular crystal generation or layer generation
+    char generation_type[25]; //indicate whether its molecular crystal generation or layer generation
     float interface_area_mean; //for layer
     float interface_area_std; //for layer
     int volume_multiplier; // for layer
     float  lattice_vector_2d[2][3]; //for layer
-    ///// done/////
     float volume_std;	//standard dev for volumes
     float volume_mean;	//mean volume
     float sr;			//specific radius proportion for structure checks
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
                  spg_dist_type,
                  &vol_attempt,
                  &random_seed,
-        		 &crystal_generation,
+        		 generation_type,
         		 &interface_area_mean,
         		 &interface_area_std,
         		 &volume_multiplier,
@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 
     create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 
-    if (crystal_generation == 1)     // for molecular crystal
+
+    if (!strcmp(generation_type, "cocrystal"))     // for molecular crystal
 	{
 	    mpi_generate_cocrystals_with_vdw_matrix(
 		vdw_cutoff_matrix,
@@ -116,7 +117,7 @@ int main(int argc, char **argv)
 		world_comm);
 	}
 
-    else if(crystal_generation == 2)
+    else if(!strcmp(generation_type, "crystal"))
     {
         mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
         vdw_cutoff_matrix,
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
 
     }
 
-	else			// for layer generation
+	else if(!strcmp(generation_type, "layer"))			// for layer generation
 	{
 	    mpi_generate_layer_with_vdw_cutoff_matrix(
 		vdw_cutoff_matrix,
@@ -159,6 +160,11 @@ int main(int argc, char **argv)
 		world_comm);
 
 	}
+
+    else
+    {
+        printf("***ERROR: generation type unsupported : %s\n", generation_type);
+    }
 
     MPI_Finalize();
     return 0;
