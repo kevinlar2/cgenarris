@@ -9,5 +9,7 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms);
 void cxtal_print(cocrystal *cxtal, FILE* out, int fractional);
 int cxtal_check_structure(cocrystal *cxtal, Settings *set);
 float cxtal_get_cell_volume(cocrystal *cxtal);
+int cxtal_check_structure(cocrystal *cxtal, Settings *set);
+void cxtal_bring_molecules_first_cell(cocrystal *cxtal);
 
 #endif

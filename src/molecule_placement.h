@@ -6,6 +6,7 @@
 #include "input_settings.h"
 
 int cxtal_place_molecules(cocrystal *cxtal, Settings set, molecule *mol);
+void cxtal_apply_symmetry_ops(cocrystal *cxtal, float (*frac)[3]);
 
 void apply_all_symmetry_ops(crystal *xtal,
                             molecule *mol,

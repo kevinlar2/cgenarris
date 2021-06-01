@@ -97,8 +97,6 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int stop_flag = 0;  // to stop threads if limit is reached
     int success_flag = 0;  // Check if any rank generated successfully
     int struct_counter = 0;    //counts number of structures
-    int spg_index = 0;  //space group to be generated
-    int verdict = 0;
     long attempt = 0;
     int spg;
     float volume;
@@ -302,7 +300,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
     //float volume_std; //standard dev for volumes
     //float volume_mean;    //mean volume
-    float sr = -1;          //specific radius proportion for structure checks
+    //float sr = -1;          //specific radius proportion for structure checks
                         //see paper for definition
     //float Zp_max;     //Z'' . not implemented
     float volume;       //random volume used of generation
@@ -628,8 +626,8 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	long max_attempts,
 	char *spg_dist_type,
 	float lattice_vector_2d_from_geo[2][3],
-        int vol_attempt,
-        int random_seed,
+    int vol_attempt,
+    int random_seed,
 	MPI_Comm world_comm)
 {
 	float Zp_max=1;

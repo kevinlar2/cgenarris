@@ -75,7 +75,7 @@ void cxtal_apply_symmetry_ops(cocrystal *cxtal, float (*frac)[3])
     int at = 0;
     for(int op = 0; op < num_of_operations; op++)
     {
-        float *trans = translations[op];
+        float *trans = (float *)translations[op];
         int (*rot)[3] = rotations[op];
 
         for(int asym = 0; asym < n_atoms_asym; asym++)

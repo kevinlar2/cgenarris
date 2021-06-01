@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "cocrystal_utils.h"
 #include "molecule_utils.h"
 #include "pygenarris_mpi_utils.h"
 #include "randomgen.h"
+#include "spg_generation.h"
 
 void print_time(void)
 {
@@ -169,7 +171,7 @@ void send_structures(cocrystal *cxtal, int verdict, MPI_Comm comm)
 /*
 Master rank write to output file
 */
-int write_structures(cocrystal *cxtal, int *found_poll, int *struct_count,
+void write_structures(cocrystal *cxtal, int *found_poll, int *struct_count,
                      int max_structs, FILE *out_file, int total_ranks,
                      MPI_Comm comm)
 {
@@ -207,7 +209,7 @@ void print_exit()
 }
 
 
-int cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal)
+void cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal)
 {
     MPI_Status status;
 
@@ -235,7 +237,7 @@ int cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal)
 }
 
 
-int cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to)
+void cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to)
 {
 
     MPI_Send(&(cxtal->n_atoms), 1, MPI_INT, to, 1, comm);

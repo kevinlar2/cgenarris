@@ -26,16 +26,18 @@ int try_crystal_generation(cocrystal *cxtal,
                            float *volume,
                            long attempts,
                            long batch_size);
+int check_stop_condition(int struct_counter, int max_struct,
+                         long attempt, long max_attempt);
 
-int write_structures(cocrystal *cxtal, int *found_poll,
+void write_structures(cocrystal *cxtal, int *found_poll,
                      int *struct_count, int max_structs,
                      FILE *out_file, int total_ranks,
                      MPI_Comm world_comm);
 void send_structures(cocrystal *cxtal, int verdict, MPI_Comm world_comm);
 
-int cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal);
-int cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to);
-
+void cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal);
+void cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to);
+void print_exit();
 
 
 #endif //  pygenarris_mpi_utils.h
