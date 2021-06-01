@@ -143,8 +143,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         MPI_Barrier(world_comm);
 
         // Get ready for generation
-        //spg = allowed_spg[spg_index];
-        spg = 7;
+        spg = allowed_spg[spg_index];
+        //spg = 7;
         cxtal->spg = spg;
         time_t start_time = time(NULL);
         int spg_num_structures = find_num_structure_for_spg(num_structures,\
@@ -214,7 +214,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
             printf("Moving to next spacegroup\n");
         }
         struct_counter = 0;
-        break;
+        //break;
 
     }// spg generation loop
 
