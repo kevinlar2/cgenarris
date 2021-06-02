@@ -76,7 +76,9 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
 void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
 {
     static int struct_num = 1;
-    fprintf(out, "#Structure Number = %d\n", struct_num);
+
+    fprintf(out, "####### BEGIN STRUCTURE #######\n");
+    fprintf(out, "#structure _umber = %d\n", struct_num);
     struct_num++;
 
     fprintf(out, "#Number of atoms = %d\n", cxtal->n_atoms);
@@ -114,6 +116,9 @@ void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
                     cxtal->atoms[2*at + 1]);
 
     }
+
+    fprintf(out, "#######  END  STRUCTURE #######\n\n");
+    fflush(out);
 }
 
 
