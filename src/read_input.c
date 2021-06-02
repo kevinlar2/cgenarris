@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 
 float TOL;
@@ -310,7 +311,10 @@ void read_molecules(molecule *mol, int mol_types)
         char filename[25];
 
         if(i == 0)
-            sprintf(filename, "geometry.in");
+            if(access("geometry.in", F_OK) == 0)
+                sprintf(filename, "geometry.in");
+            else
+                sprintf(filename, "geometry_0.in");
         else
             sprintf(filename, "geometry_%d.in", i);
 
