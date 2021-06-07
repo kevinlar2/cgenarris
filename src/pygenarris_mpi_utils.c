@@ -128,7 +128,7 @@ int try_crystal_generation(cocrystal *cxtal,
         int verdict = cxtal_check_structure(cxtal, &set);
         if(verdict)
         {
-            printf("structure check passed\n");
+	  //printf("structure check passed\n");
             return 1;
         }
     }
@@ -149,9 +149,9 @@ int check_stop_condition(int struct_counter, int max_struct,
     if(struct_counter >= max_struct)
         return ENOUGH_STOP;
 
-    if(attempt > max_attempt)
+    if(attempt >= max_attempt)
     {
-        printf("attempts = %ld\n", max_attempt );
+        printf("attempts = %ld, max_attempts = %ld\n", attempt, max_attempt);
         return ATTEMPTS_STOP;
     }
 

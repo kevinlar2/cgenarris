@@ -118,7 +118,6 @@ void print_layer2file(crystal* xtal, FILE* out_file)
 		lattice_vec_b[i] = xtal->lattice_vectors[1][i];
 		norm_a = norm_a + pow(lattice_vec_a[i],2);
 		norm_b = norm_b + pow(lattice_vec_b[i],2);
-
 	}
 
     norm_a = sqrt(norm_a);
