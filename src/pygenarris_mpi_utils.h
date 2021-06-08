@@ -34,7 +34,7 @@ void write_structures(cocrystal *cxtal, int *found_poll,
                      FILE *out_file, int total_ranks,
                      MPI_Comm world_comm);
 void send_structures(cocrystal *cxtal, int verdict, MPI_Comm world_comm);
-
+void print_spg_end(double elapsed, int struct_counter, int spg);
 void cxtal_receive(MPI_Comm comm, int from, cocrystal *cxtal);
 void cxtal_send(MPI_Comm comm, cocrystal *cxtal, int to);
 void print_exit();

@@ -151,7 +151,6 @@ int check_stop_condition(int struct_counter, int max_struct,
 
     if(attempt >= max_attempt)
     {
-        printf("attempts = %ld, max_attempts = %ld\n", attempt, max_attempt);
         return ATTEMPTS_STOP;
     }
 
@@ -167,6 +166,18 @@ void send_structures(cocrystal *cxtal, int verdict, MPI_Comm comm)
     if(verdict)
         cxtal_send(comm, cxtal, 0);
 }
+
+void print_spg_end(double elapsed, int struct_counter, int spg)
+{
+    printf("Generated %d structures in spg %d.\n", struct_counter, spg);
+    printf("Moving to next spacegroup.\n\n");
+    printf("TIMING INFO:\n");
+    printf("-----------------------------------------------------\n");
+    print_time();
+    printf("Time spent on space group %d: ~ %.0lf seconds \n", spg, elapsed);
+    printf("-----------------------------------------------------\n\n");
+}
+
 
 /*
 Master rank write to output file
@@ -189,7 +200,6 @@ void write_structures(cocrystal *cxtal, int *found_poll, int *struct_count,
     {
         if(found_poll[rank] == 1)
         {
-            printf("recceing structs\n");
             cxtal_receive(comm, rank, cxtal);
             if(*struct_count < max_structs)
             {

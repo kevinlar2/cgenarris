@@ -86,7 +86,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     int my_rank;
     MPI_Comm_rank(world_comm, &my_rank);
 
-    if(my_rank ==0)
+    if(my_rank == 0)
     {
         print_input_settings(set);
         printf("Generation type :cocrystal\n");
@@ -107,6 +107,11 @@ void mpi_generate_cocrystals_with_vdw_matrix(
 
     //file to output geometries
     FILE *out_file = open_output_file(my_rank);
+
+    // File to output generation.log
+    FILE *log_file = NULL;
+    if(my_rank == 0)
+        log_file = fopen("generation.log", "w");
 
     // Init Random seeding
     seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
@@ -142,14 +147,13 @@ void mpi_generate_cocrystals_with_vdw_matrix(
 
         // Get ready for generation
         spg = allowed_spg[spg_index];
-        //spg = 7;
         cxtal->spg = spg;
         time_t start_time = time(NULL);
         int spg_num_structures = find_num_structure_for_spg(num_structures,\
             spg_dist_type, spg, Z);  // Number of structures for spg
 
         if(my_rank == 0)
-            printf("Num structures per spg = %d\n", spg_num_structures);
+	    printf("Generating %d structures from spg %d...\n", spg_num_structures, spg);
         //print_start_spg(spg, spg_num_structures);
         if(!spg_num_structures)
             goto end_spg_loop;
@@ -196,20 +200,21 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         if(stop_flag == ATTEMPTS_STOP)
         {
             if(my_rank == 0)
-                printf("Ran out of attempts\n");
+	      printf("Max number of attempts %ld reached.\n", max_attempts);
             MPI_Barrier(world_comm);
         }
         else if(stop_flag == ENOUGH_STOP)
         {
             if(my_rank == 0)
-                printf("Completed structure generation.\n");
+                printf("Generated required number of structures..\n");
         }
 
         end_spg_loop:
         if(my_rank == 0)
         {
-            printf("Generated %d structures in spg %d\n", struct_counter, spg);
-            printf("Moving to next spacegroup\n");
+	        time_t end_time = time(NULL);
+                double elapsed = difftime(end_time, start_time);
+		print_spg_end(elapsed, struct_counter, spg);
         }
         struct_counter = 0;
         //break;
@@ -217,11 +222,14 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     }// spg generation loop
 
     if(my_rank == 0)
+    {
         print_exit();
-
+	fclose(out_file);
+	fclose(log_file);
+    }
+      
 }
-
-
+    
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float *vdw_matrix,
     int dim1,
