@@ -168,7 +168,7 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
         if (  spg == 1 || (spg > 2 && spg < 6) || (spg > 15 && spg < 25) ||
              (spg > 74 && spg < 81) || (spg > 88 && spg < 99) || (spg > 142 && spg < 147) ||
              (spg > 148 && spg < 156) || (spg > 167 && spg < 174) ||(spg > 176 && spg < 183) ||
-             (spg > 194 && spg < 200) || (spg > 207 && spg < 215)
+             (spg > 194 && spg < 200) || (spg > 206 && spg < 215)
             )
         {
             return num_structures;
@@ -178,6 +178,24 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
         {
             return 0;
         }
+    }
+
+    else if (strcmp(spg_dist_type, "racemic") == 0)
+    {
+        if (    spg == 2 || (spg > 5 && spg < 16) || (spg > 24 && spg < 75) || 
+             (spg > 80 && spg < 89) || (spg > 98 && spg < 143) || (spg > 146 && spg < 149) ||
+             (spg > 155 && spg < 168) ||(spg > 173 && spg < 177) || ( spg > 184 && spg < 195) ||
+               (spg > 199 && spg < 207) || (spg > 214)
+             )    
+            {
+                return num_structures;
+            }
+
+            else
+            {
+                return 0;
+            }
+            
     }
 
     else if ( strcmp(spg_dist_type, "csd") == 0 )
