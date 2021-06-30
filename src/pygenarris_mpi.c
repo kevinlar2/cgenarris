@@ -92,7 +92,6 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         printf("Generation type :cocrystal\n");
     }
 
-
     //variable declarations
     int stop_flag = 0;  // to stop threads if limit is reached
     int success_flag = 0;  // Check if any rank generated successfully
@@ -153,7 +152,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
             spg_dist_type, spg, Z);  // Number of structures for spg
 
         if(my_rank == 0)
-	    printf("Generating %d structures from spg %d...\n", spg_num_structures, spg);
+	    printf("Generating %d structures from spg %d...\n",
+		   spg_num_structures, spg);
         //print_start_spg(spg, spg_num_structures);
         if(!spg_num_structures)
             goto end_spg_loop;
@@ -164,7 +164,6 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         long max_attempt_per_rank = max_attempts/total_ranks;
         for(; 1; attempt += BATCH_SIZE)
         {
-
             int result = try_crystal_generation(cxtal, set,
                                                 mol, &volume, attempt, BATCH_SIZE);
 
