@@ -174,6 +174,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 		    if(!( strcmp(spg_dist_type, "standard") ||
 			      strcmp(spg_dist_type, "uniform")  ||
 			      strcmp(spg_dist_type, "chiral")   ||
+                  strcmp(spg_dist_type, "racemic")  ||
 			      strcmp(spg_dist_type, "csd")       )
                )
 			{
