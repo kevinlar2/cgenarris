@@ -311,12 +311,23 @@ void read_molecules(molecule *mol, int mol_types)
         char filename[25];
 
         if(i == 0)
+        {
             if(access("geometry.in", F_OK) == 0)
                 sprintf(filename, "geometry.in");
             else
                 sprintf(filename, "geometry_0.in");
+        }
+
         else
+        {
             sprintf(filename, "geometry_%d.in", i);
+
+            if(!access(filename, F_OK) == 0)
+            {
+                printf("Cannot find input geometry file: geometry_%d.in\n", i);
+                exit(EXIT_FAILURE);
+            }
+        }
 
         read_geometry(mol + i, filename);
     }

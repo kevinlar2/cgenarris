@@ -24,7 +24,7 @@
 #define PI 3.141592653
 #define MAX_ANGLE 150 * PI/180
 #define MIN_ANGLE 30 * PI/180
-
+#define CONFORMER_SAMPLES  100
 
 
 unsigned int *seed;
@@ -226,9 +226,9 @@ void mpi_generate_cocrystals_with_vdw_matrix(
 	fclose(out_file);
 	fclose(log_file);
     }
-      
+
 }
-    
+
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float *vdw_matrix,
     int dim1,
@@ -303,7 +303,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int num_compatible_spg = 0;
 
     //variable declarartion
-    molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
+    molecule *mol = (molecule*)malloc(CONFORMER_SAMPLES*sizeof(molecule));//store molecule
     crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
     //float volume_std; //standard dev for volumes
     //float volume_mean;    //mean volume
@@ -337,14 +337,16 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     }
     MPI_Barrier(world_comm);
 
-    read_geometry(mol, "geometry.in");             //read molecule from geometry.in
+    read_molecules(mol, CONFORMER_SAMPLES);
+    //read_geometry(mol, "geometry.in");             //read molecule from geometry.in
 
     //recenter molecule to origin
     recenter_molecule(mol);
 
     if (my_rank == 0)
     {
-        print_input_geometry(mol);
+      printf("Collected conformer geometries\n");
+      //print_input_geometry(mol);
         /*print_input_settings(&num_structures,
                              &Z,
                              &Zp_max,
@@ -449,9 +451,10 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                 success_flag = 0;
                 for(; j < BATCH_SIZE; j++)
                 {
+                    molecule *mol_sample = mol + rand_r(seed2) % CONFORMER_SAMPLES;
                     //generate
                     int result = generate_crystal(random_crystal,
-                                                  mol,
+                                                  mol_sample,
                                                   volume,
                                                   Z,
                                                   Zp_max,

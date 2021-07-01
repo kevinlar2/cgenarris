@@ -110,10 +110,10 @@ int main(int argc, char **argv)
 		spg_dist_type,
 		vol_attempt,
 		random_seed,
-        norm_dev,
-        angle_std,
-        stoic,
-        mol_types,
+		norm_dev,
+		angle_std,
+		stoic,
+		mol_types,
 		world_comm);
 	}
 
