@@ -449,9 +449,12 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
             {
                 int j = 0;
                 success_flag = 0;
+                int rand_id = rand_r(seed2) % CONFORMER_SAMPLES;
+                random_crystal->mol_id = rand_id;
+                molecule *mol_sample = mol + rand_id;
+
                 for(; j < BATCH_SIZE; j++)
                 {
-                    molecule *mol_sample = mol + rand_r(seed2) % CONFORMER_SAMPLES;
                     //generate
                     int result = generate_crystal(random_crystal,
                                                   mol_sample,

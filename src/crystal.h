@@ -13,7 +13,7 @@ typedef struct
     int num_atoms_in_molecule;
     int Z;
     int Zp;
-
+    int mol_id;
 }crystal;
 
 /*

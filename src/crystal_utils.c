@@ -68,6 +68,7 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
 
     int spglib_spg = detect_spg_using_spglib(xtal);
     fprintf(out_file, "#SPGLIB_detected_spacegroup = %d\n", spglib_spg);
+    fprintf(out_file, "#mol_id = %d\n", xtal->mol_id);
 
     fprintf(out_file, "#\"All distances in Angstroms and using Cartesian coordinate system\"\n");
 
