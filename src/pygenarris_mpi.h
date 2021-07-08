@@ -57,8 +57,8 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	long max_attempts,
 	char *spg_dist_type,
 	float lattice_vector_2d_from_geo[2][3],
-    int vol_attempt,
-    int random_seed,
+        int vol_attempt,
+        int random_seed,
 	MPI_Comm world_comm);
 
 void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms);

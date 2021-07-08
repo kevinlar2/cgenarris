@@ -156,7 +156,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	    if(strcmp(sub_line, "max_attempts") == 0)
 		{
 		    sub_line = strtok(NULL," ");
-		    *max_attempts = atoi(sub_line);
+		    *max_attempts = atol(sub_line);
 		    continue;
 		}
 
@@ -182,6 +182,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 		    if(!( strcmp(spg_dist_type, "standard") ||
 			      strcmp(spg_dist_type, "uniform")  ||
 			      strcmp(spg_dist_type, "chiral")   ||
+                  strcmp(spg_dist_type, "racemic")  ||
 			      strcmp(spg_dist_type, "csd")       )
                )
 			{
