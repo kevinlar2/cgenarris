@@ -1,6 +1,6 @@
 
 CC=mpicc
-CFLAGS=-std=gnu99 -O3 -fPIC -Wall -Wpedantic
+CFLAGS=-std=gnu99 -O3  -fPIC -Wall -Wpedantic
 PYTHON_H=/home/ritwit/anaconda3/include/python3.8/
 
 
@@ -11,7 +11,8 @@ PYTHON_H=/home/ritwit/anaconda3/include/python3.8/
 
 cgenarris_mpi: cgenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
                molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
-               molecule_placement.o randomgen.o spglib.o pygenarris_mpi.o lattice_generator_layer.o
+               molecule_placement.o randomgen.o spglib.o pygenarris_mpi.o lattice_generator_layer.o\
+	       cocrystal_utils.o
 	$(CC) ${CFLAGS} *.o -o cgenarris_mpi.x -lm
 
 cgenarris_test: cgenarris_test.o read_input.o spg_generation.o lattice_generator.o algebra.o\
@@ -33,7 +34,8 @@ pygenarris:pygenarris.o read_input.o spg_generation.o lattice_generator.o algebr
 pygenarris_mpi:pygenarris_mpi.o read_input.o spg_generation.o lattice_generator.o algebra.o\
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
 		   molecule_placement.o randomgen.o  cgenarris_mpi.o swig_pygenarris_mpi\
-		   pywrap_pygenarris_mpi lattice_generator_layer.o spglib.o
+		   pywrap_pygenarris_mpi lattice_generator_layer.o spglib.o\
+		   pygenarris_mpi_utils.o cocrystal_utils.o
 	${CC} ${CFLAGS} -shared  *.o -o _pygenarris_mpi.so -lm
 
 pywrap: swig
@@ -48,10 +50,13 @@ cgenarris_test.o: test_main.c
 lattice_generator_layer.o: lattice_generator_layer.c
 	${CC} ${CFLAGS} -c lattice_generator_layer.c
 
+pygenarris_mpi_utils.o: pygenarris_mpi_utils.h pygenarris_mpi_utils.c
+	${CC} ${CFLAGS} -c pygenarris_mpi_utils.c
+
 cgenarris_mpi.o:cgenarris_mpi.c
 	${CC} ${CFLAGS} -c cgenarris_mpi.c
 
-pygenarris_mpi.o:pygenarris_mpi.c
+pygenarris_mpi.o:pygenarris_mpi.c pygenarris_mpi_utils.o
 	${CC} ${CFLAGS} -c pygenarris_mpi.c
 
 #pygenarris.o: pygenarris.c
@@ -84,6 +89,9 @@ check_structure.o: check_structure.c check_structure.h algebra.o spg_generation.
 
 crystal_utils.o: crystal_utils.c crystal_utils.h spg_generation.o
 	${CC} ${CFLAGS} -c crystal_utils.c -lm
+
+cocrystal_utils.o: cocrystal_utils.c cocrystal_utils.h
+	${CC} ${CFLAGS} -c cocrystal_utils.c
 
 molecule_placement.o: molecule_placement.c molecule_placement.h spg_generation.o read_input.o
 	 ${CC} ${CFLAGS} -c molecule_placement.c -lm

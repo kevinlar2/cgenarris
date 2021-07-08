@@ -5,6 +5,7 @@
 #define MAX_ORDER 16
 
 #include "crystal.h"
+#include "cocrystal.h"
 
 //for storing allowed spacegroup and position
 typedef struct
@@ -46,6 +47,7 @@ int generate_layer_crystal(crystal* random_crystal, molecule* mol,float volume,
 	int len_compatible_spg, int compatible_spg_index, float lattice_vector_2d[2][3],int *all_substrate_combo,
 	int num_combo,float interface_area_mean,float interface_area_std,int volume_multiplier,int SET_INTERFACE_AREA);
 
+int generate_cocrystal(cocrystal *cxtal, Settings set, molecule *mol, float *volume);
 
 int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int spg, int Z);
 

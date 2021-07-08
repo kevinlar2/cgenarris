@@ -22,8 +22,6 @@ float get_crystal_volume(crystal *xtal)
 
 void print_crystal(crystal* xtal)
 {
-
-
      int N = xtal->num_atoms_in_molecule;
      int m = xtal->Z;
 
@@ -120,7 +118,6 @@ void print_layer2file(crystal* xtal, FILE* out_file)
 		lattice_vec_b[i] = xtal->lattice_vectors[1][i];
 		norm_a = norm_a + pow(lattice_vec_a[i],2);
 		norm_b = norm_b + pow(lattice_vec_b[i],2);
-
 	}
 
     norm_a = sqrt(norm_a);
@@ -128,7 +125,7 @@ void print_layer2file(crystal* xtal, FILE* out_file)
     cross_vector3_vector3(cross, lattice_vec_a,lattice_vec_b);
     float surface_area = sqrt(pow(cross[0],2)+pow(cross[1],2)+pow(cross[2],2));
     fprintf(out_file, "#surface_area = %f square Angstrom\n",surface_area);
-    float dot_product = lattice_vec_a[0] * lattice_vec_b[0] + lattice_vec_a[1] * lattice_vec_b[1] 
+    float dot_product = lattice_vec_a[0] * lattice_vec_b[0] + lattice_vec_a[1] * lattice_vec_b[1]
 								+lattice_vec_a[2] * lattice_vec_b[2] ;
     float angle = acos(dot_product/(norm_a * norm_b)) * 180/PI;
     fprintf(out_file, "#gamma = %f degree\n",angle);

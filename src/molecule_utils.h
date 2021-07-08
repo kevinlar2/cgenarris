@@ -1,6 +1,8 @@
 #ifndef MOLECULE_UTILS_H
 #define MOLECULE_UTILS_H
 
+#include "molecule.h"
+
 void recenter_molecule(molecule* mol);
 void print_molecule(molecule *mol);
 void molecule_rotate(molecule* mol, float rotation_matrix[3][3]);

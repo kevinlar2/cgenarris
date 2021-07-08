@@ -1,8 +1,10 @@
 #include "read_input.h"
 #include "molecule_utils.h"
+#include "input_settings.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 
 float TOL;
@@ -10,11 +12,11 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* volume_mean,float* volume_std,
                  float *sr,long *max_attempts, char *spg_dist_type,
                  int *vol_attempts,int *random_seed,
-                 int *crystal_generation,
+                 char *generation_type,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
-                 float* angle_std)
+                 float* angle_std, int **stoic, int *mol_types)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -44,7 +46,8 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
     lattice_vector_2d[1][0] = 0;
     lattice_vector_2d[1][2] = 0;
     lattice_vector_2d[1][3] = 0;
-    *crystal_generation = 1;
+    strcpy(generation_type, "crystal");
+    *mol_types = 0;
 
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
@@ -55,12 +58,14 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                 continue;
 
 	    sub_line=strtok(line," ");
-            if(strcmp(sub_line, "Z") == 0)
+
+        if(strcmp(sub_line, "Z") == 0)
 		{
 		    sub_line = strtok(NULL," ");
 		    *Z = atoi(sub_line);
 		    continue;
 		}
+
 	    if (strcmp(sub_line,"lattice_vector_a")==0)
 		{
 
@@ -84,12 +89,15 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             lattice_vector_2d[1][2] = atof(sub_line);
             continue;
 		}
-            if (strcmp(sub_line,"crystal_generation")==0)
+
+        if (strcmp(sub_line,"generation_type") == 0)
 		{
 		    sub_line = strtok(NULL," ");
-	            *crystal_generation = atof(sub_line);
+	        strcpy(generation_type, sub_line);
+            generation_type[strcspn(generation_type, "\n")] = 0;
 		    continue;
 		}
+
 	    if(strcmp(sub_line, "sr") == 0)
 		{
 		    sub_line = strtok(NULL," ");
@@ -200,21 +208,31 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
             continue;
         }
 
+        if(strcmp(sub_line, "molecule_types") == 0)
+        {
+            sub_line = strtok(NULL, " ");
+            *mol_types = atoi(sub_line);
+            continue;
+        }
+
+        if(strcmp(sub_line, "stochiometry") == 0)
+        {
+            *stoic = (int *)malloc(2*sizeof(int));
+            sub_line = strtok(NULL, " ");
+            (*stoic)[0] = atoi(sub_line);
+            sub_line = strtok(NULL, " ");
+            (*stoic)[1] = atoi(sub_line);
+
+        }
+
    	}
 
-	/*
-    *num_structures = 1;
-    *volume_mean = 1200;
-    *volume_std  = 100;
-	*Z = 6;
-	*sr = 0.75;
-	*/
 	fclose(fileptr);
     *Zp_max = 192;
 }
 
 
-void read_geometry(molecule* mol)
+void read_geometry(molecule* mol, char* filename)
 {
     FILE *fileptr;
     size_t len = 0;
@@ -225,11 +243,11 @@ void read_geometry(molecule* mol)
     int atom_count = 0;
 
     //find_number_of atoms
-    fileptr = fopen("geometry.in","r");
+    fileptr = fopen(filename,"r");
     //check if file exits
     if(!fileptr)
     {
-        printf("***ERROR: no geometry.in file \n");
+        printf("***ERROR: no %s file \n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -245,7 +263,6 @@ void read_geometry(molecule* mol)
         else
             continue;
     }
-    fclose(fileptr);
 
     //printf("Total number of atoms in molecule = %d\n", atom_count);
     int N = atom_count;
@@ -255,8 +272,7 @@ void read_geometry(molecule* mol)
     (*mol).Y = (float *)malloc(N*sizeof(float));
     (*mol).Z = (float *)malloc(N*sizeof(float));
 
-    //creates a file pointer and opens geometry.in
-    fileptr = fopen("geometry.in","r");
+    fseek(fileptr, 0, SEEK_SET);
     while ((read = getline(&line, &len, fileptr)) != -1)
     {
         //printf("%s", line);
@@ -287,38 +303,68 @@ void read_geometry(molecule* mol)
    // printf("atoms = %d \n", atom_count);
     mol->num_of_atoms = N;
 
+}
+
+void read_molecules(molecule *mol, int mol_types)
+{
+    for(int i = 0; i < mol_types; i++)
+    {
+        char filename[25];
+
+        if(i == 0)
+            if(access("geometry.in", F_OK) == 0)
+                sprintf(filename, "geometry.in");
+            else
+                sprintf(filename, "geometry_0.in");
+        else
+            sprintf(filename, "geometry_%d.in", i);
+
+        read_geometry(mol + i, filename);
+    }
 
 }
 
-
-void print_input_settings(int* num_structures,
-                          int* Z,
-                          float* Zp_max,
-                          float* volume_mean,
-                          float* volume_std,
-                          float *sr,
-                          long *max_attempts,
-                          char * spg_dist_type,
-                          int *vol_attempt,
-                          int *random_seed,
-                          float *norm_dev,
-                          float *angle_std)
+void print_input_geometries(molecule *mol, int mol_types)
 {
-    *Zp_max = 192; //useless argument
+    printf("Total number of molecule geometries = %d\n\n", mol_types);
+    for(int i = 0; i < mol_types; i++)
+    {
+        printf("MOLECULE GEOMETRY %d:\n", i);
+        printf("-----------------------------\n");
+        print_molecule(mol + i);
+        printf("-----------------------------\n\n");
+    }
+}
+
+
+void print_input_settings(Settings set)
+{
     printf("INPUT SETTINGS:\n");
     printf("-----------------------------\n");
-    printf("Number of structures per space group:         %d \n", *num_structures);
-    printf("Number of molecules in the cell:              %d\n", *Z);
-    printf("Mean volume of unit cell:                     %f\n", *volume_mean);
-    printf("Standard deviation of unit cell volume:       %f\n", *volume_std);
-    printf("Spacegroup distribution type:                 %s\n", spg_dist_type);
+    printf("Number of structures per space group:         %d \n", set.num_structures);
+    printf("Number of molecules in the cell:              %d\n", set.Z);
+    printf("Mean volume of unit cell:                     %f\n", set.vol_mean);
+    printf("Standard deviation of unit cell volume:       %f\n", set.vol_std);
+    printf("Spacegroup distribution type:                 %s\n", set.spg_dist_type);
     //printf("Specific radius proportion:                   %f\n", *sr );
-    printf("Maximum attempts per space group:             %ld\n", *max_attempts);
-    printf("Volume attempts:                              %d\n", *vol_attempt);
-    printf("Random seed:                                  %d\n", *random_seed);
-    printf("Lattice angle standard deviation:             %f\n", *angle_std);
-    printf("Lattice principal component deviation:        %f\n", *norm_dev);
+    printf("Maximum attempts per space group:             %ld\n",set.max_attempts);
+    printf("Volume attempts:                              %d\n", set.vol_attempts);
+    printf("Random seed:                                  %d\n", set.random_seed);
+    printf("Lattice angle standard deviation:             %f\n", set.angle_std);
+    printf("Lattice principal component deviation:        %f\n", set.norm_dev);
     printf("Tolerance:                                    %f\n", TOL);
+    if(set.n_mol_types != 0)
+    {
+        printf("Number of Molecules:                          %d\n", set.n_mol_types);
+        printf("Stochiometry:                                 ");
+        for(int i = 0; i < set.n_mol_types; i++)
+        {
+            printf("%d", set.stoic[i]);
+            if(i != set.n_mol_types - 1)
+                printf(":");
+        }
+        printf("\n");
+    }
     printf("-----------------------------\n\n");
 
 }

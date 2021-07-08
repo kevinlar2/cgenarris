@@ -9,34 +9,7 @@
 extern unsigned int *seed2;
 
 
-void vector3_add(float a[3], float b[3], float sum[3])
-{
-    sum[0] = a[0] + b[0];
-    sum[1] = a[1] + b[1];
-    sum[2] = a[2] + b[2];
-    return;
-}
 
-void vector3_mat3b3_multiply(float a[3][3], float b[3], float c[3])
-{
-    float temp[3];
-    temp[0] = a[0][0] * b[0] + a[0][1] * b[1] + a[0][2] * b[2];
-    temp[1] = a[1][0] * b[0] + a[1][1] * b[1] + a[1][2] * b[2];
-    temp[2] = a[2][0] * b[0] + a[2][1] * b[1] + a[2][2] * b[2];
-    c[0]  = temp[0];
-    c[1]  = temp[1];
-    c[2]  = temp[2];
-    return;
-}
-
-void vector3_intmat3b3_multiply(int a[3][3], float b[3], float c[3])
-{
-    float temp[3];
-    for (int i = 0; i < 3; i++)
-        temp[i] = a[i][0] * b[0] + a[i][1] * b[1] + a[i][2] * b[2];
-    copy_vector3_vector3(c,temp);
-    return;
-}
 
 
 //tested
@@ -101,13 +74,6 @@ float det_mat3b3(float a[3][3])
      * a[2][1] - a[2][0] * a[1][1]);
 }
 
-void copy_vector3_vector3(float a[3], float b[3])
-{
-    a[0] = b[0];
-    a[1] = b[1];
-    a[2] = b[2];
-    return;
-}
 
 void copy_mat3b3_mat3b3(float a[3][3], float b[3][3])
 {
@@ -184,16 +150,16 @@ void copy_intmat3b3bN_intmat3b3(int b[][3][3], int a[3][3], int index)
     b[index][0][0] = a[0][0];
     b[index][0][1] = a[0][1];
     b[index][0][2] = a[0][2];
-	
+
     b[index][1][0] = a[1][0];
     b[index][1][1] = a[1][1];
     b[index][1][2] = a[1][2];
-	
+
     b[index][2][0] = a[2][0];
     b[index][2][1] = a[2][1];
     b[index][2][2] = a[2][2];
-	
-    return;	
+
+    return;
 }
 //added here to copy const int to int
 void copy_intmat3b3_constintmat3b3bN(int a[3][3], int const b[][3][3], int index)
@@ -201,16 +167,16 @@ void copy_intmat3b3_constintmat3b3bN(int a[3][3], int const b[][3][3], int index
     a[0][0] = b[index][0][0];
     a[0][1] = b[index][0][1];
     a[0][2] = b[index][0][2];
-	
+
     a[1][0] = b[index][1][0];
     a[1][1] = b[index][1][1];
     a[1][2] = b[index][1][2];
-	
+
     a[2][0] = b[index][2][0];
     a[2][1] = b[index][2][1];
     a[2][2] = b[index][2][2];
-	
-    return;	
+
+    return;
 }
 //for coying integer matrices
 void copy_intmat3b3_intmat3b3bN(int a[3][3], int b[][3][3], int index)
@@ -252,7 +218,7 @@ void copy_doubvector3bN_vector3(double a[3], double b[][3], int index)
     b[index][2] = a[2];
 
 }
-//added here 
+//added here
 void copy_vector3bN_vector3(float a[3], float b[][3], int index)
 {
     b[index][0] = a[0];
@@ -439,6 +405,13 @@ void generate_random_rotation_matrix( float rotation_matrix[3][3] )
         rotation_mat_around_axis(rotation_matrix, axis, psi);
 }
 
+void generate_random_translation_vector(float trans[3])
+{
+    trans[0] = uniform_dist_01();
+    trans[1] = uniform_dist_01();
+    trans[2] = uniform_dist_01();
+}
+
 //fisher-yates shuffle algorithn
 void array_shuffler_2(float a[][3], int len )
 {
@@ -485,9 +458,26 @@ int are_equal_floats(float a, float b, float ftol)
     return 0;
 }
 
+/*
+Get fractional part of the vector.
+*/
+void vector3_int(float a[3])
+{
+    int b[3];
+    for(int i = 0; i < 3; i++)
+    {
+        b[i] = (int)a[i];
+
+        if(a[i] < 0)
+            b[i] -= 1;
+
+        a[i] = b[i];
+    }
+}
+
 int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[192][3][3])
 {
-    int num_operation =  all_lg_operation_database[hall_number-1].num_operations;	
+    int num_operation =  all_lg_operation_database[hall_number-1].num_operations;
     int i;
     for (i=0; i < num_operation;i++)
 	{

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <stddef.h>
@@ -18,7 +19,6 @@
 
 //maximum mulipicity possible
 #define ZMAX 192
-#define VOL_ATTEMPT  100000
 #define GRAIN_SIZE 10000
 
 int *seed;
@@ -43,12 +43,11 @@ int main(int argc, char **argv)
     //variable declarartion
     molecule *mol = (molecule*)malloc(sizeof(molecule));//store molecule
     //////added here
-    int crystal_generation; //indicate whether its molecular crystal generation or layer generation
+    char generation_type[25]; //indicate whether its molecular crystal generation or layer generation
     float interface_area_mean; //for layer
     float interface_area_std; //for layer
     int volume_multiplier; // for layer
     float  lattice_vector_2d[2][3]; //for layer
-    ///// done/////
     float volume_std;	//standard dev for volumes
     float volume_mean;	//mean volume
     float sr;			//specific radius proportion for structure checks
@@ -62,25 +61,30 @@ int main(int argc, char **argv)
     int random_seed;    //seed for random gen
     float norm_dev;
     float angle_std;
+    int mol_types;  // No. of distinct molecule types
+    int *stoic;  // Stochiometry for the co-crystal. Array of length mol_types.
 
-    read_geometry(mol);				//read molecule from geometry.in
+    read_geometry(mol, "geometry.in");				//read molecule from geometry.in
     read_control(&num_structures,
-		 &Z,
-		 &Zp_max,
-		 &volume_mean,
-		 &volume_std,
-		 &sr,
-		 &max_attempts,
-         spg_dist_type,
-         &vol_attempt,
-         &random_seed,
-		 &crystal_generation,
-		 &interface_area_mean,
-		 &interface_area_std,
-		 &volume_multiplier,
-		 lattice_vector_2d,
-         &norm_dev,
-         &angle_std);	//get settings
+        		 &Z,
+        		 &Zp_max,
+        		 &volume_mean,
+        		 &volume_std,
+        		 &sr,
+        		 &max_attempts,
+                 spg_dist_type,
+                 &vol_attempt,
+                 &random_seed,
+        		 generation_type,
+        		 &interface_area_mean,
+        		 &interface_area_std,
+        		 &volume_multiplier,
+        		 lattice_vector_2d,
+                 &norm_dev,
+                 &angle_std,
+                 &stoic,
+                 &mol_types);	//get settings
+
     tol = TOL;
     int num_atoms_in_molecule = mol->num_of_atoms;
     int dim_vdw_matrix = num_atoms_in_molecule * Z ;
@@ -90,9 +94,10 @@ int main(int argc, char **argv)
 
     create_vdw_matrix_from_sr(mol, vdw_cutoff_matrix, sr, Z);
 
-    if (crystal_generation)     // for molecular crystal
+
+    if (!strcmp(generation_type, "cocrystal"))     // for molecular crystal
 	{
-	    mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+	    mpi_generate_cocrystals_with_vdw_matrix(
 		vdw_cutoff_matrix,
 		dim_vdw_matrix,
 		dim_vdw_matrix,
@@ -107,14 +112,33 @@ int main(int argc, char **argv)
 		random_seed,
         norm_dev,
         angle_std,
+        stoic,
+        mol_types,
 		world_comm);
-
-    	MPI_Finalize();
-
-        return 0;
 	}
 
-	else			// for layer generation
+    else if(!strcmp(generation_type, "crystal"))
+    {
+        mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
+        vdw_cutoff_matrix,
+        dim_vdw_matrix,
+        dim_vdw_matrix,
+        num_structures,
+        Z,
+        volume_mean,
+        volume_std,
+        tol,
+        max_attempts,
+        spg_dist_type,
+        vol_attempt,
+        random_seed,
+        norm_dev,
+        angle_std,
+        world_comm);
+
+    }
+
+	else if(!strcmp(generation_type, "layer"))			// for layer generation
 	{
 	    mpi_generate_layer_with_vdw_cutoff_matrix(
 		vdw_cutoff_matrix,
@@ -135,11 +159,14 @@ int main(int argc, char **argv)
 		random_seed,
 		world_comm);
 
-    	MPI_Finalize();
-        return 0;
 	}
 
+    else
+    {
+        printf("***ERROR: generation type unsupported : %s\n", generation_type);
+    }
 
-
+    MPI_Finalize();
+    return 0;
 }
 

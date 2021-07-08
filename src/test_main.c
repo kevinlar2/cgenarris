@@ -41,7 +41,7 @@ int regression_test(MPI_Comm world_comm)
     float angle_std = 8;
 
     // Read molecule
-    read_geometry(&mol);
+    read_geometry(&mol, "geometry.in");
 
     // Create vdw distance cutoff matrix
     int num_atoms_in_molecule = mol.num_of_atoms;

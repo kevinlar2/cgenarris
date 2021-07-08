@@ -9,18 +9,23 @@
 #include "combinatorics.h"
 #include "check_structure.h"
 #include "crystal_utils.h"
+#include "cocrystal_utils.h"
+#include "input_settings.h"
 #include "molecule_utils.h"
 #include "lattice_generator.h"
 #include "lattice_generator_layer.h"
 #include "randomgen.h"
 #include "algebra.h"
 #include "pygenarris_mpi.h"
+#include "pygenarris_mpi_utils.h"
 
 #define ZMAX 192
-#define GRAIN_SIZE 10000
+#define BATCH_SIZE 10000
 #define PI 3.141592653
 #define MAX_ANGLE 150 * PI/180
 #define MIN_ANGLE 30 * PI/180
+
+
 
 unsigned int *seed;
 unsigned int *seed2;
@@ -29,14 +34,201 @@ unsigned int *seed2;
 
 extern float TOL;
 
-void print_time(void)
+void mpi_generate_cocrystals_with_vdw_matrix(
+    float *vdw_matrix,
+    int dim1,
+    int dim2,
+    int num_structures,
+    int Z,
+    double volume_mean1,
+    double volume_std1,
+    double tol1,
+    long max_attempts,
+    char *spg_dist_type,
+    int vol_attempt,
+    int random_seed,
+    float norm_dev,
+    float angle_std,
+    int *stoic,
+    int n_mol_types,
+    MPI_Comm world_comm)
 {
-    time_t current_time = time(NULL);
-    struct tm *loc_time;
-    loc_time = localtime (&current_time);
-    printf("The local time is now: %s", asctime (loc_time));
-}
 
+    TOL = tol1;
+    float sr = -1;
+
+    // Create settings structure
+    Settings set;
+    set.num_structures = num_structures;
+    set.Z = Z;
+    set.vol_attempts = vol_attempt;
+    set.random_seed = random_seed;
+    set.stoic = stoic;
+    set.n_mol_types = n_mol_types;
+    set.max_attempts = max_attempts;
+    set.vol_mean = volume_mean1;
+    set.vol_std = volume_std1;
+    set.norm_dev = norm_dev;
+    set.angle_std = angle_std;
+    set.sr = sr;
+    set.spg_dist_type = spg_dist_type;
+    set.vdw_matrix = vdw_matrix;
+
+    if (dim1 != dim2)
+    {
+        printf("***ERROR:vdw cutoff matrix is not square***\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //Initialise MPI
+    int total_ranks;
+    MPI_Comm_size(world_comm, &total_ranks);
+    int my_rank;
+    MPI_Comm_rank(world_comm, &my_rank);
+
+    if(my_rank == 0)
+    {
+        print_input_settings(set);
+        printf("Generation type :cocrystal\n");
+    }
+
+    //variable declarations
+    int stop_flag = 0;  // to stop threads if limit is reached
+    int success_flag = 0;  // Check if any rank generated successfully
+    int struct_counter = 0;    //counts number of structures
+    long attempt = 0;
+    int spg;
+    float volume;
+    int found_poll[total_ranks];
+
+    cocrystal *cxtal = malloc(sizeof(cocrystal));     //dummy cocrystal
+    molecule *mol = malloc(n_mol_types*sizeof(molecule));//store molecules
+
+    //file to output geometries
+    FILE *out_file = open_output_file(my_rank);
+
+    // File to output generation.log
+    FILE *log_file = NULL;
+    if(my_rank == 0)
+        log_file = fopen("generation.log", "w");
+
+    // Init Random seeding
+    seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
+    seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
+    init_random_seed(seed, seed2, random_seed, my_rank);
+
+    // Read molecules and recenter mol to orgin
+    read_molecules(mol, n_mol_types);
+    recenter_molecules(mol, n_mol_types);
+
+    // Print molecule geometries
+    if(my_rank == 0)
+        print_input_geometries(mol, n_mol_types);
+    MPI_Barrier(world_comm);
+
+
+    // Initialzations
+    int n_atoms_in_mol[n_mol_types];
+    volume = draw_volume(set.vol_mean, set.vol_std);
+    get_n_atoms_in_mol(n_atoms_in_mol, mol, n_mol_types);
+    cxtal_init(cxtal, stoic, n_atoms_in_mol, n_mol_types, Z);
+
+    // Find compatible space groups
+    int allowed_spg[230];
+    int num_allowed_spg = 0;
+    find_allowed_spg(allowed_spg, &num_allowed_spg, Z);
+    if(my_rank == 0)
+        print_allowed_spg(allowed_spg, num_allowed_spg);
+
+    for(int spg_index = 0; spg_index < num_allowed_spg; spg_index++)
+    {
+        MPI_Barrier(world_comm);
+
+        // Get ready for generation
+        spg = allowed_spg[spg_index];
+        cxtal->spg = spg;
+        time_t start_time = time(NULL);
+        int spg_num_structures = find_num_structure_for_spg(num_structures,\
+            spg_dist_type, spg, Z);  // Number of structures for spg
+
+        if(my_rank == 0)
+	    printf("Generating %d structures from spg %d...\n",
+		   spg_num_structures, spg);
+        //print_start_spg(spg, spg_num_structures);
+        if(!spg_num_structures)
+            goto end_spg_loop;
+
+        // Loop over attempts
+        // Each rank performs `BATCH_SIZE` attempts before talking to master rank
+        attempt = 0;
+        long max_attempt_per_rank = max_attempts/total_ranks;
+        for(; 1; attempt += BATCH_SIZE)
+        {
+            int result = try_crystal_generation(cxtal, set,
+                                                mol, &volume, attempt, BATCH_SIZE);
+
+            // Poll to see which ranks succeded
+            MPI_Gather(&result, 1, MPI_INT, found_poll, 1, MPI_INT, 0, world_comm);
+
+            // Write structures send by slave ranks to output file
+            if(my_rank == 0)
+                write_structures(cxtal, found_poll, &struct_counter,
+                                 spg_num_structures, out_file, total_ranks,
+                                 world_comm);
+            // Sends structures to master
+            else
+                send_structures(cxtal, result, world_comm);
+
+            // Time to stop? -  enough structures or ran out of attempts
+            stop_flag = check_stop_condition(struct_counter, spg_num_structures,
+                                             attempt, max_attempt_per_rank);
+            //printf("stop = %d\n", stop_flag);
+            MPI_Bcast(&stop_flag, 1, MPI_INT, 0, world_comm);
+            if(stop_flag)
+                break;
+
+            // Let other ranks know if a structure was generated.
+            MPI_Bcast(&success_flag, 1, MPI_INT, 0, world_comm);
+            if(success_flag) // Resets if a structure was generated
+            {
+                attempt = 0;
+                volume = draw_volume(set.vol_mean, set.vol_std);  // Reset volume
+            }
+        }
+
+        if(stop_flag == ATTEMPTS_STOP)
+        {
+            if(my_rank == 0)
+	      printf("Max number of attempts %ld reached.\n", max_attempts);
+            MPI_Barrier(world_comm);
+        }
+        else if(stop_flag == ENOUGH_STOP)
+        {
+            if(my_rank == 0)
+                printf("Generated required number of structures..\n");
+        }
+
+        end_spg_loop:
+        if(my_rank == 0)
+        {
+	        time_t end_time = time(NULL);
+                double elapsed = difftime(end_time, start_time);
+		print_spg_end(elapsed, struct_counter, spg);
+        }
+        struct_counter = 0;
+        //break;
+
+    }// spg generation loop
+
+    if(my_rank == 0)
+    {
+        print_exit();
+	fclose(out_file);
+	fclose(log_file);
+    }
+      
+}
+    
 void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float *vdw_matrix,
     int dim1,
@@ -115,7 +307,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     crystal *random_crystal = (crystal*)malloc(sizeof(crystal));//dummy crystal
     //float volume_std; //standard dev for volumes
     //float volume_mean;    //mean volume
-    float sr = -1;          //specific radius proportion for structure checks
+    //float sr = -1;          //specific radius proportion for structure checks
                         //see paper for definition
     //float Zp_max;     //Z'' . not implemented
     float volume;       //random volume used of generation
@@ -145,7 +337,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     }
     MPI_Barrier(world_comm);
 
-    read_geometry(mol);             //read molecule from geometry.in
+    read_geometry(mol, "geometry.in");             //read molecule from geometry.in
 
     //recenter molecule to origin
     recenter_molecule(mol);
@@ -153,7 +345,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     if (my_rank == 0)
     {
         print_input_geometry(mol);
-        print_input_settings(&num_structures,
+        /*print_input_settings(&num_structures,
                              &Z,
                              &Zp_max,
                              &volume_mean,
@@ -164,7 +356,10 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                              &vol_attempt,
                              &random_seed,
                              &norm_dev,
-                             &angle_std);
+                             &angle_std,
+                             NULL,
+                             0);
+                             */
     }
 
     MPI_Barrier(world_comm);
@@ -248,11 +443,13 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
             long i = 0;       //counts attempts for spg
             //attempts for an spg.
             stop_flag = 0;
-            for(; i < (long) max_attempts/total_ranks; i = i + GRAIN_SIZE)
+          
+            for(; i < (long) max_attempts/total_ranks; i = i + BATCH_SIZE)
+
             {
                 long j = 0;
                 success_flag = 0;
-                for(; j < GRAIN_SIZE; j++)
+                for(; j < BATCH_SIZE; j++)
                 {
                     //generate
                     int result = generate_crystal(random_crystal,
@@ -438,8 +635,8 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	long max_attempts,
 	char *spg_dist_type,
 	float lattice_vector_2d_from_geo[2][3],
-        int vol_attempt,
-        int random_seed,
+    int vol_attempt,
+    int random_seed,
 	MPI_Comm world_comm)
 {
 	float Zp_max=1;
@@ -548,7 +745,7 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 	}
 	MPI_Barrier(world_comm);
 
-    	read_geometry(mol);				//read molecule from geometry.in
+    read_geometry(mol, "geometry.in");				//read molecule from geometry.in
 
 	//recenter molecule to origin
 	recenter_molecule(mol);
@@ -662,11 +859,11 @@ void mpi_generate_layer_with_vdw_cutoff_matrix(
 			int i = 0; 		 //counts attempts for spg
 			//attempts for an spg.
 			stop_flag = 0;
-			for(; i < max_attempts/total_ranks; i = i + GRAIN_SIZE)
+			for(; i < max_attempts/total_ranks; i = i + BATCH_SIZE)
 			{
 				int j = 0;
 				success_flag = 0;
-				for(; j < GRAIN_SIZE; j++)
+				for(; j < BATCH_SIZE; j++)
 				{
 					//generate
 
@@ -917,7 +1114,7 @@ int num_compatible_spacegroups(int Z, double tolerance)
     molecule *mol = (molecule*)malloc(sizeof(molecule));
 
     //read geometry from geometry.in
-    read_geometry(mol);
+    read_geometry(mol, "geometry.in");
 
     find_compatible_spg_positions(mol,
                                   Z,
@@ -944,7 +1141,7 @@ int num_compatible_layergroups(int Z, double tolerance,float volume,float lattic
 	molecule *mol = (molecule*)malloc(sizeof(molecule));
 
 	//read geometry from geometry.in
-	read_geometry(mol);
+	read_geometry(mol, "geometry.in");
     //float global_lattice_vector_2d[2][3] = {{5.7675159999999996,0.0000000000000000,0.0000000000000000},
 											//{2.8837579999999998,4.9948160000000001,0.0000000000000000}};
 	//hard code global lattice vector here for now, delete latter
