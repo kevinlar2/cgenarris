@@ -107,11 +107,11 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
 
     else if (strcmp(spg_dist_type, "racemic") == 0)
     {
-        if (    spg == 2 || (spg > 5 && spg < 16) || (spg > 24 && spg < 75) || 
+        if (    spg == 2 || (spg > 5 && spg < 16) || (spg > 24 && spg < 75) ||
              (spg > 80 && spg < 89) || (spg > 98 && spg < 143) || (spg > 146 && spg < 149) ||
              (spg > 155 && spg < 168) ||(spg > 173 && spg < 177) || ( spg > 184 && spg < 195) ||
                (spg > 199 && spg < 207) || (spg > 214)
-             )    
+             )
             {
                 return num_structures;
             }
@@ -120,7 +120,7 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
             {
                 return 0;
             }
-            
+
     }
 
     else if ( strcmp(spg_dist_type, "csd") == 0 )
@@ -132,6 +132,29 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
         for (int i = 0; i < len; i++)
         {
             if (csd_list[i] == spg)
+                return num_structures;
+        }
+
+        return 0;
+    }
+
+    else if(strcmp(spg_dist_type, "custom") == 0)
+    {
+        int custom[230], ret;
+        int nspg = 0;
+        FILE *fptr = fopen("spg", "r");
+
+        do
+        {
+            ret = fscanf(fptr, "%d", &custom[nspg]);
+            nspg++;
+
+        }while(ret != EOF);
+        nspg--;
+
+        for(int j = 0; j < nspg; j++)
+        {
+            if(custom[j] == spg)
                 return num_structures;
         }
 
