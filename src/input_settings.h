@@ -1,6 +1,11 @@
 #ifndef _INPUT_SETTINGS_H_
 #define _INPUT_SETTINGS_H_
 
+//generation types
+#define COCRYSTAL 1
+#define CRYSTAL   2
+#define LAYER     3
+
 typedef struct
 {
     int num_structures;
@@ -9,6 +14,8 @@ typedef struct
     int random_seed;
     int *stoic;
     int n_mol_types;
+    int generation_type;
+    int rigid_press;
     long max_attempts;
     char *spg_dist_type;
     float vol_mean;

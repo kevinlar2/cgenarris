@@ -16,7 +16,8 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
                  float* interface_area_mean,float* interface_area_std,
                  int* volume_multiplier,
                  float lattice_vector_2d[2][3], float* norm_dev,
-                 float* angle_std, int **stoic, int *mol_types)
+		 float* angle_std, int **stoic, int *mol_types,
+		 int *rigid_press)
 {
 	FILE *fileptr;
 	size_t len = 0;
@@ -33,91 +34,98 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 
 	//defaults
 	*sr = 0.85;
-    *norm_dev = 0.4;
-    *angle_std = 8;
+	*norm_dev = 0.4;
+	*angle_std = 8;
 	*vol_attempts = 100000;
-    *random_seed = 0;
+	*random_seed = 0;
 	*volume_multiplier = 3;
-    *interface_area_mean = 0;
-    *interface_area_std = 0;
-    lattice_vector_2d[0][0] = 0;
-    lattice_vector_2d[0][1] = 0;
-    lattice_vector_2d[0][2] = 0;
-    lattice_vector_2d[1][0] = 0;
-    lattice_vector_2d[1][2] = 0;
-    lattice_vector_2d[1][3] = 0;
-    strcpy(generation_type, "crystal");
-    *mol_types = 0;
+	*interface_area_mean = 0;
+	*interface_area_std = 0;
+	lattice_vector_2d[0][0] = 0;
+	lattice_vector_2d[0][1] = 0;
+	lattice_vector_2d[0][2] = 0;
+	lattice_vector_2d[1][0] = 0;
+	lattice_vector_2d[1][2] = 0;
+	lattice_vector_2d[1][3] = 0;
+	strcpy(generation_type, "crystal");
+	*mol_types = 0;
+	*rigid_press = 0;
 
 	//read from control
 	while ((read = getline(&line, &len, fileptr)) != -1)
 	{
 
 	    //if comment
-        if (strstr(line, "#") != NULL)
-                continue;
+	    if (strstr(line, "#") != NULL)
+	        continue;
 
 	    sub_line=strtok(line," ");
 
-        if(strcmp(sub_line, "Z") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *Z = atoi(sub_line);
-		    continue;
-		}
+	    if(strcmp(sub_line, "Z") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		*Z = atoi(sub_line);
+		continue;
+	    }
 
 	    if (strcmp(sub_line,"lattice_vector_a")==0)
-		{
+	    {
+	        sub_line = strtok(NULL,"        ");
+		lattice_vector_2d[0][0] = atof(sub_line);
+		sub_line = strtok(NULL,"        ");
+		lattice_vector_2d[0][1] = atof(sub_line);
+		sub_line = strtok(NULL,"        ");
 
-		    sub_line = strtok(NULL,"        ");
-		    lattice_vector_2d[0][0] = atof(sub_line);
-		    sub_line = strtok(NULL,"        ");
-		    lattice_vector_2d[0][1] = atof(sub_line);
-		    sub_line = strtok(NULL,"        ");
-
-            lattice_vector_2d[0][2] = atof(sub_line);
+		lattice_vector_2d[0][2] = atof(sub_line);
                 continue;
 
-		}
+	    }
 	    if (strcmp(sub_line,"lattice_vector_b")==0)
-		{
-		    sub_line = strtok(NULL,"        ");
-            lattice_vector_2d[1][0] = atof(sub_line);
-            sub_line = strtok(NULL,"        ");
-            lattice_vector_2d[1][1] = atof(sub_line);
-            sub_line = strtok(NULL,"        ");
-            lattice_vector_2d[1][2] = atof(sub_line);
-            continue;
-		}
+	    {
+	        sub_line = strtok(NULL,"        ");
+		lattice_vector_2d[1][0] = atof(sub_line);
+		sub_line = strtok(NULL,"        ");
+		lattice_vector_2d[1][1] = atof(sub_line);
+		sub_line = strtok(NULL,"        ");
+		lattice_vector_2d[1][2] = atof(sub_line);
+		continue;
+	    }
 
-        if (strcmp(sub_line,"generation_type") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-	        strcpy(generation_type, sub_line);
-            generation_type[strcspn(generation_type, "\n")] = 0;
-		    continue;
-		}
+	    if (strcmp(sub_line,"generation_type") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		strcpy(generation_type, sub_line);
+		generation_type[strcspn(generation_type, "\n")] = 0;
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "sr") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *sr = atof(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		*sr = atof(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "volume_mean") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *volume_mean = atof(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		*volume_mean = atof(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "volume_std") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *volume_std = atof(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		*volume_std = atof(sub_line);
+		continue;
+	    }
+
+	    if(strcmp(sub_line, "rigid_press") == 0)
+	    {
+	        sub_line = strtok(NULL, " ");
+		*rigid_press = atoi(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "interface_area_mean") == 0)
 		{
@@ -228,7 +236,7 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
    	}
 
 	fclose(fileptr);
-    *Zp_max = 192;
+	*Zp_max = 192;
 }
 
 
@@ -353,6 +361,7 @@ void print_input_settings(Settings set)
     printf("Lattice angle standard deviation:             %f\n", set.angle_std);
     printf("Lattice principal component deviation:        %f\n", set.norm_dev);
     printf("Tolerance:                                    %f\n", TOL);
+    printf("Use rigid press:                              %d\n", set.rigid_press);
     if(set.n_mol_types != 0)
     {
         printf("Number of Molecules:                          %d\n", set.n_mol_types);

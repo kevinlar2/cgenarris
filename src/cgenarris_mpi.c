@@ -54,6 +54,7 @@ int main(int argc, char **argv)
     float Zp_max;		//Z'' . not implemented
     int Z;				//multiplicity of general position
     int num_structures;	//num of structures per spg
+    int rigid_press; // Whether rigid press optimization should be performed
     long max_attempts;	//max attempts per space group
     float tol;
     char spg_dist_type[10];  //spg distribution type
@@ -66,24 +67,25 @@ int main(int argc, char **argv)
 
     read_geometry(mol, "geometry.in");				//read molecule from geometry.in
     read_control(&num_structures,
-        		 &Z,
-        		 &Zp_max,
-        		 &volume_mean,
-        		 &volume_std,
-        		 &sr,
-        		 &max_attempts,
+       		 &Z,
+       		 &Zp_max,
+       		 &volume_mean,
+       		 &volume_std,
+       		 &sr,
+       		 &max_attempts,
                  spg_dist_type,
                  &vol_attempt,
                  &random_seed,
-        		 generation_type,
-        		 &interface_area_mean,
-        		 &interface_area_std,
-        		 &volume_multiplier,
-        		 lattice_vector_2d,
+       		 generation_type,
+       		 &interface_area_mean,
+       		 &interface_area_std,
+       		 &volume_multiplier,
+       		 lattice_vector_2d,
                  &norm_dev,
                  &angle_std,
                  &stoic,
-                 &mol_types);	//get settings
+		 &mol_types,
+		 &rigid_press);	//get settings
 
     tol = TOL;
     int num_atoms_in_molecule = mol->num_of_atoms;
@@ -110,10 +112,10 @@ int main(int argc, char **argv)
 		spg_dist_type,
 		vol_attempt,
 		random_seed,
-        norm_dev,
-        angle_std,
-        stoic,
-        mol_types,
+		norm_dev,
+		angle_std,
+		stoic,
+		mol_types,
 		world_comm);
 	}
 
@@ -125,6 +127,7 @@ int main(int argc, char **argv)
         dim_vdw_matrix,
         num_structures,
         Z,
+	rigid_press,
         volume_mean,
         volume_std,
         tol,
