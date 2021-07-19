@@ -6,7 +6,7 @@
 
 #include "../crystal.h"
 #include "../cocrystal.h"
-#include "rigid-press.h"
+#include "rigid_press.h"
 
 void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type);
 
