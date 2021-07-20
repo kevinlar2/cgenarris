@@ -498,11 +498,13 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		        int cell_type = get_cell_type_from_spg(spg);
 		        time_t opt_s_time = time(NULL);
 		        printf("Started optimization\n");
+			print_crystal(random_crystal);
 			optimize_crystal(random_crystal, vdw_matrix, cell_type);
 			bring_all_molecules_to_first_cell(random_crystal);
 		        time_t opt_e_time = time(NULL);
 			double elapsed = difftime (opt_e_time, opt_s_time);
 			printf("Completed optimization in ~ %.1lf\n", elapsed);
+			print_crystal(random_crystal);
 		    }
 		    
                     //check if molecules are too close with sr
@@ -516,7 +518,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 
 		    else if(rigid_press)
 		    {
-		        printf("Failed");
+		        printf("Failed\n");
 			exit(1);
 		    }
 

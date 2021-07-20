@@ -509,4 +509,6 @@ int get_cell_type_from_spg(int spg)
         return 4;
     else if (spg <= 230)
         return 5;
+
+    return 0;
 }
