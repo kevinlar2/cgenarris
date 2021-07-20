@@ -10,12 +10,12 @@
 
 void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type);
 
-void read_vector(int size, char *path, double *vec)
+void read_vector(int size, char *path, float *vec)
 {
     FILE *file_ptr = fopen(path, "r");
 
     for(int i=0 ; i<size ; i++)
-    { fscanf(file_ptr, "%lf", vec+i); }
+    { fscanf(file_ptr, "%f", vec+i); }
 
     fclose(file_ptr);
 }
@@ -81,7 +81,9 @@ void print_crystal(crystal* xtal)
 void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
 {
     crystal xtl;
-    double *cutmat;
+    float *cutmat;
+
+    printf("Running example: %s\n", xdir);
 
     xtl.num_atoms_in_molecule = natoms_per_mol;
     xtl.Z = Z;
@@ -90,7 +92,7 @@ void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
     xtl.Ycord = (float*)malloc(sizeof(float)*num_atoms);
     xtl.Zcord = (float*)malloc(sizeof(float)*num_atoms);
     xtl.atoms = (char*)malloc(sizeof(char)*(2*num_atoms+1));
-    cutmat = (double*)malloc(sizeof(double)*num_atoms*num_atoms);
+    cutmat = (float*)malloc(sizeof(float)*num_atoms*num_atoms);
     for(int i=0 ; i<=2*num_atoms ; i++)
     { xtl.atoms[i] = ' '; }
 
@@ -116,7 +118,9 @@ void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
 
 int main(void)
 {
-  run_example("sample_structures/Example1", 12, 2, TRICLINIC);
+  //run_example("sample_structures/Example1", 12, 2, TRICLINIC);
+  //run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
+  run_example("sample_structures/failed_1", 30, 2, MONOCLINIC);
   // run_example("sample_structures/Example2", 12, 4, TRICLINIC);
   //run_example("sample_structures/Example5", 30, 4, MONOCLINIC);
   // run_example("sample_structures/Example4", 30, 2, TRICLINIC);
