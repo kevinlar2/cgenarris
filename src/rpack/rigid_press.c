@@ -842,7 +842,7 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
                      double *vec4)
 {
     double invphi = (sqrt(5.0) - 1.0)*0.5, invphi2 = (3.0 - sqrt(5.0))*0.5;
-    double a = 0.0, b = 1.0, c = invphi2, d = invphi, h = 1.0;
+    double a = 0.0, c = invphi2, d = invphi, h = 1.0;
     double yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4);
     double yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4);
 
@@ -850,7 +850,6 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
     {
         if(yc < yd)
         {
-            b = d;
             d = c;
             yd = yc;
             h *= invphi;
@@ -953,7 +952,7 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
     energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, workspace);
 
     // main optimization loop
-    int iter = 0, lwork = -1, info, inc = 1, progress = 1, six = 6;
+    int lwork = -1, info, inc = 1, six = 6;
     char jobz = 'V', uplo = 'U', notrans = 'N', trans = 'T';
     double work0, one = 1.0, zero = 0.0;
     double *grad = (double*)malloc(sizeof(double)*size);

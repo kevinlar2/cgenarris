@@ -14,6 +14,15 @@
 #define HEXAGONAL    4 // (a, 0, 0), (-a/2, a*sqrt(3)/2, 0), (0, 0, b)
 #define CUBIC        5 // (a, 0, 0), (0, a, 0), (0, 0, a)
 
+//Settings for optmization
+typedef struct
+{
+    int max_iteration;
+    int cell_family;
+  
+} Opt_settings;
+
+
 // optimizes a molecular crystal using a regularized rigid-body interaction
 void optimize_crystal(crystal *xtl, // a molecular crystal in the Genarris crystal format [1]
                       float *cutoff_matrix, // distance cutoff between pairs of atoms in the crystallized molecule [(xtl->Z*xtl->num_atoms_in_molecule)^2]
