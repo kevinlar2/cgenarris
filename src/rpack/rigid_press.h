@@ -18,17 +18,23 @@
 typedef struct
 {
     int max_iteration;
-    int cell_family;
+    int cell_family;   //See keys above
   
 } Opt_settings;
 
+typedef enum Opt_status
+{
+    SUCCESS,     // All good
+    ITER_LIMIT,  // Reached max iteration limit 
+    MISC_FAILURE // Some other reason for failure
+} Opt_status;
 
 // optimizes a molecular crystal using a regularized rigid-body interaction
-void optimize_crystal(crystal *xtl, // a molecular crystal in the Genarris crystal format [1]
+Opt_status optimize_crystal(crystal *xtl, // a molecular crystal in the Genarris crystal format [1]
                       float *cutoff_matrix, // distance cutoff between pairs of atoms in the crystallized molecule [(xtl->Z*xtl->num_atoms_in_molecule)^2]
-                      int family); // crystal family (see above key)
-void optimize_cocrystal(cocrystal *xtl, // a molecular crystal in the Genarris co-crystal format [1]
+		      Opt_settings set);
+Opt_status optimize_cocrystal(cocrystal *xtl, // a molecular crystal in the Genarris co-crystal format [1]
                         float *cutoff_matrix, // distance cutoff between pairs of atoms in the crystallized molecule [xtl->n_atoms^2]
-                        int family); // crystal family (see above key)
+                        Opt_settings set); 
 
 #endif

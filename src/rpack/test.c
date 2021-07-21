@@ -78,7 +78,7 @@ void print_crystal(crystal* xtal)
 }
 
 
-void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
+void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type)
 {
     crystal xtl;
     float *cutmat;
@@ -105,8 +105,18 @@ void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
     strcat(cutmat_path, "/cutoff_matrix.txt");
     read_vector(num_atoms*num_atoms, cutmat_path, cutmat);
     //print_crystal(&xtl);
-    optimize_crystal(&xtl, cutmat, cell_type);
-    print_crystal(&xtl);
+
+    Opt_settings set;
+    set.cell_family = cell_type;
+    set.max_iteration = 10;
+    Opt_status status = optimize_crystal(&xtl, cutmat, set);
+
+    if(status == SUCCESS)
+    { print_crystal(&xtl); }
+    else if(status  == ITER_LIMIT)
+    { printf("Optimization failed: Max iterations reached\n"); }
+    else
+    { printf("Optimization failed\n"); }
 
     free(xtl.Xcord);
     free(xtl.Ycord);
@@ -119,8 +129,8 @@ void run_example(char *xdir, int natoms_per_mol,int  Z, int cell_type)
 int main(void)
 {
   //run_example("sample_structures/Example1", 12, 2, TRICLINIC);
-  //run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
-  run_example("sample_structures/failed_1", 30, 2, MONOCLINIC);
+  run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
+  //run_example("sample_structures/failed_1", 30, 2, MONOCLINIC);
   // run_example("sample_structures/Example2", 12, 4, TRICLINIC);
   //run_example("sample_structures/Example5", 30, 4, MONOCLINIC);
   // run_example("sample_structures/Example4", 30, 2, TRICLINIC);

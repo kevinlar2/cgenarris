@@ -881,10 +881,11 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
 }
 
 // main loop of crystal optimization
-void optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
+Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
               double *state, // the crystal's state vector to be updated [6+7*xtl->nmol]
-              int family) // crystal family (see key in rigid-press.h)
+              Opt_settings set)
 {
+    int family = set.cell_family;
     int size = 6+7*xtl->nmol;
     double *workspace = (double*)malloc(sizeof(double)*size*2);
 
@@ -952,6 +953,7 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
     energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, workspace);
 
     // main optimization loop
+    int niter = 0; // iteration counter
     int lwork = -1, info, inc = 1, six = 6;
     char jobz = 'V', uplo = 'U', notrans = 'N', trans = 'T';
     double work0, one = 1.0, zero = 0.0;
@@ -1034,13 +1036,22 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
             state[5] = state[0];
             break;
         }
-    } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy));
+
+	niter++;
+    } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
+	    niter < set.max_iteration);
 
     free(workspace);
     free(grad);
     free(hess);
     free(ev);
     free(work);
+
+    if(niter == set.max_iteration)
+    {  return ITER_LIMIT; }
+
+    return SUCCESS;
+    
 }
 
 // adapted from pseudocode in "Converting a Rotation Matrix to a Quaternion" by Mike Day
@@ -1093,7 +1104,7 @@ void matrix2quaternion(double *rot, double *quat)
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-void optimize_crystal(crystal *xtl, float *cutoff_matrix, int family)
+Opt_status optimize_crystal(crystal *xtl, float *cutoff_matrix, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");
@@ -1106,8 +1117,11 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
+    int family = set.cell_family;
     // test of lattice vector formatting
-    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 || xtl->lattice_vectors[0][2] != 0.0 || xtl->lattice_vectors[1][2] != 0.0))
+    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
+		       xtl->lattice_vectors[0][2] != 0.0 ||
+		       xtl->lattice_vectors[1][2] != 0.0))
     { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
 
     // allocate memory for the temporary crystal data structure & state vector
@@ -1232,7 +1246,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     }
 
     // run the optimizer
-    optimize(&xtl2, state, family);
+    Opt_status status = optimize(&xtl2, state, set);
 
     // convert the result back to the original format
     for(int i=0 ; i<9 ; i++)
@@ -1280,10 +1294,12 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     free(state);
     free(geo);
     free(work);
+
+    return status;
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-void optimize_cocrystal(cocrystal *xtl, float *cutoff_matrix, int family)
+Opt_status optimize_cocrystal(cocrystal *xtl, float *cutoff_matrix, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");
@@ -1296,8 +1312,11 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
+    int family = set.cell_family;
     // test of lattice vector formatting
-    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 || xtl->lattice_vectors[0][2] != 0.0 || xtl->lattice_vectors[1][2] != 0.0))
+    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
+		       xtl->lattice_vectors[0][2] != 0.0 ||
+		       xtl->lattice_vectors[1][2] != 0.0))
     { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
 
     // allocate memory for the temporary crystal data structure & state vector
@@ -1459,7 +1478,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     }
 
     // run the optimizer
-    optimize(&xtl2, state, family);
+    Opt_status status = optimize(&xtl2, state, set);
 
     // convert the result back to the original format
     for(int i=0 ; i<9 ; i++)
@@ -1512,6 +1531,8 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     free(state);
     free(geo);
     free(work);
+
+    return status;
 }
 /*
 // test main
