@@ -495,13 +495,22 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		    // Use rigid packing optmization if requested
 		    if(rigid_press)
 		    {
-		        int cell_type = get_cell_type_from_spg(spg);
 		        time_t opt_s_time = time(NULL);
+			Opt_settings opt_set;
+			opt_set.cell_family = get_cell_type_from_spg(spg);
+			opt_set.max_iteration = 200;
 		        printf("Started optimization\n");
 			print_crystal(random_crystal);
-			optimize_crystal(random_crystal, vdw_matrix, cell_type);
+
+			Opt_status stat = optimize_crystal(random_crystal, vdw_matrix, opt_set);
+			if(stat != SUCCESS)
+			{
+			  verdict = 0;
+			  break;
+			}
 			bring_all_molecules_to_first_cell(random_crystal);
-		        time_t opt_e_time = time(NULL);
+
+			time_t opt_e_time = time(NULL);
 			double elapsed = difftime (opt_e_time, opt_s_time);
 			printf("Completed optimization in ~ %.1lf\n", elapsed);
 			print_crystal(random_crystal);
