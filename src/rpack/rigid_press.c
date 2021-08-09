@@ -1122,7 +1122,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
 		       xtl->lattice_vectors[0][2] != 0.0 ||
 		       xtl->lattice_vectors[1][2] != 0.0))
-    { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
+    {return MISC_FAILURE;}
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
@@ -1317,7 +1317,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
 		       xtl->lattice_vectors[0][2] != 0.0 ||
 		       xtl->lattice_vectors[1][2] != 0.0))
-    { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
+    {return MISC_FAILURE;}
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
@@ -1369,7 +1369,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
             jmol += xtl->n_atoms_in_mol[imol];
             imol++;
             if(imol == xtl2.nmol)
-            { printf("ERROR: molecule type not found in optimize_cocrystal"); exit(1); }
+	    { printf("ERROR: molecule type not found in optimize_cocrystal"); return MISC_FAILURE; }
         }
 
         xtl2.natom[i] = xtl->n_atoms_in_mol[imol];

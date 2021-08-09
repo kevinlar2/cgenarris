@@ -108,7 +108,7 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type)
 
     Opt_settings set;
     set.cell_family = cell_type;
-    set.max_iteration = 10;
+    set.max_iteration = 400;
     Opt_status status = optimize_crystal(&xtl, cutmat, set);
 
     if(status == SUCCESS)
@@ -128,10 +128,10 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type)
 
 int main(void)
 {
-  //run_example("sample_structures/Example1", 12, 2, TRICLINIC);
-  run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
+  run_example("sample_structures/Example1", 12, 2, TRICLINIC);
+  //run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
   //run_example("sample_structures/failed_1", 30, 2, MONOCLINIC);
-  // run_example("sample_structures/Example2", 12, 4, TRICLINIC);
+  //run_example("sample_structures/Example2", 12, 4, TRICLINIC);
   //run_example("sample_structures/Example5", 30, 4, MONOCLINIC);
   // run_example("sample_structures/Example4", 30, 2, TRICLINIC);
     return 0;
