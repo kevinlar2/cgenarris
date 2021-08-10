@@ -128,111 +128,116 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 	    }
 
 	    if(strcmp(sub_line, "interface_area_mean") == 0)
-		{
+	    {
 		    sub_line = strtok(NULL," ");
 		    *interface_area_mean = atof(sub_line);
 		    continue;
-		}
+	    }
 
 	    if(strcmp(sub_line, "interface_area_std") == 0)
-		{
+	    {
 		    sub_line = strtok(NULL," ");
 		    *interface_area_std = atof(sub_line);
 		    continue;
-		}
+	    }
 
 	    if(strcmp(sub_line, "volume_multiplier") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *volume_multiplier = atof(sub_line);
-            continue;
-        }
+	    {
+	        sub_line = strtok(NULL," ");
+		*volume_multiplier = atof(sub_line);
+		continue;
+	    }
 	    if(strcmp(sub_line, "number_of_structures") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *num_structures = atoi(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		*num_structures = atoi(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "tolerance") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    TOL = atof(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		TOL = atof(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "max_attempts") == 0)
-		{
-		    sub_line = strtok(NULL," ");
-		    *max_attempts = atol(sub_line);
-		    continue;
-		}
+	    {
+	        sub_line = strtok(NULL," ");
+		*max_attempts = atol(sub_line);
+		continue;
+	    }
 
-        if(strcmp(sub_line, "lattice_angle_std") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *angle_std = atof(sub_line);
-            continue;
-        }
+	    if(strcmp(sub_line, "lattice_angle_std") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		*angle_std = atof(sub_line);
+		continue;
+	    }
 
-        if(strcmp(sub_line, "lattice_norm_dev") == 0)
-        {
-            sub_line = strtok(NULL," ");
-            *norm_dev = atof(sub_line);
-            continue;
-        }
+	    if(strcmp(sub_line, "lattice_norm_dev") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		*norm_dev = atof(sub_line);
+		continue;
+	    }
 
 	    if(strcmp(sub_line, "spg_distribution_type") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		sub_line = strtok(sub_line, "\n");
+		strcpy(spg_dist_type, sub_line);
+
+		// Remove carriage at the end return if present
+		int len = strlen(spg_dist_type);
+		if(spg_dist_type[len-1] == '\r' || spg_dist_type[len-1] == '\n')
+		    spg_dist_type[len-1] = '\0';
+
+		if( !strcmp(spg_dist_type, "standard") ||
+		    !strcmp(spg_dist_type, "uniform")  ||
+		    !strcmp(spg_dist_type, "chiral")   ||
+		    !strcmp(spg_dist_type, "racemic")  ||
+		    !strcmp(spg_dist_type, "csd")       
+		   )
 		{
-		    sub_line = strtok(NULL," ");
-		    sub_line = strtok(sub_line, "\n");
-		    strcpy(spg_dist_type, sub_line);
-		    if(!( strcmp(spg_dist_type, "standard") ||
-			      strcmp(spg_dist_type, "uniform")  ||
-			      strcmp(spg_dist_type, "chiral")   ||
-                  strcmp(spg_dist_type, "racemic")  ||
-			      strcmp(spg_dist_type, "csd")       )
-               )
-			{
-				printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
-				exit(EXIT_FAILURE);
-			}
-			continue;
+		    printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
+		    exit(EXIT_FAILURE);
 		}
+		continue;
+	    }
 
-        if(strcmp(sub_line, "random_seed") == 0)
-        {
-        	sub_line = strtok(NULL," ");
-        	*random_seed = atoi(sub_line);
-        	continue;
-       	}
+	    if(strcmp(sub_line, "random_seed") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		*random_seed = atoi(sub_line);
+		continue;
+	    }
 
-        if(strcmp(sub_line, "volume_attempts") == 0)
-        {
-           	sub_line = strtok(NULL," ");
-            int inp = atoi(sub_line);
-            if(inp != 0)
-                *vol_attempts = inp;
-            continue;
-        }
+	    if(strcmp(sub_line, "volume_attempts") == 0)
+	    {
+	        sub_line = strtok(NULL," ");
+		int inp = atoi(sub_line);
+		if(inp != 0)
+		    *vol_attempts = inp;
+		continue;
+	    }
 
-        if(strcmp(sub_line, "molecule_types") == 0)
-        {
-            sub_line = strtok(NULL, " ");
-            *mol_types = atoi(sub_line);
-            continue;
-        }
-
-        if(strcmp(sub_line, "stochiometry") == 0)
-        {
-            *stoic = (int *)malloc(2*sizeof(int));
-            sub_line = strtok(NULL, " ");
-            (*stoic)[0] = atoi(sub_line);
-            sub_line = strtok(NULL, " ");
-            (*stoic)[1] = atoi(sub_line);
-
-        }
-
+	    if(strcmp(sub_line, "molecule_types") == 0)
+	    {
+	        sub_line = strtok(NULL, " ");
+		*mol_types = atoi(sub_line);
+		continue;
+	    }
+	    
+	    if(strcmp(sub_line, "stochiometry") == 0)
+	    {
+	        *stoic = (int *)malloc(2*sizeof(int));
+		sub_line = strtok(NULL, " ");
+		(*stoic)[0] = atoi(sub_line);
+		sub_line = strtok(NULL, " ");
+		(*stoic)[1] = atoi(sub_line);
+		
+	    }
    	}
 
 	fclose(fileptr);
