@@ -778,16 +778,62 @@ void total_energy_derivative_test(struct molecular_crystal *xtl, // description 
     free(dummy);
 }
 
-// renormalize quaternions
+// renormalize quaternions, canonicalize lattice vectors, & recenter molecules
 void renormalize(int nmol, // number of molecules in the state vector
                  double *state) // state vector [6+7*nmol]
 {
+    // renormalize quaternions
     for(int i=0 ; i<nmol ; i++)
     {
         double renorm = 1.0/sqrt(state[9+7*i]*state[9+7*i] + state[10+7*i]*state[10+7*i]
                                 + state[11+7*i]*state[11+7*i] + state[12+7*i]*state[12+7*i]);
         for(int j=0 ; j<4 ; j++)
         { state[9+j+7*i] *= renorm; }
+    }
+
+    // canonicalize lattice vectors
+    int num;
+    if(state[2]*state[4] > 0.0)
+    { num = state[4]/state[2] + 0.5; }
+    else
+    { num = state[4]/state[2] - 0.5; }
+    state[3] -= num*state[1];
+    state[4] -= num*state[2];
+
+    if(state[0]*state[1] > 0.0)
+    { num = state[1]/state[0] + 0.5; }
+    else
+    { num = state[1]/state[0] - 0.5; }
+    state[1] -= num*state[0];
+
+    if(state[0]*state[3] > 0.0)
+    { num = state[3]/state[0] + 0.5; }
+    else
+    { num = state[3]/state[0] - 0.5; }
+    state[3] -= num*state[0];
+
+    // recenter molecules
+    double reclat[6];
+    reciprocal(state, reclat);
+    for(int i=0 ; i<nmol ; i++)
+    {
+        double wt = state[6+7*i]*reclat[0] + state[7+7*i]*reclat[1] + state[8+7*i]*reclat[2];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[0];
+
+        wt = state[7+7*i]*reclat[3] + state[8+7*i]*reclat[4];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[1];
+        state[7+7*i] -= num*state[2];
+
+        wt = state[8+7*i]*reclat[5];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[3];
+        state[7+7*i] -= num*state[4];
+        state[8+7*i] -= num*state[5];
     }
 }
 
@@ -877,7 +923,7 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
     for(int i=0 ; i<size ; i++)
     { state[i] = vec4[i]; }
     renormalize(xtl->nmol, state);
-    return ymin;
+    return total_energy(xtl, state); // recompute energy a final time to account for numerical drift during renormalization
 }
 
 // main loop of crystal optimization
