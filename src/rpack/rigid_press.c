@@ -43,6 +43,9 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // optimization tolerance on energy change in 1 iteration relative to minimum energy
 #define OPTIMIZATION_TOLERANCE 1e-6
 
+// numerical floor for Hessian eigenvalues relative to the maximum eigenvalue
+#define HESSIAN_FLOOR 1e-8
+
 // step size for numerical tests of analytical derivatives
 #define STEP 1e-4
 
@@ -869,7 +872,10 @@ double quad_search(double x, // optimization variable [0,1]
     for(int i=0 ; i<size ; i++)
     {
         work[i] = state[i];
-        work[i+size] = -x*grad[i]/(fabs(x*eval[i]) + (1-x)*fabs(eval[size-1]));
+        if(eval[i] > fabs(eval[size-1])*HESSIAN_FLOOR)
+        { work[i+size] = -x*grad[i]/(x*eval[i] + (1-x)*fabs(eval[size-1])*HESSIAN_FLOOR); }
+        else
+        { work[i+size] = -x*grad[i]/(fabs(eval[size-1])*HESSIAN_FLOOR); }
     }
     char notrans = 'N';
     int inc = 1;
