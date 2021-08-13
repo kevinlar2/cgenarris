@@ -484,6 +484,18 @@ void bound_box(int natom, // number of atoms in the molecule
     }
 }
 
+// form reciprocal lattice vectors
+void reciprocal(double *latvec, // lattice vectors (1st: x, 2nd: x-y, 3rd: x-y-z) [6]
+                double *reclat) // reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z) [6]
+{
+    double wt = 1.0/(latvec[0]*latvec[2]*latvec[5]);
+    reclat[0] = wt*latvec[2]*latvec[5];
+    reclat[1] = -wt*latvec[1]*latvec[5];
+    reclat[2] = wt*(latvec[1]*latvec[4] - latvec[2]*latvec[3]);
+    reclat[3] = wt*latvec[5]*latvec[0];
+    reclat[4] = -wt*latvec[4]*latvec[0];
+    reclat[5] = wt*latvec[0]*latvec[2];
+}
 
 // energy function that we are minimizing to relax the molecular crystal
 double total_energy(struct molecular_crystal *xtl, // description of the crystal being optimized
@@ -492,13 +504,8 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
     double energy = fabs(state[0]*state[2]*state[5]);
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
@@ -590,13 +597,8 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
     hess[5 + 2*size] = fabs(state[0])*sign2*sign5;
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
