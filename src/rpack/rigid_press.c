@@ -43,6 +43,9 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // optimization tolerance on energy change in 1 iteration relative to minimum energy
 #define OPTIMIZATION_TOLERANCE 1e-6
 
+// numerical floor for Hessian eigenvalues relative to the maximum eigenvalue
+#define HESSIAN_FLOOR 1e-8
+
 // step size for numerical tests of analytical derivatives
 #define STEP 1e-4
 
@@ -484,6 +487,18 @@ void bound_box(int natom, // number of atoms in the molecule
     }
 }
 
+// form reciprocal lattice vectors
+void reciprocal(double *latvec, // lattice vectors (1st: x, 2nd: x-y, 3rd: x-y-z) [6]
+                double *reclat) // reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z) [6]
+{
+    double wt = 1.0/(latvec[0]*latvec[2]*latvec[5]);
+    reclat[0] = wt*latvec[2]*latvec[5];
+    reclat[1] = -wt*latvec[1]*latvec[5];
+    reclat[2] = wt*(latvec[1]*latvec[4] - latvec[2]*latvec[3]);
+    reclat[3] = wt*latvec[5]*latvec[0];
+    reclat[4] = -wt*latvec[4]*latvec[0];
+    reclat[5] = wt*latvec[0]*latvec[2];
+}
 
 // energy function that we are minimizing to relax the molecular crystal
 double total_energy(struct molecular_crystal *xtl, // description of the crystal being optimized
@@ -492,13 +507,8 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
     double energy = fabs(state[0]*state[2]*state[5]);
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
@@ -590,13 +600,8 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
     hess[5 + 2*size] = fabs(state[0])*sign2*sign5;
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
@@ -778,16 +783,62 @@ void total_energy_derivative_test(struct molecular_crystal *xtl, // description 
     free(dummy);
 }
 
-// renormalize quaternions
+// renormalize quaternions, canonicalize lattice vectors, & recenter molecules
 void renormalize(int nmol, // number of molecules in the state vector
                  double *state) // state vector [6+7*nmol]
 {
+    // renormalize quaternions
     for(int i=0 ; i<nmol ; i++)
     {
         double renorm = 1.0/sqrt(state[9+7*i]*state[9+7*i] + state[10+7*i]*state[10+7*i]
                                 + state[11+7*i]*state[11+7*i] + state[12+7*i]*state[12+7*i]);
         for(int j=0 ; j<4 ; j++)
         { state[9+j+7*i] *= renorm; }
+    }
+
+    // canonicalize lattice vectors
+    int num;
+    if(state[2]*state[4] > 0.0)
+    { num = state[4]/state[2] + 0.5; }
+    else
+    { num = state[4]/state[2] - 0.5; }
+    state[3] -= num*state[1];
+    state[4] -= num*state[2];
+
+    if(state[0]*state[1] > 0.0)
+    { num = state[1]/state[0] + 0.5; }
+    else
+    { num = state[1]/state[0] - 0.5; }
+    state[1] -= num*state[0];
+
+    if(state[0]*state[3] > 0.0)
+    { num = state[3]/state[0] + 0.5; }
+    else
+    { num = state[3]/state[0] - 0.5; }
+    state[3] -= num*state[0];
+
+    // recenter molecules
+    double reclat[6];
+    reciprocal(state, reclat);
+    for(int i=0 ; i<nmol ; i++)
+    {
+        double wt = state[6+7*i]*reclat[0] + state[7+7*i]*reclat[1] + state[8+7*i]*reclat[2];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[0];
+
+        wt = state[7+7*i]*reclat[3] + state[8+7*i]*reclat[4];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[1];
+        state[7+7*i] -= num*state[2];
+
+        wt = state[8+7*i]*reclat[5];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[3];
+        state[7+7*i] -= num*state[4];
+        state[8+7*i] -= num*state[5];
     }
 }
 
@@ -821,7 +872,10 @@ double quad_search(double x, // optimization variable [0,1]
     for(int i=0 ; i<size ; i++)
     {
         work[i] = state[i];
-        work[i+size] = -x*grad[i]/(fabs(x*eval[i]) + (1-x)*fabs(eval[size-1]));
+        if(eval[i] > fabs(eval[size-1])*HESSIAN_FLOOR)
+        { work[i+size] = -x*grad[i]/(x*eval[i] + (1-x)*fabs(eval[size-1])*HESSIAN_FLOOR); }
+        else
+        { work[i+size] = -x*grad[i]/(fabs(eval[size-1])*HESSIAN_FLOOR); }
     }
     char notrans = 'N';
     int inc = 1;
@@ -877,7 +931,7 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
     for(int i=0 ; i<size ; i++)
     { state[i] = vec4[i]; }
     renormalize(xtl->nmol, state);
-    return ymin;
+    return total_energy(xtl, state); // recompute energy a final time to account for numerical drift during renormalization
 }
 
 // main loop of crystal optimization
