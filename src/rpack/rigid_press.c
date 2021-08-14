@@ -840,6 +840,8 @@ void renormalize(int nmol, // number of molecules in the state vector
         state[7+7*i] -= num*state[4];
         state[8+7*i] -= num*state[5];
     }
+
+    // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -881,6 +883,7 @@ double quad_search(double x, // optimization variable [0,1]
     int inc = 1;
     double one = 1.0;
     dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
+    renormalize(xtl->nmol, work);
     return total_energy(xtl, work);
 }
 
@@ -930,8 +933,7 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
     int size = 6+7*xtl->nmol;
     for(int i=0 ; i<size ; i++)
     { state[i] = vec4[i]; }
-    renormalize(xtl->nmol, state);
-    return total_energy(xtl, state); // recompute energy a final time to account for numerical drift during renormalization
+    return ymin;
 }
 
 // main loop of crystal optimization
