@@ -3,10 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "../spglib.h"
 #include "../algebra.h"
 
+void symmetrize_matrix(float *mat, int dim, int spg);
 /*
   Symmetrizes a vector wrt symmetry operations of a spg.
   Can be used for symmetrizing positions and position gradients.
@@ -85,9 +87,29 @@ void test_symmetrize_vector()
 	printf("%f %f %f\n", vec[0 + 3*i], vec[1 + 3*i], vec[2 + 3*i]);
 }
 
+void test_symmetrize_matrix()
+{
+    float mat[] = { 1.02, 0, 0, 0,  1, 0, 0, 0,  1,
+		    -1, 0, 0, 0, -1.05, 0, 0, 0, -1};
+    int dim = 2;
+    int spg = 2;
+
+   symmetrize_matrix(mat, dim, spg);
+
+    for(int i = 0; i < dim; i++)
+    for(int j = 0; j < 3; j++)
+	printf("%f, %f, %f \n",
+	       mat[9*i + 0 + 3*j],
+	       mat[9*i + 1 + 3*j],
+	       mat[9*i + 2 + 3*j]
+	       );
+}
+
 int main()
 {
-    test_symmetrize_vector();
+    //test_symmetrize_vector();
+
+    test_symmetrize_matrix();
 }
 
 /*
@@ -96,6 +118,10 @@ int main()
   mat, size -> input square matrix and its dimension. Shape = (dim, 3, 3)
   lattice   -> lattice vectors in row major form.
   spg       -> spacegroup which defines the symm operations.
+
+  NOTE : Average rotation cannot be calculated using simple mean.
+  Assumption is that elements of the input matrices are very close to
+  each other.
 */
 
 void symmetrize_matrix(float *mat, int dim, int spg)
@@ -122,7 +148,7 @@ void symmetrize_matrix(float *mat, int dim, int spg)
 	float inv_rot[3][3]; 
 	inverse_mat3b3(inv_rot, rot);
 
-	float (*mat_i)[3] = (float (*)[3]) mat + 3*3*op;
+	float (*mat_i)[3] = (float (*)[3]) (mat + 3*3*op);
 	mat3b3_mat3b3_multiply(inv_rot, mat_i, temp);
 	mat3b3_add(temp, mat_symm, mat_symm);
     }
@@ -132,6 +158,13 @@ void symmetrize_matrix(float *mat, int dim, int spg)
     for(int j = 0; j < 3; j++)
 	mat_symm[i][j] /= Z;
 
+    // For safety, ensure det(R) = 1
+    float det = det_mat3b3(mat_symm);
+    float renorm = fabsf(1.0 / cbrtf(det));
+    for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
+	mat_symm[i][j] *= renorm;
+    
     // Apply symm operation to get full mat
     for(int op = 0; op < Z; op++)
     {
@@ -140,8 +173,8 @@ void symmetrize_matrix(float *mat, int dim, int spg)
 			   {rot_i[1][0], rot_i[1][1], rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1], rot_i[2][2]}};
 
-	float (*mat_i)[3] = (float (*)[3]) mat + 3*3*op;
+	float (*mat_i)[3] = (float (*)[3]) (mat + 3*3*op);
 	mat3b3_mat3b3_multiply(rot, mat_symm, mat_i);
     }
-}
 
+}
