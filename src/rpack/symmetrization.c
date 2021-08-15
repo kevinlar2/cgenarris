@@ -8,6 +8,9 @@
 #include "../spglib.h"
 #include "../algebra.h"
 
+static void quaternion2matrix(float *quat, float *mat);
+static void matrix2quaternion(float *rot, float *quat);
+
 void symmetrize_matrix(float *mat, int dim, int spg);
 /*
   Symmetrizes a vector wrt symmetry operations of a spg.
@@ -176,5 +179,75 @@ void symmetrize_matrix(float *mat, int dim, int spg)
 	float (*mat_i)[3] = (float (*)[3]) (mat + 3*3*op);
 	mat3b3_mat3b3_multiply(rot, mat_symm, mat_i);
     }
-
 }
+
+// https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
+static void quaternion2matrix(float *quat, float *mat)
+{
+    float s = 1.0/(quat[0]*quat[0] +
+		   quat[1]*quat[1] +
+		   quat[2]*quat[2] +
+		   quat[3]*quat[3]);
+
+    mat[0] = 1 - 2 * s * (quat[2]*quat[2] + quat[3]*quat[3]);
+    mat[4] = 1 - 2 * s * (quat[1]*quat[1] + quat[3]*quat[3]);
+    mat[8] = 1 - 2 * s * (quat[2]*quat[2] + quat[1]*quat[1]);
+
+    mat[1] = 2 * s * (quat[1]*quat[2] - quat[3]*quat[0]);
+    mat[2] = 2 * s * (quat[1]*quat[3] + quat[2]*quat[0]);
+
+    mat[3] = 2 * s * (quat[1]*quat[2] + quat[3]*quat[0]);
+    mat[5] = 2 * s * (quat[2]*quat[3] - quat[1]*quat[0]);
+    
+    mat[6] = 2 * s * (quat[1]*quat[3] - quat[2]*quat[0]);
+    mat[7] = 2 * s * (quat[2]*quat[3] + quat[1]*quat[0]);
+}
+
+static void matrix2quaternion(float *rot, float *quat)
+{
+    float t;
+    if (rot[2+2*3] < 0.0)
+    {
+        if (rot[0+0*3] > rot[1+1*3])
+        {
+            t = 1.0 + rot[0+0*3] - rot[1+1*3] - rot[2+2*3];
+            quat[0] = rot[2+1*3]-rot[1+2*3];
+            quat[1] = t;
+            quat[2] = rot[1+0*3]+rot[0+1*3];
+            quat[3] = rot[2+0*3]+rot[0+2*3];
+        }
+        else
+        {
+            t = 1.0 - rot[0+0*3] + rot[1+1*3] - rot[2+2*3];
+            quat[0] = rot[0+2*3]-rot[2+0*3];
+            quat[1] = rot[1+0*3]+rot[0+1*3];
+            quat[2] = t;
+            quat[3] = rot[2+1*3]+rot[1+2*3];
+        }
+    }
+    else
+    {
+        if (rot[0+0*3] < -rot[1+1*3])
+        {
+            t = 1.0 - rot[0+0*3] - rot[1+1*3] + rot[2+2*3];
+            quat[0] = rot[1+0*3]-rot[0+1*3];
+            quat[1] = rot[0+2*3]+rot[2+0*3];
+            quat[2] = rot[2+1*3]+rot[1+2*3];
+            quat[3] = t;
+        }
+        else
+        {
+            t = 1.0 + rot[0+0*3] + rot[1+1*3] + rot[2+2*3];
+            quat[0] = t;
+            quat[1] = rot[2+1*3]-rot[1+2*3];
+            quat[2] = rot[0+2*3]-rot[2+0*3];
+            quat[3] = rot[1+0*3]-rot[0+1*3];
+        }
+    }
+    t = 0.5/sqrt(t);
+    quat[0] *= t;
+    quat[1] *= t;
+    quat[2] *= t;
+    quat[3] *= t;
+}
+
