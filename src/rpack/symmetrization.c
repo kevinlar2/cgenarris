@@ -108,11 +108,25 @@ void test_symmetrize_matrix()
 	       );
 }
 
+void test_rot_quat_conversion()
+{
+    float mat[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+    float quat[4];
+
+    for(int j = 0; j < 3; j++)
+	printf("%f, %f, %f \n",
+	       mat[0 + 3*j],
+	       mat[1 + 3*j],
+	       mat[2 + 3*j]
+	       );
+
+}
+
 int main()
 {
     //test_symmetrize_vector();
-
-    test_symmetrize_matrix();
+    //test_symmetrize_matrix();
+    test_rot_quat_conversion();
 }
 
 /*
