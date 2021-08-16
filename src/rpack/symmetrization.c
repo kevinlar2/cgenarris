@@ -7,11 +7,15 @@
 
 #include "../spglib.h"
 #include "../algebra.h"
+#include "symmetrization.h"
 
-static void quaternion2matrix(float *quat, float *mat);
-static void matrix2quaternion(float *rot, float *quat);
+static void quaternion2matrix(float *quat, float *mat, const int inv);
+static void matrix2quaternion(float *rot, float *quat, int *inv);
+static void symmetrize_matrix(float *mat, int dim, int spg);
+static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg);
 
-void symmetrize_matrix(float *mat, int dim, int spg);
+static void test_symmetrize_state();
+
 /*
   Symmetrizes a vector wrt symmetry operations of a spg.
   Can be used for symmetrizing positions and position gradients.
@@ -21,7 +25,7 @@ void symmetrize_matrix(float *mat, int dim, int spg);
   lattice   -> lattice vectors in row major form
   spg       -> spacegroup which defines the symm operations.
 */
-void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
+static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 {
     // Get symm operations
     double translations[192][3];
@@ -31,10 +35,11 @@ void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 					   translations,
 					   hall_number);
     assert(dim == Z);
-
+    
     // Get inverse lattice
     float inverse_lattice[3][3], inverse_lattice_t[3][3], lattice_t[3][3];
     inverse_mat3b3(inverse_lattice, lattice);
+
     mat3b3_transpose(inverse_lattice_t, inverse_lattice);
     mat3b3_transpose(lattice_t, lattice);
 
@@ -110,23 +115,34 @@ void test_symmetrize_matrix()
 
 void test_rot_quat_conversion()
 {
-    float mat[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+    float mat[9] = {-1, 0, 0, 0, -1, 0, 0, 0, -1};
     float quat[4];
-
+    int inv;
     for(int j = 0; j < 3; j++)
 	printf("%f, %f, %f \n",
 	       mat[0 + 3*j],
 	       mat[1 + 3*j],
 	       mat[2 + 3*j]
 	       );
+    
+    matrix2quaternion(mat, quat, &inv);
+    printf("quat = %f %f %f %f %d\n", quat[0], quat[1], quat[2], quat[3], inv);
 
-}
+    quaternion2matrix(quat, mat, inv);
+    for(int j = 0; j < 3; j++)
+	printf("%f, %f, %f \n",
+	       mat[0 + 3*j],
+	       mat[1 + 3*j],
+	       mat[2 + 3*j]
+	       );
+ }
 
 int main()
 {
-    //test_symmetrize_vector();
-    //test_symmetrize_matrix();
-    test_rot_quat_conversion();
+    test_symmetrize_vector();
+    test_symmetrize_matrix();
+    //test_rot_quat_conversion();
+    test_symmetrize_state();
 }
 
 /*
@@ -196,7 +212,8 @@ void symmetrize_matrix(float *mat, int dim, int spg)
 }
 
 // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
-static void quaternion2matrix(float *quat, float *mat)
+// inv takes -1 or +1 and determines if the rotation is proper or improper
+static void quaternion2matrix(float *quat, float *mat, const int inv)
 {
     float s = 1.0/(quat[0]*quat[0] +
 		   quat[1]*quat[1] +
@@ -215,10 +232,30 @@ static void quaternion2matrix(float *quat, float *mat)
     
     mat[6] = 2 * s * (quat[1]*quat[3] - quat[2]*quat[0]);
     mat[7] = 2 * s * (quat[2]*quat[3] + quat[1]*quat[0]);
+
+    for(int i = 0; i < 9; i++)
+	mat[i] *= inv;
 }
 
-static void matrix2quaternion(float *rot, float *quat)
+// inv -> +1 or -1 depending on proper/improper rotation
+static void matrix2quaternion(float *rot, float *quat, int *inv)
 {
+
+    float det = rot[0+0*3]*rot[1+1*3]*rot[2+2*3]
+	-rot[0+0*3]*rot[1+2*3]*rot[2+1*3]
+	+rot[0+1*3]*rot[1+2*3]*rot[2+0*3]
+	-rot[0+1*3]*rot[1+0*3]*rot[2+2*3]
+	+rot[0+2*3]*rot[1+0*3]*rot[2+1*3]
+	-rot[0+2*3]*rot[1+1*3]*rot[2+0*3];
+
+    if(det < 0)
+	*inv = -1;
+    else
+	*inv = +1;
+
+    for(int i = 0; i < 9; i++)
+	rot[i] *= *inv;
+    
     float t;
     if (rot[2+2*3] < 0.0)
     {
@@ -263,5 +300,86 @@ static void matrix2quaternion(float *rot, float *quat)
     quat[1] *= t;
     quat[2] *= t;
     quat[3] *= t;
+    
+}
+
+void test_symmetrize_state()
+{
+    double state[6 + 2*7] = {1, 0, 1, 0, 0, 1,
+			     5, 4, 6,
+			     1, 0, 0, 0,   
+			     -2, 1, -6,
+			     1, 0, 0, 0};   
+    int nmol = 2;
+    int invert[2] = {1, -1};
+    int spg = 2;
+    symmetrize_state(state, invert, nmol, spg);
+    for(int i = 0; i < 7*nmol + 6; i++)
+	printf("%f ", state[i]);
+}
+
+void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
+{
+    // Collect position vectors
+    float pos[nmol * 3];
+    int dim = 0;
+
+    float lattice[3][3] = {state[0],        0,       0,
+			   state[1], state[2],       0,
+			   state[3], state[4], state[5]};
+
+    // each mol is represented by 7 numbers; first 3 are positions
+    for(int i = 6; i < 7*nmol + 6; i += 7)
+    {
+	pos[3*dim + 0] = state[i + 0];
+	pos[3*dim + 1] = state[i + 1];
+	pos[3*dim + 2] = state[i + 2];
+	dim++;
+    }
+    symmetrize_vector(pos, dim, lattice, spg);
+
+    // Collect orientational quaternions and convert to rotation matrices
+    float quat[4];
+    float mat[nmol*3*3];
+    dim = 0;
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+	quat[0] = state[i + 0];
+	quat[1] = state[i + 1];
+	quat[2] = state[i + 2];
+	quat[3] = state[i + 3];
+	quaternion2matrix(quat, mat + 3*3*dim, invert[dim]);
+	dim++;
+    }
+    symmetrize_matrix(mat, dim, spg);
+
+    // Convert back to quaternions
+    dim = 0;
+    float quat_all[nmol*4];
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+	matrix2quaternion(mat + 3*3*dim, quat_all + 4*dim, invert + dim);
+	dim++;
+    }
+
+    // Fill in state vector using the results
+    dim = 0;
+    for(int i = 6; i < 7*nmol + 6; i += 7)
+    {
+	state[i + 0] = pos[3*dim + 0];
+	state[i + 1] = pos[3*dim + 1];
+	state[i + 2] = pos[3*dim + 2];
+	dim ++;
+    }
+    dim = 0;
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+        state[i + 0] = quat_all[4*dim + 0];
+        state[i + 1] = quat_all[4*dim + 1];
+        state[i + 2] = quat_all[4*dim + 2];
+        state[i + 3] = quat_all[4*dim + 3];
+	dim++;
+    }
+    
 }
 
