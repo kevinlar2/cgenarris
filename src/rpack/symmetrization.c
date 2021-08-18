@@ -136,7 +136,7 @@ void test_rot_quat_conversion()
 	       mat[2 + 3*j]
 	       );
  }
-
+/*
 int main()
 {
     test_symmetrize_vector();
@@ -144,7 +144,7 @@ int main()
     //test_rot_quat_conversion();
     test_symmetrize_state();
 }
-
+*/
 /*
   Symmetrizes a matrix wrt symmetry operations of a spg.
   Useful for rotation matrices.
