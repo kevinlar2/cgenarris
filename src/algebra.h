@@ -89,4 +89,20 @@ static inline void vector3_add(float a[3], float b[3], float sum[3])
     return;
 }
 
+static inline void mat3b3_add(float a[3][3], float b[3][3], float sum[3][3])
+{
+    sum[0][0] = a[0][0] + b[0][0];
+    sum[0][1] = a[0][1] + b[0][1];
+    sum[0][2] = a[0][2] + b[0][2];
+
+    sum[1][0] = a[1][0] + b[1][0];
+    sum[1][1] = a[1][1] + b[1][1];
+    sum[1][2] = a[1][2] + b[1][2];
+
+    sum[2][0] = a[2][0] + b[2][0];
+    sum[2][1] = a[2][1] + b[2][1];
+    sum[2][2] = a[2][2] + b[2][2];
+}
+
+
 #endif
