@@ -22,8 +22,9 @@
 #include "../crystal.h"
 #include "../cocrystal.h"
 #include "rigid_press.h"
+#include "symmetrization.h"
 
-// prototypes for external dependencies (BLAS & LAPACK)
+//prototypes for external dependencies (BLAS & LAPACK)
 void dgemv_(char*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
 void dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
 void dsyev_(char*, char*, int*, double*, int*, double*, double*, int*, int*);
@@ -63,7 +64,7 @@ struct molecular_crystal
     // size information
     int ntype; // number of types of molecules in the crystal
     int nmol; // number of molecules per unit cell
-
+    int spg;
     // information about each type of molecule
     int *natom; // number of atoms in a molecule type [ntype]
     double **geometry; // centered geometry of a molecule type (interleaved x-y-z format) [ntype][3*natom[i]]
@@ -785,7 +786,8 @@ void total_energy_derivative_test(struct molecular_crystal *xtl, // description 
 
 // renormalize quaternions, canonicalize lattice vectors, & recenter molecules
 void renormalize(int nmol, // number of molecules in the state vector
-                 double *state) // state vector [6+7*nmol]
+                 double *state,
+		 struct molecular_crystal *xtl) // state vector [6+7*nmol]
 {
     // renormalize quaternions
     for(int i=0 ; i<nmol ; i++)
@@ -842,6 +844,7 @@ void renormalize(int nmol, // number of molecules in the state vector
     }
 
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
+    symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -883,7 +886,7 @@ double quad_search(double x, // optimization variable [0,1]
     int inc = 1;
     double one = 1.0;
     dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
-    renormalize(xtl->nmol, work);
+    renormalize(xtl->nmol, work, xtl);
     return total_energy(xtl, work);
 }
 
@@ -1182,6 +1185,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
+    xtl2.spg = set.spg;
     xtl2.ntype = 1;
     xtl2.nmol = xtl->Z;
     xtl2.natom = (int*)malloc(sizeof(int)*1);

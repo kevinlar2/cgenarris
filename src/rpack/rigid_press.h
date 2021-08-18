@@ -19,7 +19,8 @@ typedef struct
 {
     int max_iteration;
     int cell_family;   //See keys above
-  
+    int spg;
+    
 } Opt_settings;
 
 typedef enum Opt_status

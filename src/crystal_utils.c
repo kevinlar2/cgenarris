@@ -657,7 +657,7 @@ void average_positions_using_list(float     *tempx,
                             /*spglib check*/
 int detect_spg_using_spglib(crystal* xtal)
 {
-    float tol = 1e-1;
+    float tol = 1e-3;
     //print_crystal(xtal);
     convert_xtal_to_fractional(xtal);
     //variable declarations
