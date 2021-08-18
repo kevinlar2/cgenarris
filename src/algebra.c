@@ -6,10 +6,6 @@
 #include "randomgen.h"
 
 #define PI 3.141592653
-extern unsigned int *seed2;
-
-
-
 
 
 //tested
@@ -417,7 +413,7 @@ void array_shuffler_2(float a[][3], int len )
 {
     for(int i = len - 1; i > 0; i--)
     {
-        int j = rand_r(seed2) %(i + 1);
+        int j = get_random_int() %(i + 1);
 
         //swap i and j element
         float temp[3] = {a[i][0], a[i][1], a[i][2]};
@@ -436,7 +432,7 @@ void array_shuffler_1(float *a, int len )
 {
     for(int i = len - 1; i > 0; i--)
     {
-        int j = rand_r(seed2) %(i + 1);
+        int j = get_random_int() %(i + 1);
 
         //swap i and j element
         float temp[3] = {*(a+3*i+0), *(a+3*i+1), *(a+3*i+2)};

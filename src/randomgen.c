@@ -143,3 +143,7 @@ float normal_dist_ab ( float mean, float stdev )
   return retval;
 }
 
+int get_random_int()
+{
+    return rand_r(seed2);
+}
