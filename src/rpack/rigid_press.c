@@ -844,7 +844,7 @@ void renormalize(int nmol, // number of molecules in the state vector
     }
 
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
-    symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+    // symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 }
 
 // objective function to optimize the volume of the molecular crystal

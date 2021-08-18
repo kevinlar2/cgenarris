@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../crystal.h"
 #include "../crystal_utils.h"
@@ -88,7 +89,9 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type, int spg)
     crystal xtl;
     float *cutmat;
 
+    printf("---------------------------------\n");
     printf("Running example: %s\n", xdir);
+    time_t start = time(NULL);
 
     xtl.num_atoms_in_molecule = natoms_per_mol;
     xtl.Z = Z;
@@ -117,6 +120,7 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type, int spg)
     set.spg = spg;
     Opt_status status = optimize_crystal(&xtl, cutmat, set);
 
+    time_t end = time(NULL);
     if(status == SUCCESS)
     { print_crystal(&xtl); }
     else if(status  == ITER_LIMIT)
@@ -125,8 +129,10 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type, int spg)
     { printf("Optimization failed\n"); }
 
     int spg_detect = detect_spg_using_spglib(&xtl);
-    printf("spg = %d\n", spg_detect);
-    
+    printf("spglib detected spacegroup = %d\n", spg_detect);
+
+    printf("Completed optmization in %.2f seconds\n", difftime(end, start));
+    printf("---------------------------------\n\n");
     free(xtl.Xcord);
     free(xtl.Ycord);
     free(xtl.Zcord);
@@ -138,12 +144,12 @@ void run_example(char *xdir, int natoms_per_mol, int  Z, int cell_type, int spg)
 
 int main(void)
 {
-    // run_example("sample_structures/Example1", 12, 2, TRICLINIC, 2);
-  //run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC);
-  //run_example("sample_structures/failed_1", 30, 2, MONOCLINIC);
+    //run_example("sample_structures/Example1", 12, 2, TRICLINIC, 2);
+    run_example("sample_structures/fast_opt", 30, 2, MONOCLINIC, 12);
+    run_example("sample_structures/failed_1", 30, 2, MONOCLINIC, 6);
     run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
-  //run_example("sample_structures/Example5", 30, 4, MONOCLINIC);
-  // run_example("sample_structures/Example4", 30, 2, TRICLINIC);
+    run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
+    run_example("sample_structures/Example4", 30, 2, TRICLINIC, 2);
     return 0;
 }
 
