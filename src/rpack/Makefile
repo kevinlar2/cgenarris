@@ -1,7 +1,7 @@
 
 # Sample settings for GNU compiler + LAPACK
 CC=gcc
-CFLAGS= -O3
+CFLAGS= -O3 -DROPT_DEBUG
 CLIBS=  -llapack -lblas -lm
 
 run_test : test

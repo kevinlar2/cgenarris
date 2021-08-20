@@ -844,7 +844,8 @@ void renormalize(int nmol, // number of molecules in the state vector
     }
 
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
-    // symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+    //if(xtl->spg != 0)
+    //{ symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg); }
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -948,6 +949,13 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     int size = 6+7*xtl->nmol;
     double *workspace = (double*)malloc(sizeof(double)*size*2);
 
+#ifdef ROPT_DEBUG
+    printf("\nStarted optimization with settings:\n");
+    printf("Space group : %d\n", set.spg);
+    printf("Cell family: %d\n", set.cell_family);
+    printf("Max iteration: %d\n", set.max_iteration);
+#endif
+    
     // construct a constraint matrix for high-symmetry lattice vectors
     double constraint_mat[36];
     for(int i=0 ; i<36 ; i++)
@@ -1097,6 +1105,12 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         }
 
 	niter++;
+
+#ifdef ROPT_DEBUG
+	printf("Completed iteration #%5d: New energy =  %lf, Delta E = %lf\n",
+	       niter, new_energy, (energy - new_energy));
+#endif
+	
     } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
 	    niter < set.max_iteration);
 
