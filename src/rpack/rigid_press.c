@@ -1072,6 +1072,7 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         { width *= (sqrt(5.0) - 1.0)*0.5;
 #ifdef ROPT_DEBUG
 printf("stall test: %15.15e\n",quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) - energy);
+fflush(stdout);
 #endif
 }
         workspace[2*size] = width; // quick hack to inject a tunable search interval into quad_search
@@ -1113,6 +1114,7 @@ printf("stall test: %15.15e\n",quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, sta
 #ifdef ROPT_DEBUG
 	printf("Completed iteration #%5d: New energy =  %lf, Delta E = %lf\n",
 	       niter, new_energy, (energy - new_energy));
+	fflush(stdout);
 #endif
 	
     } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
