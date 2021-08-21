@@ -38,6 +38,9 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // parameters defining the regularized interatomic contact interaction
 #define INTERACTION_WEIGHT 0.1
 
+// maximum number of unit cells to sum over before deciding a crystal is too tightly packed
+#define MAX_CELL_SUM 1000
+
 // number of steps to take for each Golden-section line search
 #define GOLDEN_STEPS 20
 
@@ -542,6 +545,10 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
             latmax2 = ceil(box1[3] - box2[2] + buffer[1]);
             latmax3 = ceil(box1[5] - box2[4] + buffer[2]);
 
+            // test if a crystal is too packed to continue
+            if( (latmax1-latmin1+1)*(latmax1-latmin1+1)*(latmax1-latmin1+1) > MAX_CELL_SUM)
+            { return INFINITY; }
+
             // loop over interacting unit cells
             for(int k=latmin1 ; k<=latmax1 ; k++)
             for(int l=latmin2 ; l<=latmax2 ; l++)
@@ -634,6 +641,14 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
             latmax1 = ceil(box1[1] - box2[0] + buffer[0]);
             latmax2 = ceil(box1[3] - box2[2] + buffer[1]);
             latmax3 = ceil(box1[5] - box2[4] + buffer[2]);
+
+            // test if a crystal is too packed to continue
+            if( (latmax1-latmin1+1)*(latmax1-latmin1+1)*(latmax1-latmin1+1) > MAX_CELL_SUM)
+            {
+                for(int n=0 ; n<size ; n++)
+                { grad[n] = NAN; }
+                return;
+            }
 
             // loop over interacting unit cells
             for(int k=latmin1 ; k<=latmax1 ; k++)
@@ -1069,12 +1084,7 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         double width = 1.0;
         workspace[2*size] = 1.0; // quick hack to inject a tunable search interval into quad_search
         while(quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) > energy)
-        { width *= (sqrt(5.0) - 1.0)*0.5;
-#ifdef ROPT_DEBUG
-printf("stall test: %15.15e\n",quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) - energy);
-fflush(stdout);
-#endif
-}
+        { width *= (sqrt(5.0) - 1.0)*0.5; }
         workspace[2*size] = width; // quick hack to inject a tunable search interval into quad_search
 
         // perform a Tikhonov-regularized line search
