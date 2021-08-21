@@ -1069,7 +1069,11 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         double width = 1.0;
         workspace[2*size] = 1.0; // quick hack to inject a tunable search interval into quad_search
         while(quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) > energy)
-        { width *= (sqrt(5.0) - 1.0)*0.5; }
+        { width *= (sqrt(5.0) - 1.0)*0.5;
+#ifdef ROPT_DEBUG
+printf("stall test: %15.15e\n",quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) - energy);
+#endif
+}
         workspace[2*size] = width; // quick hack to inject a tunable search interval into quad_search
 
         // perform a Tikhonov-regularized line search
