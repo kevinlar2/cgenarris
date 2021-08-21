@@ -47,8 +47,8 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // optimization tolerance on energy change in 1 iteration relative to minimum energy
 #define OPTIMIZATION_TOLERANCE 1e-6
 
-// numerical floor for Hessian eigenvalues relative to the maximum eigenvalue
-#define HESSIAN_FLOOR 1e-8
+// approximate maximum 2-norm change in the state vector for line searches (scaled by nmol)
+#define MAX_LINE_STEP 100.0
 
 // step size for numerical tests of analytical derivatives
 #define STEP 1e-4
@@ -870,6 +870,7 @@ double volume_search(double x, // optimization variable [0,1]
                      double *min, // smallest scale factor to be considered [1]
                      double *max, // largest scale factor to be considered [1]
                      double *dummy, // dummy variable to match argument list w/ other objective function
+                     double *dummy2, // dummy variable to match argument list w/ other objective function
                      double *work) // work vector [6+7*xtl->nmol]
 {
     int size = 6+7*xtl->nmol;
@@ -883,20 +884,17 @@ double volume_search(double x, // optimization variable [0,1]
 double quad_search(double x, // optimization variable [0,1]
                    struct molecular_crystal *xtl, // description of the crystal being optimized
                    double *state, // the crystal's state vector in normal coordinates [6+7*xtl->nmol]
+                   double *tik_min, // minimum Tikhonov regularization parameter [1]
                    double *grad, // gradient in normal coordinates [6+7*xtl->nmol]
                    double *eval, // eigenvalues of the Hessian matrix [6+7*xtl->nmol]
                    double *evec, // eigenvectors of the Hessian matrix [(6+7*xtl->nmol)*(6+7*xtl->nmol)]
                    double *work) // work vector [13+14*xtl->nmol]
 {
     int size = 6+7*xtl->nmol;
-    x *= work[2*size]; // hack to tune the search interval
     for(int i=0 ; i<size ; i++)
     {
         work[i] = state[i];
-        if(eval[i] > fabs(eval[size-1])*HESSIAN_FLOOR)
-        { work[i+size] = -x*grad[i]/(x*eval[i] + (1-x)*fabs(eval[size-1])*HESSIAN_FLOOR); }
-        else
-        { work[i+size] = -x*grad[i]/(fabs(eval[size-1])*HESSIAN_FLOOR); }
+        work[i+size] = -x*grad[i]/(x*eval[i] + *tik_min);
     }
     char notrans = 'N';
     int inc = 1;
@@ -911,16 +909,17 @@ double quad_search(double x, // optimization variable [0,1]
 double line_optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
                      int nstep, // number of optimization steps
                      double *state, // the crystal's state vector in normal coordinates [6+7*xtl->nmol]
-                     double (*fptr)(double, struct molecular_crystal*, double*, double*, double*, double*, double*),
+                     double (*fptr)(double, struct molecular_crystal*, double*, double*, double*, double*, double*, double*),
                      double *vec1,
                      double *vec2,
                      double *vec3,
-                     double *vec4)
+                     double *vec4,
+                     double *vec5)
 {
     double invphi = (sqrt(5.0) - 1.0)*0.5, invphi2 = (3.0 - sqrt(5.0))*0.5;
     double a = 0.0, c = invphi2, d = invphi, h = 1.0;
-    double yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4);
-    double yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4);
+    double yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4, vec5);
+    double yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4, vec5);
 
     for(int i=0 ; i<nstep ; i++)
     {
@@ -930,7 +929,7 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
             yd = yc;
             h *= invphi;
             c = a + invphi2*h;
-            yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4);
+            yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4, vec5);
         }
         else
         {
@@ -939,19 +938,19 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
             yc = yd;
             h *= invphi;
             d = a + invphi*h;
-            yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4);
+            yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4, vec5);
         }
     }
 
     // crappy hack to load the minimizer into the workspace (extra computation of objective function)
     double min = c, ymin = yc;
     if(yd < yc) { min = d; ymin = yd; }
-    fptr(min, xtl, state, vec1, vec2, vec3, vec4);
+    fptr(min, xtl, state, vec1, vec2, vec3, vec4, vec5);
 
     // extract minimizer from the workspace (a hack) & renormalize quaternions
     int size = 6+7*xtl->nmol;
     for(int i=0 ; i<size ; i++)
-    { state[i] = vec4[i]; }
+    { state[i] = vec5[i]; }
     return ymin;
 }
 
@@ -1013,14 +1012,14 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     while(energy_min != INFINITY)
     {
         scale_min *= 0.5;
-        energy_min = volume_search(0.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_min = volume_search(0.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
     }
 
     // find an underpacked volume
     while(energy_max == INFINITY)
     {
         scale_max *= 2.0;
-        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
         if(energy_max == INFINITY)
         { scale_min = scale_max; }
     }
@@ -1028,11 +1027,11 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     {
         energy = energy_max;
         scale_max *= 2.0;
-        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
     } while(energy > energy_max);
 
     // preliminary volume optimization
-    energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, workspace);
+    energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, NULL, workspace);
 
     // main optimization loop
     int niter = 0; // iteration counter
@@ -1080,15 +1079,20 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         { work[i] = grad[i]; }
         dgemv_(&trans, &size, &size, &one, hess, &size, work, &inc, &zero, grad, &inc);
 
-        // identify a reasonable search interval
-        double width = 1.0;
-        workspace[2*size] = 1.0; // quick hack to inject a tunable search interval into quad_search
-        while(quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) > energy)
-        { width *= (sqrt(5.0) - 1.0)*0.5; }
-        workspace[2*size] = width; // quick hack to inject a tunable search interval into quad_search
+        // start with a sensible minimum Tikhonov regularization value
+        double min_tik = 0.0;
+        for(int i=0 ; i<size ; i++)
+        { min_tik += grad[i]*grad[i]; }
+        min_tik = sqrt(min_tik)/(MAX_LINE_STEP*(double)xtl->nmol) - ev[0];
+        if(min_tik < 0.0)
+        { min_tik = 0.0; }
+
+        // increase the Tikhonov value until the 1st searched point lowers the energy
+        while(quad_search((3.0 - sqrt(5.0))*0.5, xtl, state, &min_tik, grad, ev, hess, workspace) > energy)
+        { min_tik *= 2.0; }
 
         // perform a Tikhonov-regularized line search
-        new_energy = line_optimize(xtl, GOLDEN_STEPS, state, quad_search, grad, ev, hess, workspace);
+        new_energy = line_optimize(xtl, GOLDEN_STEPS, state, quad_search, &min_tik, grad, ev, hess, workspace);
 
         // strictly enforce constraints at the end of every optimization step
         switch(family)
