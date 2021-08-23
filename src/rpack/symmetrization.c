@@ -46,8 +46,33 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
     // Convert to fractional space
     float vec_frac[3*dim];
     for(int i = 0; i < dim; i++)
+    {
 	vector3_mat3b3_multiply(inverse_lattice_t, vec + 3*i, vec_frac +3*i);
+	vector3_frac(vec_frac + 3*i);
+    }
 
+    // Compute shifts in fractional space to move molecules
+    // to positions where they fall after applying symmetry operation.
+    /*
+    float shifts[3*dim];
+    for(int i = 0; i < dim; i++)
+    {
+	float temp[3] = {0}, temp_frac[3] = {0};
+	int (*rot_i)[3] = rotations[i];
+	float rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
+			   {rot_i[1][0], rot_i[1][1],rot_i[1][2]},
+			   {rot_i[2][0], rot_i[2][1],rot_i[2][2]}};
+	vector3_mat3b3_multiply(rot, vec_frac, temp);
+	memcpy(temp_frac, temp, 3*sizeof(float));
+	vector3_frac(temp_frac);
+	vector3_subtract(temp, temp_frac, shifts + 3*i);
+
+	// Shift back to the "natural" position
+	vector3_add(shifts + 3*i, vec_frac + 3*i, vec_frac + 3*i);
+	
+    }
+    */
+    
     // Array to compute symm average
     float vec_symm[3] = {0};
     
@@ -57,12 +82,17 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 	float rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
 			   {rot_i[1][0], rot_i[1][1],rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1],rot_i[2][2]}};
-
+	float trans[3] = {translations[op][0],
+			  translations[op][1],
+			  translations[op][2]};
+	
 	float inv_rot[3][3];
 	inverse_mat3b3(inv_rot, rot);
 
 	float temp[3];
+	vector3_subtract(vec_frac + 3*op, trans, vec_frac + 3*op);
 	vector3_mat3b3_multiply(inv_rot, vec_frac + 3*op, temp);
+	vector3_frac(temp);
 	vector3_add(temp, vec_symm, vec_symm);
     }
 
@@ -75,6 +105,11 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
     {
 	int (*rot)[3] = rotations[i];
 	vector3_intmat3b3_multiply(rot, vec_symm, vec_frac + 3*i);
+	float trans[3] = {translations[i][0],
+			  translations[i][1],
+			  translations[i][2]};
+	vector3_add(trans, vec_frac + 3*i, vec_frac + 3*i);
+	vector3_frac(vec_frac + 3*i);
     }
 
     // Convert back to cartesian space
@@ -371,6 +406,7 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
 	state[i + 2] = pos[3*dim + 2];
 	dim ++;
     }
+    
     dim = 0;
     for(int i = 9; i < 7*nmol + 6; i += 7)
     {
@@ -380,6 +416,7 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
         state[i + 3] = quat_all[4*dim + 3];
 	dim++;
     }
+    
     
 }
 
