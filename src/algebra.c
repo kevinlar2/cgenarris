@@ -465,7 +465,7 @@ void vector3_frac(float a[3])
     {
 	b[i] = (int) a[i];
 
-	if(b[i] >= 0)
+	if(a[i] >= 0)
 	{
 	    frac = a[i] - b[i];
 	}
