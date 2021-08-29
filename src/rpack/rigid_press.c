@@ -50,6 +50,9 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // approximate maximum 2-norm change in the state vector for line searches (scaled by nmol)
 #define MAX_LINE_STEP 100.0
 
+// very loose energy reduction threshold for flagging false convergence (scaled by nmol)
+#define ENERGY_REDUCTION_TOLERANCE 1e-3
+
 // step size for numerical tests of analytical derivatives
 #define STEP 1e-4
 
@@ -1046,7 +1049,7 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     if(lwork < 6*size)
     { lwork = 6*size; }
     double *work = (double*)malloc(sizeof(double)*lwork);
-    double new_energy = energy;
+    double new_energy = energy, energy_reduction_estimate;
     do
     {
         // save previous energy
@@ -1086,6 +1089,11 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         min_tik = sqrt(min_tik)/(MAX_LINE_STEP*(double)xtl->nmol) - ev[0];
         if(min_tik < 0.0)
         { min_tik = 0.0; }
+
+        // calculate an estimate of energy reduction for testing false convergence
+        energy_reduction_estimate = 0.0;
+        for(int i=0 ; i<size ; i++)
+        { energy_reduction_estimate -= grad[i]*grad[i]/(ev[i] + min_tik); }
 
         // increase the Tikhonov value until the 1st searched point lowers the energy
         while(quad_search((3.0 - sqrt(5.0))*0.5, xtl, state, &min_tik, grad, ev, hess, workspace) > energy)
@@ -1142,6 +1150,9 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
 
     if(niter == set.max_iteration)
     {  return ITER_LIMIT; }
+
+    if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
+    { return FALSE_CONVERGENCE; }
 
     return SUCCESS;
     

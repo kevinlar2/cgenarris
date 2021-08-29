@@ -25,9 +25,10 @@ typedef struct
 
 typedef enum Opt_status
 {
-    SUCCESS,     // All good
-    ITER_LIMIT,  // Reached max iteration limit 
-    MISC_FAILURE // Some other reason for failure
+    SUCCESS,           // All good
+    ITER_LIMIT,        // Reached max iteration limit 
+    FALSE_CONVERGENCE, // Optimization ended, but gradient is still large
+    MISC_FAILURE       // Some other reason for failure
 } Opt_status;
 
 // optimizes a molecular crystal using a regularized rigid-body interaction
