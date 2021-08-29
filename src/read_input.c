@@ -199,11 +199,12 @@ void read_control(int* num_structures, int* Z, float* Zp_max,
 		    !strcmp(spg_dist_type, "racemic")  ||
 		    !strcmp(spg_dist_type, "csd")       
 		   )
+		    continue;
+		else
 		{
 		    printf("***ERROR: read_input: bad value of spg_distribution_type %s", spg_dist_type);
 		    exit(EXIT_FAILURE);
 		}
-		continue;
 	    }
 
 	    if(strcmp(sub_line, "random_seed") == 0)
