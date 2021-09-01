@@ -81,6 +81,12 @@ struct molecular_crystal
     int *invert; // inversion of each molecule in the unit cell (+1 for standard, -1 for inverted) [nmol]
 };
 
+#ifdef ROPT_DEBUG
+void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2);
+void print_crystal(crystal* xtal);
+int detect_spg_using_spglib(crystal* xtal);
+#endif
+
 // deallocate memory in the molecular_crystal structure
 void free_molecular_crystal(struct molecular_crystal *xtl)
 {
@@ -873,17 +879,44 @@ void renormalize(int nmol, // number of molecules in the state vector
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
     if(xtl->spg != 0)
     {
-	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+	//symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 
 #ifdef ROPT_DEBUG
+	crystal xtal;
+	int N = xtl->natom[0];
+	int Z = xtl->nmol;
+	xtal.num_atoms_in_molecule = N;
+	xtal.Z = Z;
+	xtal.Xcord = malloc(sizeof(float) * Z * N);
+	xtal.Ycord = malloc(sizeof(float) * Z * N);
+	xtal.Zcord = malloc(sizeof(float) * Z * N);
+	xtal.atoms = malloc(sizeof(char) * Z * N * 2);
+	for(int i = 0; i < Z * N; i++)
+	{
+	    xtal.atoms[2*i    ] = 'H';
+	    xtal.atoms[2*i + 1] = ' ';
+	}
+
+	// Before symmetrization
+	state_2_xtal(&xtal, state, xtl);
+	//print_crystal(&xtal);
+	xtal.num_atoms_in_molecule = N;
+	int spg = detect_spg_using_spglib(&xtal);
+
+	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+
+	// After symmetrization
+	state_2_xtal(&xtal, state, xtl);
+	int spg2 = detect_spg_using_spglib(&xtal);
+	printf("spg before = %d, spg after = %d\n", spg, spg2);
+
+	// Check if symmetrize_state() is stationary
 	int size = 6 + 7 * xtl->nmol;
 	double temp[size];
-	
 	for(int i = 0; i < size; i++)
 	    temp[i] = state[i];
 	
 	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
-	
 	for(int i = 0; i < size; i++)
 	{
 	    if(fabs(state[i] - temp[i]) > 0.001)
@@ -894,6 +927,11 @@ void renormalize(int nmol, // number of molecules in the state vector
 		exit(1);
 	    }	    
 	}
+
+	free(xtal.Xcord);
+	free(xtal.Ycord);
+	free(xtal.Zcord);
+	free(xtal.atoms);
 #endif
     }
 }
@@ -1433,6 +1471,50 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     free(work);
 
     return status;
+}
+
+void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2)
+{
+    double tau[3];
+    char notrans = 'N', left = 'L';
+    int lwork = 1000, info, three = 3, one = 1;
+    double work;
+    
+    double latvec[9] = {0};
+    latvec[0 + 0*3] = state[0];
+    latvec[0 + 1*3] = state[1];
+    latvec[1 + 1*3] = state[2];
+    latvec[0 + 2*3] = state[3];
+    latvec[1 + 2*3] = state[4];
+    latvec[2 + 2*3] = state[5];
+   
+    //if(family == 0)
+    //{ dormqr_(&left, &notrans, &three, &three, &three, latvec2, &three, tau, latvec, &three, &work, &lwork, &info); }
+
+    for(int i=0 ; i<3 ; i++)
+    for(int j=0 ; j<3 ; j++)
+    { xtl->lattice_vectors[i][j] = latvec[j + i*3]; }
+
+    int jmol = 0, imol = 0;
+    double coord[3];
+    for(int i=0 ; i<xtl2->nmol ; i++)
+    {
+        imol = xtl2->type[i];
+        for(int j=0 ; j<xtl2->natom[imol] ; j++)
+        {
+            double local[3];
+            for(int k=0 ; k<3 ; k++)
+            { local[k] = (double)xtl2->invert[i]*xtl2->geometry[imol][k+3*j]; }
+            position(local, state + 6 + 7*i, coord);
+            //if(family == 0)
+            //{ dormqr_(&left, &notrans, &three, &one, &three, latvec2, &three, tau, coord, &three, work, &lwork, &info); }
+
+            xtl->Xcord[j+jmol] = coord[0];
+            xtl->Ycord[j+jmol] = coord[1];
+            xtl->Zcord[j+jmol] = coord[2];
+        }
+        jmol += xtl2->natom[imol];
+    }
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell

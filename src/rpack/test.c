@@ -163,8 +163,8 @@ int main(void)
 
 int detect_spg_using_spglib(crystal* xtal)
 {
-    float tol = 1e-3;
-    //print_crystal(xtal);
+    float tol = 1e-2;
+    //print_crystal(xtal)
     convert_xtal_to_fractional(xtal);
     //variable declarations
     int num_atoms_in_cell = xtal->Z * xtal-> num_atoms_in_molecule ;
