@@ -103,6 +103,15 @@ void free_molecular_crystal(struct molecular_crystal *xtl)
     free(xtl->natom);
 }
 
+#ifdef ROPT_DEBUG
+void print_state(double *state, int size)
+{
+    for(int i = 0; i < size; i++)
+	printf("%lf ", state[i]);
+    printf("\n\n");
+}
+#endif
+
 // interatomic interaction kernel & its 1st & 2nd distance derivatives
 double kernel(double distance, // interatomic distance
               // kernel parameters: (add/replace parameters for more physical interactions)
@@ -862,8 +871,31 @@ void renormalize(int nmol, // number of molecules in the state vector
     }
 
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
-    //if(xtl->spg != 0)
-    //{ symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg); }
+    if(xtl->spg != 0)
+    {
+	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+
+#ifdef ROPT_DEBUG
+	int size = 6 + 7 * xtl->nmol;
+	double temp[size];
+	
+	for(int i = 0; i < size; i++)
+	    temp[i] = state[i];
+	
+	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+	
+	for(int i = 0; i < size; i++)
+	{
+	    if(fabs(state[i] - temp[i]) > 0.001)
+	    {
+		printf("Error in symmetrize_state: not stationary\n");
+		print_state(state, size);
+		print_state(temp, size);
+		exit(1);
+	    }	    
+	}
+#endif
+    }
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -1350,7 +1382,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
         matrix2quaternion(rot, state + 9 + 7*i);
     }
 
-    // run the optimizer
+   // run the optimizer
     Opt_status status = optimize(&xtl2, state, set);
 
     // convert the result back to the original format

@@ -35,7 +35,6 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 					   translations,
 					   hall_number);
     assert(dim == Z);
-    
     // Get inverse lattice
     float inverse_lattice[3][3], inverse_lattice_t[3][3], lattice_t[3][3];
     inverse_mat3b3(inverse_lattice, lattice);
@@ -150,7 +149,14 @@ void test_symmetrize_matrix()
 
 void test_rot_quat_conversion()
 {
-    float mat[9] = {-1, 0, 0, 0, -1, 0, 0, 0, -1};
+#define deg2rad(X) X * (3.14/180)
+    /*float mat[9] = {1, 0, 0,
+		    0, cos(deg2rad(30)), -sin(deg2rad(30)),
+		    0, sin(deg2rad(30)), cos(deg2rad(30))};
+    */
+    float mat[9] = { cos(deg2rad(30)), 0, sin(deg2rad(30)),
+			0,              1,              0,
+		     -sin(deg2rad(30)), 0, cos(deg2rad(30))};
     float quat[4];
     int inv;
     for(int j = 0; j < 3; j++)
@@ -259,14 +265,14 @@ static void quaternion2matrix(float *quat, float *mat, const int inv)
     mat[4] = 1 - 2 * s * (quat[1]*quat[1] + quat[3]*quat[3]);
     mat[8] = 1 - 2 * s * (quat[2]*quat[2] + quat[1]*quat[1]);
 
-    mat[1] = 2 * s * (quat[1]*quat[2] - quat[3]*quat[0]);
-    mat[2] = 2 * s * (quat[1]*quat[3] + quat[2]*quat[0]);
+    mat[3] = 2 * s * (quat[1]*quat[2] - quat[3]*quat[0]);
+    mat[6] = 2 * s * (quat[1]*quat[3] + quat[2]*quat[0]);
 
-    mat[3] = 2 * s * (quat[1]*quat[2] + quat[3]*quat[0]);
-    mat[5] = 2 * s * (quat[2]*quat[3] - quat[1]*quat[0]);
+    mat[1] = 2 * s * (quat[1]*quat[2] + quat[3]*quat[0]);
+    mat[7] = 2 * s * (quat[2]*quat[3] - quat[1]*quat[0]);
     
-    mat[6] = 2 * s * (quat[1]*quat[3] - quat[2]*quat[0]);
-    mat[7] = 2 * s * (quat[2]*quat[3] + quat[1]*quat[0]);
+    mat[2] = 2 * s * (quat[1]*quat[3] - quat[2]*quat[0]);
+    mat[5] = 2 * s * (quat[2]*quat[3] + quat[1]*quat[0]);
 
     for(int i = 0; i < 9; i++)
 	mat[i] *= inv;
@@ -386,6 +392,7 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
 	quaternion2matrix(quat, mat + 3*3*dim, invert[dim]);
 	dim++;
     }
+
     symmetrize_matrix(mat, dim, spg);
 
     // Convert back to quaternions
