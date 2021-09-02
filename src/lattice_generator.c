@@ -94,7 +94,7 @@ void generate_lattice(float lattice_vector[3][3],
     else if (spg <= 230)
         gen_cubic_lattice(lattice_vector, target_volume);
 
-    standardise_lattice(lattice_vector, spg);
+    // standardise_lattice(lattice_vector, spg);
 
     return;
 }
@@ -346,11 +346,7 @@ void standardise_lattice( float lattice[3][3], int spg)
 
     else if (spg > 2 && spg < 16)
     {
-        float bx = lattice[1][0];
         float ax = lattice[0][0];
-        float bx_new = fmodulo (bx, ax);
-        lattice[1][0] = bx_new;
-
         float cx = lattice[2][0];
         float cx_new = fmodulo(cx, ax);
         lattice[2][0] = cx_new;
