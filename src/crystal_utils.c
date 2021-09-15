@@ -58,6 +58,14 @@ void print_crystal2file(crystal* xtal, FILE* out_file)
     fprintf(out_file, "#unit_cell_volume = %f cubic Angstrom\n", get_crystal_volume(xtal));
     fprintf(out_file, "#attempted_spacegroup = %d\n", xtal->spg);
 
+    fprintf(out_file , "#com_positions = (%f, %f, %f)\n", xtal->com_positions[0],
+	    xtal->com_positions[1],
+	    xtal->com_positions[2]);
+     
+    fprintf(out_file , "#euler_angles = (%f, %f, %f)\n", xtal->euler_angles[0],
+	    xtal->euler_angles[1],
+	    xtal->euler_angles[2]);
+    
     char letter = spg_positions[xtal->spg - 1].wyckoff_letter[xtal->wyckoff_position];
     fprintf(out_file, "#attempted_wyckoff_position = %d%c\n", xtal->Z, letter);
 

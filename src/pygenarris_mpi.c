@@ -1073,6 +1073,8 @@ void send_xtal(MPI_Comm comm, int destination, crystal* xtal, int total_atoms)
     MPI_Send(&(xtal->num_atoms_in_molecule), 1, MPI_INT , destination, 8, comm);
     MPI_Send(&(xtal->Z), 1, MPI_INT , destination, 9, comm);
     MPI_Send(&(xtal->Zp), 1, MPI_INT , destination, 10, comm);
+    MPI_Send(xtal->com_positions, 3, MPI_FLOAT , destination, 11, comm);
+    MPI_Send(xtal->euler_angles, 3, MPI_FLOAT , destination, 12, comm);
 }
 
 void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
@@ -1090,6 +1092,9 @@ void receive_xtal(MPI_Comm comm, int source, crystal* xtal, int total_atoms)
     MPI_Recv(&(xtal->Z), 1, MPI_INT, source, 9, comm, &status);
     MPI_Recv(&(xtal->Zp), 1, MPI_INT, source, 10, comm, &status);
 
+    MPI_Recv(xtal->com_positions, 3, MPI_FLOAT, source, 11, comm, &status);
+    MPI_Recv(xtal->euler_angles, 3, MPI_FLOAT, source, 12, comm, &status);
+    
     xtal->lattice_vectors[0][0] = temp[0];
     xtal->lattice_vectors[0][1] = temp[1];
     xtal->lattice_vectors[0][2] = temp[2];

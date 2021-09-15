@@ -288,12 +288,13 @@ int auto_align_and_generate_at_position(crystal *Xtal,
         generate_random_rotation_matrix(random_rotation_matrix);
         //randomly rotate
         molecule_rotate(mol, random_rotation_matrix);
+	get_euler_from_rotation_matrix(random_rotation_matrix, Xtal->euler_angles);
     }
-
     // place the first molecule
-    float inverse_lattice_vectors[3][3];
+    float inverse_lattice_vectors[3][3], lat_vec_trans[3][3];
     inverse_mat3b3(inverse_lattice_vectors, Xtal->lattice_vectors);
     mat3b3_transpose(inverse_lattice_vectors,inverse_lattice_vectors);
+    mat3b3_transpose(lat_vec_trans, Xtal->lattice_vectors);
     float mol_Xfrac[N]; //stores fractional coordinates of first mol
     float mol_Yfrac[N];
     float mol_Zfrac[N];
@@ -305,6 +306,8 @@ int auto_align_and_generate_at_position(crystal *Xtal,
     vector3_add(trans_vec,rand_frac_array,rand_frac_array);
     //rand_frac_array is the postion of the first mol
 
+    vector3_mat3b3_multiply(lat_vec_trans, rand_frac_array, Xtal->com_positions);
+    
     //compute fractional coordiates of the first position and
     //move molecule to the position
     for(int i = 0; i < N; i++)

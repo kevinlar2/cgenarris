@@ -4,6 +4,8 @@
 typedef struct
 {
     float lattice_vectors[3][3];
+    float com_positions[3];
+    float euler_angles[3];
     float *Xcord;
     float *Ycord;
     float *Zcord;
@@ -13,7 +15,6 @@ typedef struct
     int num_atoms_in_molecule;
     int Z;
     int Zp;
-
 }crystal;
 
 /*
@@ -72,6 +73,10 @@ Crystal structure
  -  Z is the number of molecule in the unit cell.
 
  -  Zp is Z'. Not used. Set it to 0.
+ 
+ - com_position is the position of the geometric center of the first molecule
+
+ - euler_angles are the orientation of the first molecule wrt input molecule
 */
 
 
