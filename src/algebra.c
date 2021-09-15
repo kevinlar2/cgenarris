@@ -475,6 +475,38 @@ void vector3_int(float a[3])
     }
 }
 
+//algorithm from : https://www.geometrictools.com/Documentation/EulerAngles.pdf
+void get_euler_from_rotation_matrix(float rot_mat[3][3], float angles[3])
+{
+    const float rad2deg = 180 / PI;
+    
+    angles[0] = 0; angles[1] = 0; angles[2] = 0;
+
+    if(rot_mat[2][0] < 1)
+    {
+	if(rot_mat[2][0] > -1)
+	{
+	    angles[1] = asinf(-rot_mat[2][0]);
+	    angles[2] = atan2f(rot_mat[1][0], rot_mat[0][0]);
+	    angles[0] = atan2f(rot_mat[2][1], rot_mat[2][2]);
+	}
+	else
+	{
+	    angles[1] = PI/2;
+	    angles[2] = -atan2f(-rot_mat[1][2], rot_mat[1][1]);
+	    angles[0] = 0;
+	}
+    }
+    else
+    {
+	angles[1] = -PI/2;
+	angles[2] = atan2f(-rot_mat[1][2], rot_mat[1][1]);
+	angles[0] = 0;
+    }
+
+    angles[0] *= rad2deg; angles[1] *= rad2deg; angles[2] *= rad2deg;
+}
+
 int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[192][3][3])
 {
     int num_operation =  all_lg_operation_database[hall_number-1].num_operations;

@@ -46,6 +46,8 @@ void copy_doubvector3bN_vector3(double a[3], double b[][3], int index); //added 
 int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[192][3][3]);//added here
 
 
+void get_euler_from_rotation_matrix(float rot_mat[3][3], float angles[3]);
+
 static inline void vector3_mat3b3_multiply(float a[3][3], float b[3], float c[3])
 {
     float temp[3];
