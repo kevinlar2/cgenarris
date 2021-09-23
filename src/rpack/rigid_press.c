@@ -818,7 +818,7 @@ void total_energy_derivative_test(struct molecular_crystal *xtl, // description 
 }
 
 // renormalize quaternions, canonicalize lattice vectors, & recenter molecules
-void renormalize(int nmol, // number of molecules in the state vector
+int renormalize(int nmol, // number of molecules in the state vector
                  double *state,
 		 struct molecular_crystal *xtl) // state vector [6+7*nmol]
 {
@@ -927,6 +927,8 @@ void renormalize(int nmol, // number of molecules in the state vector
 		exit(1);
 	    }	    
 	}
+    if(xtl->spg != spg2)
+    { return 1; }
 
 	free(xtal.Xcord);
 	free(xtal.Ycord);
@@ -934,6 +936,7 @@ void renormalize(int nmol, // number of molecules in the state vector
 	free(xtal.atoms);
 #endif
     }
+    return 0;
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -963,17 +966,25 @@ double quad_search(double x, // optimization variable [0,1]
                    double *evec, // eigenvectors of the Hessian matrix [(6+7*xtl->nmol)*(6+7*xtl->nmol)]
                    double *work) // work vector [13+14*xtl->nmol]
 {
-    int size = 6+7*xtl->nmol;
-    for(int i=0 ; i<size ; i++)
+    int size = 6+7*xtl->nmol, sym_test;
+    do
     {
-        work[i] = state[i];
-        work[i+size] = -x*grad[i]/(x*eval[i] + *tik_min);
-    }
-    char notrans = 'N';
-    int inc = 1;
-    double one = 1.0;
-    dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
-    renormalize(xtl->nmol, work, xtl);
+        for(int i=0 ; i<size ; i++)
+        {
+            work[i] = state[i];
+            work[i+size] = -x*grad[i]/(x*eval[i] + *tik_min);
+        }
+        char notrans = 'N';
+        int inc = 1;
+        double one = 1.0;
+        dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
+        sym_test = renormalize(xtl->nmol, work, xtl);
+        if(sym_test)
+        {
+            printf("symmetrization failed, reducing step size (%e -> %e)\n",x,0.5*x);
+            x *= 0.5;
+        }
+    } while(sym_test);
     return total_energy(xtl, work);
 }
 
