@@ -893,12 +893,13 @@ int renormalize(int nmol, // number of molecules in the state vector
 	xtal.atoms = malloc(sizeof(char) * Z * N * 2);
 	for(int i = 0; i < Z * N; i++)
 	{
-	    xtal.atoms[2*i    ] = 'H';
+	    xtal.atoms[2*i    ] = 'C';
 	    xtal.atoms[2*i + 1] = ' ';
 	}
 
 	// Before symmetrization
 	state_2_xtal(&xtal, state, xtl);
+	//bring_all_molecules_to_first_cell(&xtal);
 	//print_crystal(&xtal);
 	xtal.num_atoms_in_molecule = N;
 	int spg = detect_spg_using_spglib(&xtal);
@@ -915,7 +916,8 @@ int renormalize(int nmol, // number of molecules in the state vector
 	double temp[size];
 	for(int i = 0; i < size; i++)
 	    temp[i] = state[i];
-	
+
+	/*
 	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 	for(int i = 0; i < size; i++)
 	{
@@ -927,8 +929,17 @@ int renormalize(int nmol, // number of molecules in the state vector
 		exit(1);
 	    }	    
 	}
-    if(xtl->spg != spg2)
-    { return 1; }
+	*/
+
+	if(spg2 < spg)
+	{
+	   print_crystal(&xtal);
+	   printf("Symmetrization failed.");
+	   exit(1);
+	}
+
+	if(xtl->spg != spg2)
+	{ return 1; }
 
 	free(xtal.Xcord);
 	free(xtal.Ycord);

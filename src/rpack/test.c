@@ -152,8 +152,9 @@ int main(void)
     run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
     run_example("sample_structures/Example4", 30, 2, TRICLINIC, 2);
     */
-    //run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
-    run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
+    run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
+    //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
+    //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
     //run_example("sample_structures/Example4", 30, 2, TRICLINIC, 2);
     //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
     //run_example("sample_structures/failed_2", 30, 2, TRICLINIC, 0);
@@ -163,7 +164,7 @@ int main(void)
 
 int detect_spg_using_spglib(crystal* xtal)
 {
-    float tol = 1e-2;
+    float tol = 1;
     //print_crystal(xtal)
     convert_xtal_to_fractional(xtal);
     //variable declarations
