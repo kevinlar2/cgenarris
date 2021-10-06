@@ -14,6 +14,6 @@ spglib:
 	${CC} ${CFLAGS} -c ../spglib_src/*.c  ${CLIBS}
 
 clean:
-	rm -rf *.o *.x
+	rm -rf *.o *.x __pycache__ build 
 
 
