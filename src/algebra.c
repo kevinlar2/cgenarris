@@ -514,20 +514,3 @@ int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[
 
 }
 
-int get_cell_type_from_spg(int spg)
-{
-    if (spg <= 2)
-        return 0;
-    else if (spg <= 15)
-        return 1;
-    else if (spg <= 74)
-        return 2;
-    else if (spg <= 142)
-        return 3;
-    else if (spg <= 194)
-        return 4;
-    else if (spg <= 230)
-        return 5;
-
-    return 0;
-}
