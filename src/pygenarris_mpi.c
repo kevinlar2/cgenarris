@@ -495,6 +495,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 		    // Use rigid packing optmization if requested
 		    if(rigid_press)
 		    {
+			/*
 		        time_t opt_s_time = time(NULL);
 			Opt_settings opt_set;
 			opt_set.cell_family = get_cell_type_from_spg(spg);
@@ -514,6 +515,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
 			double elapsed = difftime (opt_e_time, opt_s_time);
 			printf("Completed optimization in ~ %.1lf\n", elapsed);
 			print_crystal(random_crystal);
+			*/
 		    }
 		    
                     //check if molecules are too close with sr
@@ -1237,5 +1239,32 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3],
 
     }
 
+}
+
+void create_array_from_crystal(crystal *xtal, double lattice_vector[3][3],
+    double *Xc,int total_atoms1, double *Yc,int total_atoms2,
+    double *Zc, int total_atoms3, char* atoms, int total_atoms,
+    int Z, int spg)
+{
+    spg = xtal->spg;
+    Z = xtal->Z;
+
+    if (total_atoms != total_atoms1 || total_atoms != total_atoms2 || total_atoms != total_atoms3)
+    printf("***ERR0R:sizes of arrays doesnot match");
+
+
+    for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
+    {
+	lattice_vector[i][j] = xtal->lattice_vectors[i][j];
+    }
+    for(int i = 0; i < total_atoms; i++)
+    {
+        Xc[i] = xtal->Xcord[i];
+        Yc[i] = xtal->Ycord[i];
+        Zc[i] = xtal->Zcord[i];
+        atoms[2*i]   = xtal->atoms[2*i];
+        atoms[2*i+1] = xtal->atoms[2*i+1];
+    }
 }
 

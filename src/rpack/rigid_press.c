@@ -20,6 +20,7 @@
 #include <math.h>
 
 #include "../crystal.h"
+#include "../crystal_utils.h"
 #include "../cocrystal.h"
 #include "rigid_press.h"
 #include "symmetrization.h"
@@ -86,6 +87,8 @@ void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2);
 void print_crystal(crystal* xtal);
 int detect_spg_using_spglib(crystal* xtal);
 #endif
+static int get_cell_type_from_spg(int spg);
+
 
 // deallocate memory in the molecular_crystal structure
 void free_molecular_crystal(struct molecular_crystal *xtl)
@@ -563,6 +566,7 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
             latmax2 = ceil(box1[3] - box2[2] + buffer[1]);
             latmax3 = ceil(box1[5] - box2[4] + buffer[2]);
 
+	    //printf("%d %d %d %d %d %d", latmin1, latmin2,latmin3,latmax1,latmax2,latmax3);
             // test if a crystal is too packed to continue
             if( (latmax1-latmin1+1)*(latmax1-latmin1+1)*(latmax1-latmin1+1) > MAX_CELL_SUM)
             { return INFINITY; }
@@ -1300,7 +1304,7 @@ void matrix2quaternion(double *rot, double *quat)
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-Opt_status optimize_crystal(crystal *xtl, float *cutoff_matrix, Opt_settings set)
+Opt_status optimize_crystal(crystal *xtl, float *cutoff_matrix, int placeholder, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");
@@ -1313,6 +1317,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
+    set.cell_family = get_cell_type_from_spg(set.spg);
     int family = set.cell_family;
     // test of lattice vector formatting
     if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
@@ -1904,3 +1909,20 @@ exit(1);
     return 0;
 }
 */
+static int get_cell_type_from_spg(int spg)
+{
+    if (spg <= 2)
+        return 0;
+    else if (spg <= 15)
+        return 1;
+    else if (spg <= 74)
+        return 2;
+    else if (spg <= 142)
+        return 3;
+    else if (spg <= 194)
+        return 4;
+    else if (spg <= 230)
+        return 5;
+
+    return 0;
+}

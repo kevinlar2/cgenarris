@@ -78,5 +78,9 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3],
     double *Xc,int total_atoms1, double *Yc,int total_atoms2,
     double *Zc, int total_atoms3, char* atoms, int total_atoms,
     int Z, int spg);
+void create_array_from_crystal(crystal *xtal, double lattice_vector[3][3],
+    double *Xc,int total_atoms1, double *Yc,int total_atoms2,
+    double *Zc, int total_atoms3, char* atoms, int total_atoms,
+    int Z, int spg);
 
 #endif
