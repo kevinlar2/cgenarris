@@ -6,16 +6,19 @@
 #include <math.h>
 
 #include "../spglib.h"
-#include "../algebra.h"
+#include "d_algebra.h"
 #include "../crystal.h"
 #include "symmetrization.h"
 
-static void quaternion2matrix(float *quat, float *mat, const int inv);
-static void matrix2quaternion(float *rot, float *quat, int *inv);
-static void symmetrize_matrix(float *mat, int dim, int spg);
-static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg);
+static void quaternion2matrix(double *quat, double *mat, const int inv);
+static void matrix2quaternion(double *rot, double *quat, int *inv);
+static void symmetrize_matrix(double *mat, int dim, int spg);
+static void symmetrize_vector(double *vec, int dim, double lattice[3][3], int spg);
 
-void compute_molecule_COM(crystal xtal, float com[3], int i);
+void compute_molecule_COM(crystal xtal, double com[3], int i);
+void convert_xtal_to_cartesian(crystal *xtal);
+void convert_xtal_to_fractional(crystal *xtal);
+
 static void test_symmetrize_state();
 
 /*
@@ -27,7 +30,7 @@ static void test_symmetrize_state();
   lattice   -> lattice vectors in row major form
   spg       -> spacegroup which defines the symm operations.
 */
-static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
+static void symmetrize_vector(double *vec, int dim, double lattice[3][3], int spg)
 {
     // Get symm operations
     double translations[192][3];
@@ -38,14 +41,14 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 					   hall_number);
     assert(dim == Z);
     // Get inverse lattice
-    float inverse_lattice[3][3], inverse_lattice_t[3][3], lattice_t[3][3];
+    double inverse_lattice[3][3], inverse_lattice_t[3][3], lattice_t[3][3];
     inverse_mat3b3(inverse_lattice, lattice);
 
     mat3b3_transpose(inverse_lattice_t, inverse_lattice);
     mat3b3_transpose(lattice_t, lattice);
 
     // Convert to fractional space
-    float vec_frac[3*dim];
+    double vec_frac[3*dim];
     for(int i = 0; i < dim; i++)
     {
 	vector3_mat3b3_multiply(inverse_lattice_t, vec + 3*i, vec_frac +3*i);
@@ -55,16 +58,16 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
     // Compute shifts in fractional space to move molecules
     // to positions where they fall after applying symmetry operation.
     /*
-    float shifts[3*dim];
+    double shifts[3*dim];
     for(int i = 0; i < dim; i++)
     {
-	float temp[3] = {0}, temp_frac[3] = {0};
+	double temp[3] = {0}, temp_frac[3] = {0};
 	int (*rot_i)[3] = rotations[i];
-	float rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
+	double rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
 			   {rot_i[1][0], rot_i[1][1],rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1],rot_i[2][2]}};
 	vector3_mat3b3_multiply(rot, vec_frac, temp);
-	memcpy(temp_frac, temp, 3*sizeof(float));
+	memcpy(temp_frac, temp, 3*sizeof(double));
 	vector3_frac(temp_frac);
 	vector3_subtract(temp, temp_frac, shifts + 3*i);
 
@@ -75,22 +78,22 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
     */
     
     // Array to compute symm average
-    float vec_symm[3] = {0};
+    double vec_symm[3] = {0};
     
     for(int op = 0; op < Z; op++)
     {
 	int (*rot_i)[3] = rotations[op];
-	float rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
+	double rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
 			   {rot_i[1][0], rot_i[1][1],rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1],rot_i[2][2]}};
-	float trans[3] = {translations[op][0],
+	double trans[3] = {translations[op][0],
 			  translations[op][1],
 			  translations[op][2]};
 	
-	float inv_rot[3][3];
+	double inv_rot[3][3];
 	inverse_mat3b3(inv_rot, rot);
 
-	float temp[3];
+	double temp[3];
 	vector3_subtract(vec_frac + 3*op, trans, vec_frac + 3*op);
 	vector3_mat3b3_multiply(inv_rot, vec_frac + 3*op, temp);
 	vector3_frac(temp);
@@ -106,7 +109,7 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
     {
 	int (*rot)[3] = rotations[i];
 	vector3_intmat3b3_multiply(rot, vec_symm, vec_frac + 3*i);
-	float trans[3] = {translations[i][0],
+	double trans[3] = {translations[i][0],
 			  translations[i][1],
 			  translations[i][2]};
 	vector3_add(trans, vec_frac + 3*i, vec_frac + 3*i);
@@ -121,8 +124,8 @@ static void symmetrize_vector(float *vec, int dim, float lattice[3][3], int spg)
 void test_symmetrize_vector()
 {
     int dim = 2;
-    float vec[] = {5, 4, 6, -2, 1, -6};
-    float lattice[3][3] = {{5, 0, 0}, {0.5, 3, 0}, {1, 0, 2}};
+    double vec[] = {5, 4, 6, -2, 1, -6};
+    double lattice[3][3] = {{5, 0, 0}, {0.5, 3, 0}, {1, 0, 2}};
     for(int i = 0; i < dim; i++)
 	printf("%f %f %f\n", vec[0 + 3*i], vec[1 + 3*i], vec[2 + 3*i]);
 
@@ -133,7 +136,7 @@ void test_symmetrize_vector()
 
 void test_symmetrize_matrix()
 {
-    float mat[] = { 1.02, 0, 0, 0,  1, 0, 0, 0,  1,
+    double mat[] = { 1.02, 0, 0, 0,  1, 0, 0, 0,  1,
 		    -1, 0, 0, 0, -1.05, 0, 0, 0, -1};
     int dim = 2;
     int spg = 2;
@@ -152,14 +155,14 @@ void test_symmetrize_matrix()
 void test_rot_quat_conversion()
 {
 #define deg2rad(X) X * (3.14/180)
-    /*float mat[9] = {1, 0, 0,
+    /*double mat[9] = {1, 0, 0,
 		    0, cos(deg2rad(30)), -sin(deg2rad(30)),
 		    0, sin(deg2rad(30)), cos(deg2rad(30))};
     */
-    float mat[9] = { cos(deg2rad(30)), 0, sin(deg2rad(30)),
+    double mat[9] = { cos(deg2rad(30)), 0, sin(deg2rad(30)),
 			0,              1,              0,
 		     -sin(deg2rad(30)), 0, cos(deg2rad(30))};
-    float quat[4];
+    double quat[4];
     int inv;
     for(int j = 0; j < 3; j++)
 	printf("%f, %f, %f \n",
@@ -200,7 +203,7 @@ int main()
   each other.
 */
 
-void symmetrize_matrix(float *mat, int dim, int spg)
+void symmetrize_matrix(double *mat, int dim, int spg)
 {
     // Get symm operations
     double translations[192][3];
@@ -212,19 +215,19 @@ void symmetrize_matrix(float *mat, int dim, int spg)
     assert(dim == Z);
 
     // Matrix to compute symm average
-    float mat_symm[3][3] = {0};
-    float temp[3][3] = {0};
+    double mat_symm[3][3] = {0};
+    double temp[3][3] = {0};
     for(int op = 0; op < Z; op++)
     {
 	int (*rot_i)[3] = rotations[op];
-	float rot[3][3] = {{rot_i[0][0], rot_i[0][1], rot_i[0][2]},
+	double rot[3][3] = {{rot_i[0][0], rot_i[0][1], rot_i[0][2]},
 			   {rot_i[1][0], rot_i[1][1], rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1], rot_i[2][2]}};
 
-	float inv_rot[3][3]; 
+	double inv_rot[3][3]; 
 	inverse_mat3b3(inv_rot, rot);
 
-	float (*mat_i)[3] = (float (*)[3]) (mat + 3*3*op);
+	double (*mat_i)[3] = (double (*)[3]) (mat + 3*3*op);
 	mat3b3_mat3b3_multiply(inv_rot, mat_i, temp);
 	mat3b3_add(temp, mat_symm, mat_symm);
     }
@@ -235,8 +238,8 @@ void symmetrize_matrix(float *mat, int dim, int spg)
 	mat_symm[i][j] /= Z;
 
     // For safety, ensure det(R) = 1
-    float det = det_mat3b3(mat_symm);
-    float renorm = fabsf(1.0 / cbrtf(det));
+    double det = det_mat3b3(mat_symm);
+    double renorm = fabsf(1.0 / cbrtf(det));
     for(int i = 0; i < 3; i++)
     for(int j = 0; j < 3; j++)
 	mat_symm[i][j] *= renorm;
@@ -245,20 +248,20 @@ void symmetrize_matrix(float *mat, int dim, int spg)
     for(int op = 0; op < Z; op++)
     {
 	int (*rot_i)[3] = rotations[op];
-	float rot[3][3] = {{rot_i[0][0], rot_i[0][1], rot_i[0][2]},
+	double rot[3][3] = {{rot_i[0][0], rot_i[0][1], rot_i[0][2]},
 			   {rot_i[1][0], rot_i[1][1], rot_i[1][2]},
 			   {rot_i[2][0], rot_i[2][1], rot_i[2][2]}};
 
-	float (*mat_i)[3] = (float (*)[3]) (mat + 3*3*op);
+	double (*mat_i)[3] = (double (*)[3]) (mat + 3*3*op);
 	mat3b3_mat3b3_multiply(rot, mat_symm, mat_i);
     }
 }
 
 // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 // inv takes -1 or +1 and determines if the rotation is proper or improper
-static void quaternion2matrix(float *quat, float *mat, const int inv)
+static void quaternion2matrix(double *quat, double *mat, const int inv)
 {
-    float s = 1.0/(quat[0]*quat[0] +
+    double s = 1.0/(quat[0]*quat[0] +
 		   quat[1]*quat[1] +
 		   quat[2]*quat[2] +
 		   quat[3]*quat[3]);
@@ -281,10 +284,10 @@ static void quaternion2matrix(float *quat, float *mat, const int inv)
 }
 
 // inv -> +1 or -1 depending on proper/improper rotation
-static void matrix2quaternion(float *rot, float *quat, int *inv)
+static void matrix2quaternion(double *rot, double *quat, int *inv)
 {
 
-    float det = rot[0+0*3]*rot[1+1*3]*rot[2+2*3]
+    double det = rot[0+0*3]*rot[1+1*3]*rot[2+2*3]
 	-rot[0+0*3]*rot[1+2*3]*rot[2+1*3]
 	+rot[0+1*3]*rot[1+2*3]*rot[2+0*3]
 	-rot[0+1*3]*rot[1+0*3]*rot[2+2*3]
@@ -299,7 +302,7 @@ static void matrix2quaternion(float *rot, float *quat, int *inv)
     for(int i = 0; i < 9; i++)
 	rot[i] *= *inv;
     
-    float t;
+    double t;
     if (rot[2+2*3] < 0.0)
     {
         if (rot[0+0*3] > rot[1+1*3])
@@ -364,12 +367,12 @@ void test_symmetrize_state()
 void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
 {
     // Collect position vectors
-    float pos[nmol * 3];
+    double pos[nmol * 3];
     int dim = 0;
 
-    float lattice[3][3] = {state[0],        0,       0,
-			   state[1], state[2],       0,
-			   state[3], state[4], state[5]};
+    double lattice[3][3] = {{state[0],        0,       0},
+			    {state[1], state[2],       0},
+			    {state[3], state[4], state[5]}};
 
     // each mol is represented by 7 numbers; first 3 are positions
     for(int i = 6; i < 7*nmol + 6; i += 7)
@@ -382,8 +385,8 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
     symmetrize_vector(pos, dim, lattice, spg);
 
     // Collect orientational quaternions and convert to rotation matrices
-    float quat[4];
-    float mat[nmol*3*3];
+    double quat[4];
+    double mat[nmol*3*3];
     dim = 0;
     for(int i = 9; i < 7*nmol + 6; i += 7)
     {
@@ -399,7 +402,7 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
 
     // Convert back to quaternions
     dim = 0;
-    float quat_all[nmol*4];
+    double quat_all[nmol*4];
     for(int i = 9; i < 7*nmol + 6; i += 7)
     {
 	matrix2quaternion(mat + 3*3*dim, quat_all + 4*dim, invert + dim);
@@ -431,7 +434,7 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
 
 int detect_spg_using_spglib(crystal* xtal)
 {
-    float tol = 1;
+    double tol = 1;
     //print_crystal(xtal)
     convert_xtal_to_fractional(xtal);
     //variable declarations
@@ -500,7 +503,7 @@ int detect_spg_using_spglib(crystal* xtal)
     //error = spg_get_error_code();
     //printf("#SPGLIB says %s\n", spg_get_error_message(error));
     //printf("#SPGLIB detected space group = %d\n",
-    //                                          num_spg);
+    //                                         num_spg);
     convert_xtal_to_cartesian(xtal);
     return num_spg;
 
@@ -508,16 +511,20 @@ int detect_spg_using_spglib(crystal* xtal)
 
 void convert_xtal_to_cartesian(crystal *xtal)
 {
-    float lattice_vectors_transpose[3][3];
-    copy_mat3b3_mat3b3(lattice_vectors_transpose,
-                       xtal->lattice_vectors);
+    double lattice_vectors_transpose[3][3] =
+	{
+	    {xtal->lattice_vectors[0][0], xtal->lattice_vectors[0][1], xtal->lattice_vectors[0][2]},
+	    {xtal->lattice_vectors[1][0], xtal->lattice_vectors[1][1], xtal->lattice_vectors[1][2]},
+	    {xtal->lattice_vectors[2][0], xtal->lattice_vectors[2][1], xtal->lattice_vectors[2][2]}
+	};
+
     mat3b3_transpose(lattice_vectors_transpose,
                      lattice_vectors_transpose);
     int total_atoms = xtal->Z *xtal->num_atoms_in_molecule;
 
     for(int i = 0; i < total_atoms; i++)
     {
-        float temp[3] = {xtal->Xcord[i],
+        double temp[3] = {xtal->Xcord[i],
                          xtal->Ycord[i],
                          xtal->Zcord[i] };
         vector3_mat3b3_multiply(lattice_vectors_transpose, temp, temp );
@@ -529,17 +536,21 @@ void convert_xtal_to_cartesian(crystal *xtal)
 
 void convert_xtal_to_fractional(crystal *xtal)
 {
-    float lattice_vectors[3][3];
-    float inv_lattice_vectors[3][3];
-    copy_mat3b3_mat3b3(lattice_vectors, xtal->lattice_vectors);
+    double lattice_vectors[3][3] ={
+	{xtal->lattice_vectors[0][0], xtal->lattice_vectors[0][1], xtal->lattice_vectors[0][2]},
+	{xtal->lattice_vectors[1][0], xtal->lattice_vectors[1][1], xtal->lattice_vectors[1][2]},
+	{xtal->lattice_vectors[2][0], xtal->lattice_vectors[2][1], xtal->lattice_vectors[2][2]}
+    };
+
+    double inv_lattice_vectors[3][3];
     inverse_mat3b3(inv_lattice_vectors, lattice_vectors);
     mat3b3_transpose(inv_lattice_vectors, inv_lattice_vectors);
 
     int total_atoms = xtal->Z *xtal->num_atoms_in_molecule;
-
+    
     for(int i = 0; i < total_atoms; i++)
     {
-        float temp[3] = {xtal->Xcord[i], xtal->Ycord[i], xtal->Zcord[i] };
+        double temp[3] = {xtal->Xcord[i], xtal->Ycord[i], xtal->Zcord[i] };
         vector3_mat3b3_multiply(inv_lattice_vectors, temp, temp );
         xtal->Xcord[i] = temp[0];
         xtal->Ycord[i] = temp[1];
@@ -556,7 +567,7 @@ void bring_all_molecules_to_first_cell(crystal *xtal)
     //convert to fractional
     for(int i = 0; i < N*Z; i+=N)
     {
-        float com[3] = {0,0,0};
+        double com[3] = {0,0,0};
         compute_molecule_COM(*xtal,com,i);
         int integer_part1 = (int)com[0];
         int integer_part2 = (int)com[1];
@@ -580,7 +591,7 @@ void bring_all_molecules_to_first_cell(crystal *xtal)
     convert_xtal_to_cartesian(xtal);
 }
 
-void compute_molecule_COM(crystal xtal, float com[3], int i)
+void compute_molecule_COM(crystal xtal, double com[3], int i)
 {   // computes the COM of a molecule (whose first atom is i) in
     //a crystal.
     

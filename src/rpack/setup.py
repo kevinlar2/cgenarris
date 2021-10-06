@@ -45,7 +45,7 @@ for i, s in enumerate(sources_spglib):
 
 rigid_press = Extension('_rigid_press',
                   include_dirs= ['./', numpy.get_include() ],
-                  sources=["rigid_press.i", "rigid_press.c", "symmetrization.c", "../algebra.c", "../randomgen.c"]+sources_spglib,
+                  sources=["rigid_press.i", "rigid_press.c", "symmetrization.c", "d_algebra.c", "../randomgen.c"]+sources_spglib,
                   extra_compile_args=["-std=gnu99", "-fPIC", "-O3", "-DROPT_DEBUG"], extra_link_args=["-llapack", "-lblas"])
 
 setup (name = 'rigid_press',
