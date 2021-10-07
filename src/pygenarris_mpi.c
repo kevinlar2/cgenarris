@@ -18,7 +18,6 @@
 #include "algebra.h"
 #include "pygenarris_mpi.h"
 #include "pygenarris_mpi_utils.h"
-#include "rpack/rigid_press.h"
 
 #define ZMAX 192
 #define BATCH_SIZE 10000
@@ -237,7 +236,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int dim2,
     int num_structures,
     int Z,
-    int rigid_press, // 1 or 0
     double volume_mean1,
     double volume_std1,
     double tol1,
@@ -492,33 +490,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                         continue;
                     }
 
-		    // Use rigid packing optmization if requested
-		    if(rigid_press)
-		    {
-			/*
-		        time_t opt_s_time = time(NULL);
-			Opt_settings opt_set;
-			opt_set.cell_family = get_cell_type_from_spg(spg);
-			opt_set.max_iteration = 200;
-		        printf("Started optimization\n");
-			print_crystal(random_crystal);
-
-			Opt_status stat = optimize_crystal(random_crystal, vdw_matrix, opt_set);
-			if(stat != SUCCESS)
-			{
-			  verdict = 0;
-			  break;
-			}
-			bring_all_molecules_to_first_cell(random_crystal);
-
-			time_t opt_e_time = time(NULL);
-			double elapsed = difftime (opt_e_time, opt_s_time);
-			printf("Completed optimization in ~ %.1lf\n", elapsed);
-			print_crystal(random_crystal);
-			*/
-		    }
-		    
-                    //check if molecules are too close with sr
+		    //check if molecules are too close with sr
                     verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);
                     //if generation is successful
                     if (verdict == 1)
@@ -526,13 +498,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                         random_crystal->spg = spg;
                         break;
                     }
-
-		    else if(rigid_press)
-		    {
-		        printf("Failed\n");
-			exit(1);
-		    }
-
                 }//end of GRAIN loop
 
                 int found_poll[total_ranks];

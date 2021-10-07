@@ -12,7 +12,6 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int dim2,
     int num_structures,
     int Z,
-    int rigid_press,
     double volume_mean1,
     double volume_std1,
     double tol1,
