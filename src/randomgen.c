@@ -6,7 +6,7 @@
 # include <stdbool.h>
 # include "randomgen.h"
 
-
+unsigned int *seed2;
 /* Period parameters */
 #define N 624
 #define M 397
@@ -143,3 +143,7 @@ float normal_dist_ab ( float mean, float stdev )
   return retval;
 }
 
+int get_random_int()
+{
+    return rand_r(seed2);
+}

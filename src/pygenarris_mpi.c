@@ -18,6 +18,7 @@
 #include "algebra.h"
 #include "pygenarris_mpi.h"
 #include "pygenarris_mpi_utils.h"
+#include "rpack/rigid_press.h"
 
 #define ZMAX 192
 #define BATCH_SIZE 10000
@@ -73,6 +74,7 @@ void mpi_generate_cocrystals_with_vdw_matrix(
     set.sr = sr;
     set.spg_dist_type = spg_dist_type;
     set.vdw_matrix = vdw_matrix;
+    set.generation_type = COCRYSTAL;
 
     if (dim1 != dim2)
     {
@@ -113,8 +115,8 @@ void mpi_generate_cocrystals_with_vdw_matrix(
         log_file = fopen("generation.log", "w");
 
     // Init Random seeding
-    seed = (unsigned int*)malloc(sizeof(unsigned int)); //seed for uniform gen
-    seed2 = (unsigned int*)malloc(sizeof(unsigned int)); //seed for random
+    seed = malloc(sizeof(unsigned int)); //seed for uniform gen
+    seed2 = malloc(sizeof(unsigned int)); //seed for random
     init_random_seed(seed, seed2, random_seed, my_rank);
 
     // Read molecules and recenter mol to orgin
@@ -235,6 +237,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int dim2,
     int num_structures,
     int Z,
+    int rigid_press, // 1 or 0
     double volume_mean1,
     double volume_std1,
     double tol1,
@@ -246,13 +249,33 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     float angle_std,
     MPI_Comm world_comm)
 {
-    float Zp_max=1;
+    float Zp_max = 1;
     float volume_mean = volume_mean1;
     float volume_std = volume_std1;
     TOL = tol1;
 
     if (dim1 != dim2)
-    {printf("***ERROR:vdw cutoff matrix is not square***\n"); exit(0);}
+    {
+      printf("***ERROR:vdw cutoff matrix is not square***\n");
+      exit(EXIT_FAILURE);
+    }
+
+    Settings set;
+    set.num_structures = num_structures;
+    set.Z = Z;
+    set.vol_attempts = vol_attempt;
+    set.random_seed = random_seed;
+    set.stoic = NULL;
+    set.n_mol_types = 0;
+    set.max_attempts = max_attempts;
+    set.vol_mean = volume_mean1;
+    set.vol_std = volume_std1;
+    set.norm_dev = norm_dev;
+    set.angle_std = angle_std;
+    set.sr = -1;
+    set.spg_dist_type = spg_dist_type;
+    set.vdw_matrix = vdw_matrix;
+    set.generation_type = CRYSTAL;
 
     //Initialise MPI
     int total_ranks;
@@ -273,7 +296,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
         if(!out_file)       //check permissions
         {
             printf("***ERROR: cannot create geometry.out \n");
-            exit(0);
+            exit(EXIT_FAILURE);
         }
         //fprintf(out_file, "my_rank=%d\n", my_rank);
     }
@@ -345,21 +368,8 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     if (my_rank == 0)
     {
         print_input_geometry(mol);
-        /*print_input_settings(&num_structures,
-                             &Z,
-                             &Zp_max,
-                             &volume_mean,
-                             &volume_std,
-                             &sr,
-                             &max_attempts,
-                             spg_dist_type,
-                             &vol_attempt,
-                             &random_seed,
-                             &norm_dev,
-                             &angle_std,
-                             NULL,
-                             0);
-                             */
+	print_input_settings(set);
+
     }
 
     MPI_Barrier(world_comm);
@@ -481,14 +491,47 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
                         //fail_count ++;
                         continue;
                     }
+
+		    // Use rigid packing optmization if requested
+		    if(rigid_press)
+		    {
+			/*
+		        time_t opt_s_time = time(NULL);
+			Opt_settings opt_set;
+			opt_set.cell_family = get_cell_type_from_spg(spg);
+			opt_set.max_iteration = 200;
+		        printf("Started optimization\n");
+			print_crystal(random_crystal);
+
+			Opt_status stat = optimize_crystal(random_crystal, vdw_matrix, opt_set);
+			if(stat != SUCCESS)
+			{
+			  verdict = 0;
+			  break;
+			}
+			bring_all_molecules_to_first_cell(random_crystal);
+
+			time_t opt_e_time = time(NULL);
+			double elapsed = difftime (opt_e_time, opt_s_time);
+			printf("Completed optimization in ~ %.1lf\n", elapsed);
+			print_crystal(random_crystal);
+			*/
+		    }
+		    
                     //check if molecules are too close with sr
                     verdict = check_structure_with_vdw_matrix(*random_crystal, vdw_matrix, dim1, dim2);
                     //if generation is successful
-                    if (verdict == 1 )
+                    if (verdict == 1)
                     {
                         random_crystal->spg = spg;
                         break;
                     }
+
+		    else if(rigid_press)
+		    {
+		        printf("Failed\n");
+			exit(1);
+		    }
 
                 }//end of GRAIN loop
 
@@ -1201,5 +1244,32 @@ void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3],
 
     }
 
+}
+
+void create_array_from_crystal(crystal *xtal, double lattice_vector[3][3],
+    double *Xc,int total_atoms1, double *Yc,int total_atoms2,
+    double *Zc, int total_atoms3, char* atoms, int total_atoms,
+    int Z, int spg)
+{
+    spg = xtal->spg;
+    Z = xtal->Z;
+
+    if (total_atoms != total_atoms1 || total_atoms != total_atoms2 || total_atoms != total_atoms3)
+    printf("***ERR0R:sizes of arrays doesnot match");
+
+
+    for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
+    {
+	lattice_vector[i][j] = xtal->lattice_vectors[i][j];
+    }
+    for(int i = 0; i < total_atoms; i++)
+    {
+        Xc[i] = xtal->Xcord[i];
+        Yc[i] = xtal->Ycord[i];
+        Zc[i] = xtal->Zcord[i];
+        atoms[2*i]   = xtal->atoms[2*i];
+        atoms[2*i+1] = xtal->atoms[2*i+1];
+    }
 }
 

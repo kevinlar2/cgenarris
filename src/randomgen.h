@@ -7,4 +7,7 @@ float uniform_dist_01 (void);
 float normal_dist_01 (void);
 float normal_dist_ab ( float a, float b);
 
+extern unsigned int *seed2;
+int get_random_int(void);
+
 #endif

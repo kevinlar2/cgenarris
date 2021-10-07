@@ -273,6 +273,86 @@ void convert_xtal_to_cartesian(crystal *xtal)
     }
 }
 
+/*
+  Function to vizualize the overlap of the symmetric structure and
+  given structure.
+ */
+void debug_symmetry_overlap(crystal *xtal, crystal *overlap, int spg)
+{
+    double translations[192][3];
+    int rotations[192][3][3];
+    int hall_number = hall_number_from_spg(spg);
+    printf("Hall = %d", hall_number);
+    fflush(stdout);
+    int num_of_operations = spg_get_symmetry_from_database(rotations,
+							   translations,
+							   hall_number);
+
+    int N = xtal->num_atoms_in_molecule;
+
+    // Compute inv lattice
+    float inv_lat_vec[3][3];
+    inverse_mat3b3(inv_lat_vec, xtal->lattice_vectors);
+    mat3b3_transpose(inv_lat_vec, inv_lat_vec);
+    float lat_vec_trans[3][3];
+    mat3b3_transpose(lat_vec_trans, xtal->lattice_vectors);
+
+    if(num_of_operations != xtal->Z)
+    {
+	printf("spg = %d, %d", spg, hall_number);
+	printf("Debug failed %d %d", num_of_operations, xtal->Z);
+        exit(EXIT_FAILURE);
+    }
+    printf("test\n"); 
+    fflush(stdout);
+    allocate_xtal(overlap, 2*xtal->Z - 1, N);
+    copy_xtal(overlap, xtal);
+    
+    // Loop over molecules 
+    for(int i = xtal->Z; i < 2*xtal->Z - 1; i++)
+    {
+        int mol = i*N;
+	int op = i - xtal->Z + 1;
+	float trans[3] = {translations[op][0],
+			  translations[op][1],
+			  translations[op][2]};
+	//double *trans = (double *)translations[op];
+	int (*rot)[3] = rotations[op];
+
+	printf("%f %f %f\n ", trans[0], trans[1], trans[2]);
+	
+	printf("op=%d", op);
+	printf("\nrot\n=");
+	for(int k =0; k < 3; k++)
+	    printf("%d %d %d \n", rot[k][0], rot[k][1],rot[k][2]);
+	// Apply symm operations to first molecule
+	for(int at = 0; at < N; at++)
+	{
+	    float atom[3] = {xtal->Xcord[at],
+			     xtal->Ycord[at],
+			     xtal->Zcord[at]};
+
+
+	    // Convert to fractional
+	    vector3_mat3b3_multiply(inv_lat_vec, atom, atom);
+	    
+	    vector3_intmat3b3_multiply(rot, atom, atom);
+            vector3_add(trans, atom, atom);
+            // Convert to cartesian
+            vector3_mat3b3_multiply(lat_vec_trans, atom, atom);
+
+            overlap->Xcord[mol + at] = atom[0];
+            overlap->Ycord[mol + at] = atom[1];
+            overlap->Zcord[mol + at] = atom[2];
+            overlap->atoms[2*(mol+at)] = xtal->atoms[2*at];
+            overlap->atoms[2*(mol+at) + 1] = xtal->atoms[2*at + 1];
+	}
+	 
+    }
+    overlap->Z = 2*xtal->Z - 1;
+    overlap->spg = spg;
+}
+
 void remove_close_molecules(crystal* xtal)
 {
     /* function to remove close molecules in a cell. Originally written
@@ -585,7 +665,7 @@ void average_positions_using_list(float     *tempx,
                             /*spglib check*/
 int detect_spg_using_spglib(crystal* xtal)
 {
-    float tol = 1e-4;
+    float tol = 1e-3;
     //print_crystal(xtal);
     convert_xtal_to_fractional(xtal);
     //variable declarations

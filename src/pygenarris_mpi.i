@@ -33,6 +33,7 @@ void mpi_generate_molecular_crystals_with_vdw_cutoff_matrix(
     int dim2,
     int num_structures,
     int Z,
+    int rigid_press,
     double volume_mean1,
     double volume_std1,
     double tol1,
@@ -100,9 +101,16 @@ void allocate_xtal(crystal* xtal, int Z, int N);
 %apply (double* IN_ARRAY1, int DIM1) {(double *Yc, int total_atoms2)};
 %apply (double* IN_ARRAY1, int DIM1) {(double *Zc, int total_atoms3)};
 void create_crystal_from_array(crystal *xtal, double lattice_vector[3][3],
-	double *Xc,int total_atoms1, double *Yc,int total_atoms2,
-	double *Zc, int total_atoms3, char *atoms,  int total_atoms,
-	int Z, int spg);
+			       double *Xc,int total_atoms1, double *Yc,int total_atoms2,
+			       double *Zc, int total_atoms3, char *atoms,  int total_atoms,
+			       int Z, int spg);
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *X, int total_atoms1)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *Y, int total_atoms2)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *Z, int total_atoms3)};
+void create_array_from_crystal(crystal *xtal, double lattice_vector[3][3],
+			       double *X,int total_atoms1, double *Y,int total_atoms2,
+			       double *Z, int total_atoms3, char* atoms, int total_atoms,
+			       int Z, int spg);
 
 %apply (double INPLACE_ARRAY1[ANY]) {(double a[3])};
 

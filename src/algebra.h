@@ -45,6 +45,9 @@ void copy_doubvector3_vector3bN( double a[3], const double b[][3], int index);//
 void copy_doubvector3bN_vector3(double a[3], double b[][3], int index); //added here
 int get_lg_symmetry(int hall_number,double translations [192] [3],int rotations[192][3][3]);//added here
 
+int get_cell_type_from_spg(int spg);
+			
+			
 
 void get_euler_from_rotation_matrix(float rot_mat[3][3], float angles[3]);
 
@@ -87,5 +90,21 @@ static inline void vector3_add(float a[3], float b[3], float sum[3])
     sum[2] = a[2] + b[2];
     return;
 }
+
+static inline void mat3b3_add(float a[3][3], float b[3][3], float sum[3][3])
+{
+    sum[0][0] = a[0][0] + b[0][0];
+    sum[0][1] = a[0][1] + b[0][1];
+    sum[0][2] = a[0][2] + b[0][2];
+
+    sum[1][0] = a[1][0] + b[1][0];
+    sum[1][1] = a[1][1] + b[1][1];
+    sum[1][2] = a[1][2] + b[1][2];
+
+    sum[2][0] = a[2][0] + b[2][0];
+    sum[2][1] = a[2][1] + b[2][1];
+    sum[2][2] = a[2][2] + b[2][2];
+}
+
 
 #endif

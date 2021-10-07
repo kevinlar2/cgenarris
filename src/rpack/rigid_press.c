@@ -20,10 +20,12 @@
 #include <math.h>
 
 #include "../crystal.h"
+#include "../crystal_utils.h"
 #include "../cocrystal.h"
-#include "rigid-press.h"
+#include "rigid_press.h"
+#include "symmetrization.h"
 
-// prototypes for external dependencies (BLAS & LAPACK)
+//prototypes for external dependencies (BLAS & LAPACK)
 void dgemv_(char*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
 void dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
 void dsyev_(char*, char*, int*, double*, int*, double*, double*, int*, int*);
@@ -37,11 +39,20 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 // parameters defining the regularized interatomic contact interaction
 #define INTERACTION_WEIGHT 0.1
 
+// maximum number of unit cells to sum over before deciding a crystal is too tightly packed
+#define MAX_CELL_SUM 1000
+
 // number of steps to take for each Golden-section line search
 #define GOLDEN_STEPS 20
 
 // optimization tolerance on energy change in 1 iteration relative to minimum energy
 #define OPTIMIZATION_TOLERANCE 1e-6
+
+// approximate maximum 2-norm change in the state vector for line searches (scaled by nmol)
+#define MAX_LINE_STEP 100.0
+
+// very loose energy reduction threshold for flagging false convergence (scaled by nmol)
+#define ENERGY_REDUCTION_TOLERANCE 1e-3
 
 // step size for numerical tests of analytical derivatives
 #define STEP 1e-4
@@ -60,7 +71,7 @@ struct molecular_crystal
     // size information
     int ntype; // number of types of molecules in the crystal
     int nmol; // number of molecules per unit cell
-
+    int spg;
     // information about each type of molecule
     int *natom; // number of atoms in a molecule type [ntype]
     double **geometry; // centered geometry of a molecule type (interleaved x-y-z format) [ntype][3*natom[i]]
@@ -70,6 +81,14 @@ struct molecular_crystal
     int *type; // type of each molecule in the unit cell [nmol]
     int *invert; // inversion of each molecule in the unit cell (+1 for standard, -1 for inverted) [nmol]
 };
+
+#ifdef ROPT_DEBUG
+void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2);
+void print_crystal(crystal* xtal);
+int detect_spg_using_spglib(crystal* xtal);
+#endif
+static int get_cell_type_from_spg(int spg);
+
 
 // deallocate memory in the molecular_crystal structure
 void free_molecular_crystal(struct molecular_crystal *xtl)
@@ -92,6 +111,15 @@ void free_molecular_crystal(struct molecular_crystal *xtl)
 
     free(xtl->natom);
 }
+
+#ifdef ROPT_DEBUG
+void print_state(double *state, int size)
+{
+    for(int i = 0; i < size; i++)
+	printf("%lf ", state[i]);
+    printf("\n\n");
+}
+#endif
 
 // interatomic interaction kernel & its 1st & 2nd distance derivatives
 double kernel(double distance, // interatomic distance
@@ -484,6 +512,18 @@ void bound_box(int natom, // number of atoms in the molecule
     }
 }
 
+// form reciprocal lattice vectors
+void reciprocal(double *latvec, // lattice vectors (1st: x, 2nd: x-y, 3rd: x-y-z) [6]
+                double *reclat) // reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z) [6]
+{
+    double wt = 1.0/(latvec[0]*latvec[2]*latvec[5]);
+    reclat[0] = wt*latvec[2]*latvec[5];
+    reclat[1] = -wt*latvec[1]*latvec[5];
+    reclat[2] = wt*(latvec[1]*latvec[4] - latvec[2]*latvec[3]);
+    reclat[3] = wt*latvec[5]*latvec[0];
+    reclat[4] = -wt*latvec[4]*latvec[0];
+    reclat[5] = wt*latvec[0]*latvec[2];
+}
 
 // energy function that we are minimizing to relax the molecular crystal
 double total_energy(struct molecular_crystal *xtl, // description of the crystal being optimized
@@ -492,13 +532,8 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
     double energy = fabs(state[0]*state[2]*state[5]);
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
@@ -530,6 +565,11 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
             latmax1 = ceil(box1[1] - box2[0] + buffer[0]);
             latmax2 = ceil(box1[3] - box2[2] + buffer[1]);
             latmax3 = ceil(box1[5] - box2[4] + buffer[2]);
+
+	    //printf("%d %d %d %d %d %d", latmin1, latmin2,latmin3,latmax1,latmax2,latmax3);
+            // test if a crystal is too packed to continue
+            if( (latmax1-latmin1+1)*(latmax1-latmin1+1)*(latmax1-latmin1+1) > MAX_CELL_SUM)
+            { return INFINITY; }
 
             // loop over interacting unit cells
             for(int k=latmin1 ; k<=latmax1 ; k++)
@@ -590,13 +630,8 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
     hess[5 + 2*size] = fabs(state[0])*sign2*sign5;
 
     // construct reciprocal lattice vectors (1st: x-y-z, 2nd: y-z, 3rd: z)
-    double wt = 1.0/(state[0]*state[2]*state[5]), reclat[6];
-    reclat[0] = wt*state[2]*state[5];
-    reclat[1] = -wt*state[1]*state[5];
-    reclat[2] = wt*(state[1]*state[4] - state[2]*state[3]);
-    reclat[3] = wt*state[5]*state[0];
-    reclat[4] = -wt*state[4]*state[0];
-    reclat[5] = wt*state[0]*state[2];
+    double reclat[6];
+    reciprocal(state, reclat);
 
     // calculate buffer (lattice-aligned bounding box for the interaction sphere)
     double buffer[3];
@@ -628,6 +663,14 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
             latmax1 = ceil(box1[1] - box2[0] + buffer[0]);
             latmax2 = ceil(box1[3] - box2[2] + buffer[1]);
             latmax3 = ceil(box1[5] - box2[4] + buffer[2]);
+
+            // test if a crystal is too packed to continue
+            if( (latmax1-latmin1+1)*(latmax1-latmin1+1)*(latmax1-latmin1+1) > MAX_CELL_SUM)
+            {
+                for(int n=0 ; n<size ; n++)
+                { grad[n] = NAN; }
+                return;
+            }
 
             // loop over interacting unit cells
             for(int k=latmin1 ; k<=latmax1 ; k++)
@@ -778,10 +821,12 @@ void total_energy_derivative_test(struct molecular_crystal *xtl, // description 
     free(dummy);
 }
 
-// renormalize quaternions
-void renormalize(int nmol, // number of molecules in the state vector
-                 double *state) // state vector [6+7*nmol]
+// renormalize quaternions, canonicalize lattice vectors, & recenter molecules
+int renormalize(int nmol, // number of molecules in the state vector
+                 double *state,
+		 struct molecular_crystal *xtl) // state vector [6+7*nmol]
 {
+    // renormalize quaternions
     for(int i=0 ; i<nmol ; i++)
     {
         double renorm = 1.0/sqrt(state[9+7*i]*state[9+7*i] + state[10+7*i]*state[10+7*i]
@@ -789,6 +834,124 @@ void renormalize(int nmol, // number of molecules in the state vector
         for(int j=0 ; j<4 ; j++)
         { state[9+j+7*i] *= renorm; }
     }
+
+    // canonicalize lattice vectors
+    int num;
+    if(state[2]*state[4] > 0.0)
+    { num = state[4]/state[2] + 0.5; }
+    else
+    { num = state[4]/state[2] - 0.5; }
+    state[3] -= num*state[1];
+    state[4] -= num*state[2];
+
+    if(state[0]*state[1] > 0.0)
+    { num = state[1]/state[0] + 0.5; }
+    else
+    { num = state[1]/state[0] - 0.5; }
+    state[1] -= num*state[0];
+
+    if(state[0]*state[3] > 0.0)
+    { num = state[3]/state[0] + 0.5; }
+    else
+    { num = state[3]/state[0] - 0.5; }
+    state[3] -= num*state[0];
+
+    // recenter molecules
+    double reclat[6];
+    reciprocal(state, reclat);
+    for(int i=0 ; i<nmol ; i++)
+    {
+        double wt = state[6+7*i]*reclat[0] + state[7+7*i]*reclat[1] + state[8+7*i]*reclat[2];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[0];
+
+        wt = state[7+7*i]*reclat[3] + state[8+7*i]*reclat[4];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[1];
+        state[7+7*i] -= num*state[2];
+
+        wt = state[8+7*i]*reclat[5];
+        if(wt > 0.0) { num = wt + 0.5; }
+        else { num = wt - 0.5; }
+        state[6+7*i] -= num*state[3];
+        state[7+7*i] -= num*state[4];
+        state[8+7*i] -= num*state[5];
+    }
+
+    // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
+    if(xtl->spg != 0)
+    {
+	//symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+
+#ifdef ROPT_DEBUG
+	crystal xtal;
+	int N = xtl->natom[0];
+	int Z = xtl->nmol;
+	xtal.num_atoms_in_molecule = N;
+	xtal.Z = Z;
+	xtal.Xcord = malloc(sizeof(float) * Z * N);
+	xtal.Ycord = malloc(sizeof(float) * Z * N);
+	xtal.Zcord = malloc(sizeof(float) * Z * N);
+	xtal.atoms = malloc(sizeof(char) * Z * N * 2);
+	for(int i = 0; i < Z * N; i++)
+	{
+	    xtal.atoms[2*i    ] = 'C';
+	    xtal.atoms[2*i + 1] = ' ';
+	}
+
+	// Before symmetrization
+	state_2_xtal(&xtal, state, xtl);
+	//bring_all_molecules_to_first_cell(&xtal);
+	//print_crystal(&xtal);
+	xtal.num_atoms_in_molecule = N;
+	int spg = detect_spg_using_spglib(&xtal);
+
+	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+
+	// After symmetrization
+	state_2_xtal(&xtal, state, xtl);
+	int spg2 = detect_spg_using_spglib(&xtal);
+	printf("spg before = %d, spg after = %d\n", spg, spg2);
+
+	// Check if symmetrize_state() is stationary
+	int size = 6 + 7 * xtl->nmol;
+	double temp[size];
+	for(int i = 0; i < size; i++)
+	    temp[i] = state[i];
+
+	/*
+	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
+	for(int i = 0; i < size; i++)
+	{
+	    if(fabs(state[i] - temp[i]) > 0.001)
+	    {
+		printf("Error in symmetrize_state: not stationary\n");
+		print_state(state, size);
+		print_state(temp, size);
+		exit(1);
+	    }	    
+	}
+	*/
+
+	if(spg2 < spg)
+	{
+	   print_crystal(&xtal);
+	   printf("Symmetrization failed.");
+	   exit(1);
+	}
+
+	if(xtl->spg != spg2)
+	{ return 1; }
+
+	free(xtal.Xcord);
+	free(xtal.Ycord);
+	free(xtal.Zcord);
+	free(xtal.atoms);
+#endif
+    }
+    return 0;
 }
 
 // objective function to optimize the volume of the molecular crystal
@@ -798,6 +961,7 @@ double volume_search(double x, // optimization variable [0,1]
                      double *min, // smallest scale factor to be considered [1]
                      double *max, // largest scale factor to be considered [1]
                      double *dummy, // dummy variable to match argument list w/ other objective function
+                     double *dummy2, // dummy variable to match argument list w/ other objective function
                      double *work) // work vector [6+7*xtl->nmol]
 {
     int size = 6+7*xtl->nmol;
@@ -811,22 +975,31 @@ double volume_search(double x, // optimization variable [0,1]
 double quad_search(double x, // optimization variable [0,1]
                    struct molecular_crystal *xtl, // description of the crystal being optimized
                    double *state, // the crystal's state vector in normal coordinates [6+7*xtl->nmol]
+                   double *tik_min, // minimum Tikhonov regularization parameter [1]
                    double *grad, // gradient in normal coordinates [6+7*xtl->nmol]
                    double *eval, // eigenvalues of the Hessian matrix [6+7*xtl->nmol]
                    double *evec, // eigenvectors of the Hessian matrix [(6+7*xtl->nmol)*(6+7*xtl->nmol)]
                    double *work) // work vector [13+14*xtl->nmol]
 {
-    int size = 6+7*xtl->nmol;
-    x *= work[2*size]; // hack to tune the search interval
-    for(int i=0 ; i<size ; i++)
+    int size = 6+7*xtl->nmol, sym_test;
+    do
     {
-        work[i] = state[i];
-        work[i+size] = -x*grad[i]/(fabs(x*eval[i]) + (1-x)*fabs(eval[size-1]));
-    }
-    char notrans = 'N';
-    int inc = 1;
-    double one = 1.0;
-    dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
+        for(int i=0 ; i<size ; i++)
+        {
+            work[i] = state[i];
+            work[i+size] = -x*grad[i]/(x*eval[i] + *tik_min);
+        }
+        char notrans = 'N';
+        int inc = 1;
+        double one = 1.0;
+        dgemv_(&notrans, &size, &size, &one, evec, &size, work+size, &inc, &one, work, &inc);
+        sym_test = renormalize(xtl->nmol, work, xtl);
+        if(sym_test)
+        {
+            printf("symmetrization failed, reducing step size (%e -> %e)\n",x,0.5*x);
+            x *= 0.5;
+        }
+    } while(sym_test);
     return total_energy(xtl, work);
 }
 
@@ -835,27 +1008,27 @@ double quad_search(double x, // optimization variable [0,1]
 double line_optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
                      int nstep, // number of optimization steps
                      double *state, // the crystal's state vector in normal coordinates [6+7*xtl->nmol]
-                     double (*fptr)(double, struct molecular_crystal*, double*, double*, double*, double*, double*),
+                     double (*fptr)(double, struct molecular_crystal*, double*, double*, double*, double*, double*, double*),
                      double *vec1,
                      double *vec2,
                      double *vec3,
-                     double *vec4)
+                     double *vec4,
+                     double *vec5)
 {
     double invphi = (sqrt(5.0) - 1.0)*0.5, invphi2 = (3.0 - sqrt(5.0))*0.5;
-    double a = 0.0, b = 1.0, c = invphi2, d = invphi, h = 1.0;
-    double yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4);
-    double yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4);
+    double a = 0.0, c = invphi2, d = invphi, h = 1.0;
+    double yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4, vec5);
+    double yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4, vec5);
 
     for(int i=0 ; i<nstep ; i++)
     {
         if(yc < yd)
         {
-            b = d;
             d = c;
             yd = yc;
             h *= invphi;
             c = a + invphi2*h;
-            yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4);
+            yc = fptr(c, xtl, state, vec1, vec2, vec3, vec4, vec5);
         }
         else
         {
@@ -864,31 +1037,38 @@ double line_optimize(struct molecular_crystal *xtl, // description of the crysta
             yc = yd;
             h *= invphi;
             d = a + invphi*h;
-            yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4);
+            yd = fptr(d, xtl, state, vec1, vec2, vec3, vec4, vec5);
         }
     }
 
     // crappy hack to load the minimizer into the workspace (extra computation of objective function)
     double min = c, ymin = yc;
     if(yd < yc) { min = d; ymin = yd; }
-    fptr(min, xtl, state, vec1, vec2, vec3, vec4);
+    fptr(min, xtl, state, vec1, vec2, vec3, vec4, vec5);
 
     // extract minimizer from the workspace (a hack) & renormalize quaternions
     int size = 6+7*xtl->nmol;
     for(int i=0 ; i<size ; i++)
-    { state[i] = vec4[i]; }
-    renormalize(xtl->nmol, state);
+    { state[i] = vec5[i]; }
     return ymin;
 }
 
 // main loop of crystal optimization
-void optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
+Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal being optimized
               double *state, // the crystal's state vector to be updated [6+7*xtl->nmol]
-              int family) // crystal family (see key in rigid-press.h)
+              Opt_settings set)
 {
+    int family = set.cell_family;
     int size = 6+7*xtl->nmol;
     double *workspace = (double*)malloc(sizeof(double)*size*2);
 
+#ifdef ROPT_DEBUG
+    printf("\nStarted optimization with settings:\n");
+    printf("Space group : %d\n", set.spg);
+    printf("Cell family: %d\n", set.cell_family);
+    printf("Max iteration: %d\n", set.max_iteration);
+#endif
+    
     // construct a constraint matrix for high-symmetry lattice vectors
     double constraint_mat[36];
     for(int i=0 ; i<36 ; i++)
@@ -931,14 +1111,14 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
     while(energy_min != INFINITY)
     {
         scale_min *= 0.5;
-        energy_min = volume_search(0.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_min = volume_search(0.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
     }
 
     // find an underpacked volume
     while(energy_max == INFINITY)
     {
         scale_max *= 2.0;
-        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
         if(energy_max == INFINITY)
         { scale_min = scale_max; }
     }
@@ -946,14 +1126,15 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
     {
         energy = energy_max;
         scale_max *= 2.0;
-        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, workspace);
+        energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
     } while(energy > energy_max);
 
     // preliminary volume optimization
-    energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, workspace);
+    energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, NULL, workspace);
 
     // main optimization loop
-    int iter = 0, lwork = -1, info, inc = 1, progress = 1, six = 6;
+    int niter = 0; // iteration counter
+    int lwork = -1, info, inc = 1, six = 6;
     char jobz = 'V', uplo = 'U', notrans = 'N', trans = 'T';
     double work0, one = 1.0, zero = 0.0;
     double *grad = (double*)malloc(sizeof(double)*size);
@@ -964,7 +1145,7 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
     if(lwork < 6*size)
     { lwork = 6*size; }
     double *work = (double*)malloc(sizeof(double)*lwork);
-    double new_energy = energy;
+    double new_energy = energy, energy_reduction_estimate;
     do
     {
         // save previous energy
@@ -997,15 +1178,25 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
         { work[i] = grad[i]; }
         dgemv_(&trans, &size, &size, &one, hess, &size, work, &inc, &zero, grad, &inc);
 
-        // identify a reasonable search interval
-        double width = 1.0;
-        workspace[2*size] = 1.0; // quick hack to inject a tunable search interval into quad_search
-        while(quad_search((sqrt(5.0) - 1.0)*0.5*width, xtl, state, grad, ev, hess, workspace) > energy)
-        { width *= (sqrt(5.0) - 1.0)*0.5; }
-        workspace[2*size] = width; // quick hack to inject a tunable search interval into quad_search
+        // start with a sensible minimum Tikhonov regularization value
+        double min_tik = 0.0;
+        for(int i=0 ; i<size ; i++)
+        { min_tik += grad[i]*grad[i]; }
+        min_tik = sqrt(min_tik)/(MAX_LINE_STEP*(double)xtl->nmol) - ev[0];
+        if(min_tik < 0.0)
+        { min_tik = 0.0; }
+
+        // calculate an estimate of energy reduction for testing false convergence
+        energy_reduction_estimate = 0.0;
+        for(int i=0 ; i<size ; i++)
+        { energy_reduction_estimate -= grad[i]*grad[i]/(ev[i] + min_tik); }
+
+        // increase the Tikhonov value until the 1st searched point lowers the energy
+        while(quad_search((3.0 - sqrt(5.0))*0.5, xtl, state, &min_tik, grad, ev, hess, workspace) > energy)
+        { min_tik *= 2.0; }
 
         // perform a Tikhonov-regularized line search
-        new_energy = line_optimize(xtl, GOLDEN_STEPS, state, quad_search, grad, ev, hess, workspace);
+        new_energy = line_optimize(xtl, GOLDEN_STEPS, state, quad_search, &min_tik, grad, ev, hess, workspace);
 
         // strictly enforce constraints at the end of every optimization step
         switch(family)
@@ -1035,13 +1226,32 @@ void optimize(struct molecular_crystal *xtl, // description of the crystal being
             state[5] = state[0];
             break;
         }
-    } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy));
+
+	niter++;
+
+#ifdef ROPT_DEBUG
+	printf("Completed iteration #%5d: New energy =  %lf, Delta E = %lf\n",
+	       niter, new_energy, (energy - new_energy));
+	fflush(stdout);
+#endif
+	
+    } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
+	    niter < set.max_iteration);
 
     free(workspace);
     free(grad);
     free(hess);
     free(ev);
     free(work);
+
+    if(niter == set.max_iteration)
+    {  return ITER_LIMIT; }
+
+    if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
+    { return FALSE_CONVERGENCE; }
+
+    return SUCCESS;
+    
 }
 
 // adapted from pseudocode in "Converting a Rotation Matrix to a Quaternion" by Mike Day
@@ -1094,7 +1304,7 @@ void matrix2quaternion(double *rot, double *quat)
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-void optimize_crystal(crystal *xtl, double *cutoff_matrix, int family)
+Opt_status optimize_crystal(crystal *xtl, float *cutoff_matrix, int placeholder, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");
@@ -1107,12 +1317,17 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
+    set.cell_family = get_cell_type_from_spg(set.spg);
+    int family = set.cell_family;
     // test of lattice vector formatting
-    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 || xtl->lattice_vectors[0][2] != 0.0 || xtl->lattice_vectors[1][2] != 0.0))
-    { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
+    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
+		       xtl->lattice_vectors[0][2] != 0.0 ||
+		       xtl->lattice_vectors[1][2] != 0.0))
+    {return MISC_FAILURE;}
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
+    xtl2.spg = set.spg;
     xtl2.ntype = 1;
     xtl2.nmol = xtl->Z;
     xtl2.natom = (int*)malloc(sizeof(int)*1);
@@ -1232,8 +1447,8 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
         matrix2quaternion(rot, state + 9 + 7*i);
     }
 
-    // run the optimizer
-    optimize(&xtl2, state, family);
+   // run the optimizer
+    Opt_status status = optimize(&xtl2, state, set);
 
     // convert the result back to the original format
     for(int i=0 ; i<9 ; i++)
@@ -1281,10 +1496,56 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     free(state);
     free(geo);
     free(work);
+
+    return status;
+}
+
+void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2)
+{
+    double tau[3];
+    char notrans = 'N', left = 'L';
+    int lwork = 1000, info, three = 3, one = 1;
+    double work;
+    
+    double latvec[9] = {0};
+    latvec[0 + 0*3] = state[0];
+    latvec[0 + 1*3] = state[1];
+    latvec[1 + 1*3] = state[2];
+    latvec[0 + 2*3] = state[3];
+    latvec[1 + 2*3] = state[4];
+    latvec[2 + 2*3] = state[5];
+   
+    //if(family == 0)
+    //{ dormqr_(&left, &notrans, &three, &three, &three, latvec2, &three, tau, latvec, &three, &work, &lwork, &info); }
+
+    for(int i=0 ; i<3 ; i++)
+    for(int j=0 ; j<3 ; j++)
+    { xtl->lattice_vectors[i][j] = latvec[j + i*3]; }
+
+    int jmol = 0, imol = 0;
+    double coord[3];
+    for(int i=0 ; i<xtl2->nmol ; i++)
+    {
+        imol = xtl2->type[i];
+        for(int j=0 ; j<xtl2->natom[imol] ; j++)
+        {
+            double local[3];
+            for(int k=0 ; k<3 ; k++)
+            { local[k] = (double)xtl2->invert[i]*xtl2->geometry[imol][k+3*j]; }
+            position(local, state + 6 + 7*i, coord);
+            //if(family == 0)
+            //{ dormqr_(&left, &notrans, &three, &one, &three, latvec2, &three, tau, coord, &three, work, &lwork, &info); }
+
+            xtl->Xcord[j+jmol] = coord[0];
+            xtl->Ycord[j+jmol] = coord[1];
+            xtl->Zcord[j+jmol] = coord[2];
+        }
+        jmol += xtl2->natom[imol];
+    }
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-void optimize_cocrystal(cocrystal *xtl, double *cutoff_matrix, int family)
+Opt_status optimize_cocrystal(cocrystal *xtl, float *cutoff_matrix, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");
@@ -1297,9 +1558,12 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
+    int family = set.cell_family;
     // test of lattice vector formatting
-    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 || xtl->lattice_vectors[0][2] != 0.0 || xtl->lattice_vectors[1][2] != 0.0))
-    { printf("ERROR: incorrect lattice vector format in optimize_crystal"); exit(1); }
+    if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
+		       xtl->lattice_vectors[0][2] != 0.0 ||
+		       xtl->lattice_vectors[1][2] != 0.0))
+    {return MISC_FAILURE;}
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
@@ -1351,7 +1615,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
             jmol += xtl->n_atoms_in_mol[imol];
             imol++;
             if(imol == xtl2.nmol)
-            { printf("ERROR: molecule type not found in optimize_cocrystal"); exit(1); }
+	    { printf("ERROR: molecule type not found in optimize_cocrystal"); return MISC_FAILURE; }
         }
 
         xtl2.natom[i] = xtl->n_atoms_in_mol[imol];
@@ -1460,7 +1724,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     }
 
     // run the optimizer
-    optimize(&xtl2, state, family);
+    Opt_status status = optimize(&xtl2, state, set);
 
     // convert the result back to the original format
     for(int i=0 ; i<9 ; i++)
@@ -1513,6 +1777,8 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     free(state);
     free(geo);
     free(work);
+
+    return status;
 }
 /*
 // test main
@@ -1643,3 +1909,20 @@ exit(1);
     return 0;
 }
 */
+static int get_cell_type_from_spg(int spg)
+{
+    if (spg <= 2)
+        return 0;
+    else if (spg <= 15)
+        return 1;
+    else if (spg <= 74)
+        return 2;
+    else if (spg <= 142)
+        return 3;
+    else if (spg <= 194)
+        return 4;
+    else if (spg <= 230)
+        return 5;
+
+    return 0;
+}
