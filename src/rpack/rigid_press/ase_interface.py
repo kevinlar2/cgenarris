@@ -9,6 +9,7 @@ def optimize_structure(struct, Z, cutoff_mat, spg=0, max_iter=400):
     Optimizes the geometry of structure using rigid press
     """
 
+    #print(struct.get_positions())
     # Create a pygenarris crystal
     xtal = pg.crystal()
     pos = struct.get_positions()
@@ -31,7 +32,7 @@ def optimize_structure(struct, Z, cutoff_mat, spg=0, max_iter=400):
     opt_set = rp.Opt_settings()
     opt_set.spg = spg
     opt_set.max_iteration = max_iter
-
+    cutoff_mat = cutoff_mat.flatten()
     status = rp.optimize_crystal(xtal, cutoff_mat, opt_set)
     # status = 0
 
@@ -63,7 +64,6 @@ def test_optimize():
     cutoff_mat = np.loadtxt(
         "sample_structures/Example4/cutoff_matrix.txt", dtype="float32"
     )
-    cutoff_mat = cutoff_mat.flatten()
     struct = read("sample_structures/Example4/geometry.in")
     print(struct.positions, struct.cell)
     optimize_structure(struct, 2, cutoff_mat, spg=2)
