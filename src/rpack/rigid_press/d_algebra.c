@@ -208,7 +208,7 @@ double cart_dist(double p1[3], double p2[3])
 
 int are_equal_doubles(double a, double b, double ftol)
 {
-    if(abs(a - b) < ftol)
+    if(fabs(a - b) < ftol)
         return 1;
     return 0;
 }

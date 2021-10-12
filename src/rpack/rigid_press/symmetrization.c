@@ -20,6 +20,146 @@ void convert_xtal_to_cartesian(crystal *xtal);
 void convert_xtal_to_fractional(crystal *xtal);
 
 static void test_symmetrize_state();
+static void symmetrize_gradient_pos(double *vec, int dim, double lattice[3][3], int spg);
+
+static void symmetrize_gradient_pos(double *vec, int dim, double lattice[3][3], int spg)
+{
+    // Get symm operations
+    double translations[192][3];
+    int rotations[192][3][3];
+    int hall_number = hall_number_from_spg(spg);
+    int Z = spg_get_symmetry_from_database(rotations,
+					   translations,
+					   hall_number);
+    assert(dim == Z);
+    // Get inverse lattice
+    double inverse_lattice[3][3], inverse_lattice_t[3][3], lattice_t[3][3];
+    inverse_mat3b3(inverse_lattice, lattice);
+
+    mat3b3_transpose(inverse_lattice_t, inverse_lattice);
+    mat3b3_transpose(lattice_t, lattice);
+
+    // Convert to fractional space
+    double vec_frac[3*dim];
+    for(int i = 0; i < dim; i++)
+    {
+	vector3_mat3b3_multiply(inverse_lattice_t, vec + 3*i, vec_frac +3*i);
+    }
+
+   
+    // Array to compute symm average
+    double vec_symm[3] = {0};
+    
+    for(int op = 0; op < Z; op++)
+    {
+	int (*rot_i)[3] = rotations[op];
+	double rot[3][3] = {{rot_i[0][0], rot_i[0][1],rot_i[0][2]},
+			   {rot_i[1][0], rot_i[1][1],rot_i[1][2]},
+			   {rot_i[2][0], rot_i[2][1],rot_i[2][2]}};
+	double trans[3] = {translations[op][0],
+			  translations[op][1],
+			  translations[op][2]};
+	
+	double inv_rot[3][3];
+	inverse_mat3b3(inv_rot, rot);
+
+	double temp[3];
+	vector3_subtract(vec_frac + 3*op, trans, vec_frac + 3*op);
+	vector3_mat3b3_multiply(inv_rot, vec_frac + 3*op, temp);
+	vector3_add(temp, vec_symm, vec_symm);
+    }
+
+    // Take mean over total operations
+    for(int i = 0; i < 3; i++)
+	vec_symm[i] /= Z;
+    
+    // Apply symmetry operation to regenerate the entire vec
+    for(int i = 0; i < Z; i++)
+    {
+	int (*rot)[3] = rotations[i];
+	vector3_intmat3b3_multiply(rot, vec_symm, vec_frac + 3*i);
+	double trans[3] = {translations[i][0],
+			  translations[i][1],
+			  translations[i][2]};
+	vector3_add(trans, vec_frac + 3*i, vec_frac + 3*i);
+    }
+
+    // Convert back to cartesian space
+    for(int i = 0; i < dim; i++)
+	vector3_mat3b3_multiply(lattice_t, vec_frac + 3*i, vec + 3*i);
+
+}
+
+void symmetrize_gradient(double *state, int *invert, const int nmol, const int spg)
+{
+    // Collect position vectors
+    double pos[nmol * 3];
+    int dim = 0;
+
+    double lattice[3][3] = {{state[0],        0,       0},
+			    {state[1], state[2],       0},
+			    {state[3], state[4], state[5]}};
+
+    // each mol is represented by 7 numbers; first 3 are positions
+    for(int i = 6; i < 7*nmol + 6; i += 7)
+    {
+	pos[3*dim + 0] = state[i + 0];
+	pos[3*dim + 1] = state[i + 1];
+	pos[3*dim + 2] = state[i + 2];
+	dim++;
+    }
+    symmetrize_gradient_pos(pos, dim, lattice, spg);
+
+    // Collect orientational quaternions and convert to rotation matrices
+    double quat[4];
+    double mat[nmol*3*3];
+    dim = 0;
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+	quat[0] = state[i + 0];
+	quat[1] = state[i + 1];
+	quat[2] = state[i + 2];
+	quat[3] = state[i + 3];
+	quaternion2matrix(quat, mat + 3*3*dim, invert[dim]);
+	dim++;
+    }
+
+    symmetrize_matrix(mat, dim, spg);
+
+    // Convert back to quaternions
+    dim = 0;
+    double quat_all[nmol*4];
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+	matrix2quaternion(mat + 3*3*dim, quat_all + 4*dim, invert + dim);
+	dim++;
+    }
+
+    // Fill in state vector using the results
+       
+     dim = 0;
+    for(int i = 6; i < 7*nmol + 6; i += 7)
+    {
+	state[i + 0] = pos[3*dim + 0];
+	state[i + 1] = pos[3*dim + 1];
+	state[i + 2] = pos[3*dim + 2];
+	dim ++;
+    }
+    
+    dim = 0;
+    for(int i = 9; i < 7*nmol + 6; i += 7)
+    {
+        state[i + 0] = quat_all[4*dim + 0];
+        state[i + 1] = quat_all[4*dim + 1];
+        state[i + 2] = quat_all[4*dim + 2];
+        state[i + 3] = quat_all[4*dim + 3];
+	dim++;
+    }
+    
+    
+}
+
+
 
 /*
   Symmetrizes a vector wrt symmetry operations of a spg.
@@ -182,6 +322,8 @@ void test_rot_quat_conversion()
 	       mat[2 + 3*j]
 	       );
  }
+
+
 /*
 int main()
 {
@@ -256,6 +398,7 @@ void symmetrize_matrix(double *mat, int dim, int spg)
 	mat3b3_mat3b3_multiply(rot, mat_symm, mat_i);
     }
 }
+
 
 // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 // inv takes -1 or +1 and determines if the rotation is proper or improper
@@ -410,7 +553,8 @@ void symmetrize_state(double *state, int *invert, const int nmol, const int spg)
     }
 
     // Fill in state vector using the results
-    dim = 0;
+       
+     dim = 0;
     for(int i = 6; i < 7*nmol + 6; i += 7)
     {
 	state[i + 0] = pos[3*dim + 0];

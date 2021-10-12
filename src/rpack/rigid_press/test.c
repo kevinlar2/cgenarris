@@ -132,9 +132,10 @@ int main(void)
     run_example("sample_structures/Example4", 30, 2, TRICLINIC, 2);
     */
     //run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
+    //run_example("sample_structures/Example1", 12, 2, TRICLINIC, 2);
     //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
     //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
-    run_example("sample_structures/Example4", 30, 2, TRICLINIC,0);
+    run_example("sample_structures/Example6", 12, 4, TRICLINIC,0);
     //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
     //run_example("sample_structures/failed_2", 30, 2, TRICLINIC, 0);
     return 0;

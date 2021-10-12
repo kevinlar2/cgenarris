@@ -46,7 +46,7 @@ void dgesvd_(char*, char*, int*, int*, double*, int*, double*, double*, int*, do
 #define GOLDEN_STEPS 20
 
 // optimization tolerance on energy change in 1 iteration relative to minimum energy
-#define OPTIMIZATION_TOLERANCE 1e-6
+#define OPTIMIZATION_TOLERANCE 1e-8
 
 // approximate maximum 2-norm change in the state vector for line searches (scaled by nmol)
 #define MAX_LINE_STEP 100.0
@@ -115,7 +115,7 @@ void free_molecular_crystal(struct molecular_crystal *xtl)
 #ifdef ROPT_DEBUG
 void print_state(double *state, int size)
 {
-    for(int i = 0; i < size; i++)
+    for(int i = 6; i < size; i++)
 	printf("%lf ", state[i]);
     printf("\n\n");
 }
@@ -837,7 +837,7 @@ int renormalize(int nmol, // number of molecules in the state vector
 
     // canonicalize lattice vectors
     int num;
-    if(state[2]*state[4] > 0.0)
+    /*    if(state[2]*state[4] > 0.0)
     { num = state[4]/state[2] + 0.5; }
     else
     { num = state[4]/state[2] - 0.5; }
@@ -855,7 +855,7 @@ int renormalize(int nmol, // number of molecules in the state vector
     else
     { num = state[3]/state[0] - 0.5; }
     state[3] -= num*state[0];
-
+    
     // recenter molecules
     double reclat[6];
     reciprocal(state, reclat);
@@ -879,6 +879,7 @@ int renormalize(int nmol, // number of molecules in the state vector
         state[7+7*i] -= num*state[4];
         state[8+7*i] -= num*state[5];
     }
+    */
 
     // APPLY SYMMETRY OPERATIONS TO THE STATE VECTOR HERE (SYMMETRY INFO MUST BE INJECTED TO THIS POINT)
     if(xtl->spg != 0)
@@ -889,6 +890,7 @@ int renormalize(int nmol, // number of molecules in the state vector
 	crystal xtal;
 	int N = xtl->natom[0];
 	int Z = xtl->nmol;
+	int size = 6 + 7 * xtl->nmol;
 	xtal.num_atoms_in_molecule = N;
 	xtal.Z = Z;
 	xtal.Xcord = malloc(sizeof(float) * Z * N);
@@ -906,7 +908,11 @@ int renormalize(int nmol, // number of molecules in the state vector
 	//bring_all_molecules_to_first_cell(&xtal);
 	//print_crystal(&xtal);
 	xtal.num_atoms_in_molecule = N;
+	//print_crystal(&xtal);
 	int spg = detect_spg_using_spglib(&xtal);
+	double temp[size];
+	for(int i = 0; i < size; i++)
+	    temp[i] = state[i];
 
 	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 
@@ -916,16 +922,11 @@ int renormalize(int nmol, // number of molecules in the state vector
 	printf("spg before = %d, spg after = %d\n", spg, spg2);
 
 	// Check if symmetrize_state() is stationary
-	int size = 6 + 7 * xtl->nmol;
-	double temp[size];
-	for(int i = 0; i < size; i++)
-	    temp[i] = state[i];
-
-	/*
+	/*	
 	symmetrize_state(state, xtl->invert, xtl->nmol, xtl->spg);
 	for(int i = 0; i < size; i++)
 	{
-	    if(fabs(state[i] - temp[i]) > 0.001)
+	    if(fabs(state[i] - temp[i]) > 0.1)
 	    {
 		printf("Error in symmetrize_state: not stationary\n");
 		print_state(state, size);
@@ -982,6 +983,31 @@ double quad_search(double x, // optimization variable [0,1]
                    double *work) // work vector [13+14*xtl->nmol]
 {
     int size = 6+7*xtl->nmol, sym_test;
+
+    // Symmetrize gradient
+    
+    double grad2[6+7*xtl->nmol];
+    double grad3[6+7*xtl->nmol];
+    memcpy(grad2, grad, size*sizeof(double));
+    memcpy(grad3, grad2, size*sizeof(double));
+    //symmetrize_gradient(grad, xtl->invert, xtl->nmol, xtl->spg);
+    /*symmetrize_gradient(grad2, xtl->invert, xtl->nmol, xtl->spg);
+    symmetrize_gradient(grad2, xtl->invert, xtl->nmol, xtl->spg);
+    for(int i =0; i < size; i++)
+    {
+	if(fabs(grad[1] - grad2[2])> 0.1)
+	{
+	    printf("inconsistency \n");
+	}
+    }
+    
+    for(int i =0; i < size; i++)
+    {
+	printf("%e - %e - %e\n", grad[i], grad2[i], grad3[i]);
+    }
+    
+    exit(1);
+    */
     do
     {
         for(int i=0 ; i<size ; i++)
@@ -1129,9 +1155,15 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
         energy_max = volume_search(1.0, xtl, state, &scale_min, &scale_max, NULL, NULL, workspace);
     } while(energy > energy_max);
 
+#ifdef ROPT_DEBUG
+    printf("Started preliminary volume optimization\n");
+#endif
     // preliminary volume optimization
     energy = line_optimize(xtl, GOLDEN_STEPS, state, volume_search, &scale_min, &scale_max, NULL, NULL, workspace);
-
+#ifdef ROPT_DEBUG
+    printf("Completed preliminary volume optimization\n");
+#endif
+ 
     // main optimization loop
     int niter = 0; // iteration counter
     int lwork = -1, info, inc = 1, six = 6;
@@ -1234,9 +1266,10 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
 	       niter, new_energy, (energy - new_energy));
 	fflush(stdout);
 #endif
-	
+
+	//}while(1);
     } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
-	    niter < set.max_iteration);
+     niter < set.max_iteration);
 
     free(workspace);
     free(grad);
@@ -1247,8 +1280,8 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     if(niter == set.max_iteration)
     {  return ITER_LIMIT; }
 
-    if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
-    { return FALSE_CONVERGENCE; }
+    //if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
+    //{ return FALSE_CONVERGENCE; }
 
     return SUCCESS;
     
