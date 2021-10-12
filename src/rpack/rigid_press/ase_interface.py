@@ -9,7 +9,7 @@ def optimize_structure(struct, Z, cutoff_mat, spg=0, max_iter=400):
     Optimizes the geometry of structure using rigid press
     """
 
-    #print(struct.get_positions())
+    # print(struct.get_positions())
     # Create a pygenarris crystal
     xtal = pg.crystal()
     pos = struct.get_positions()

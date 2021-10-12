@@ -39,25 +39,27 @@ sources_spglib = [
     "symmetry.c",
 ]
 
-source_dir = "../spglib_src"
-include_dirs = [
-    source_dir,
+sources_rpress = [
+    "rigid_press.i",
+    "rigid_press.c",
+    "symmetrization.c",
+    "d_algebra.c",
 ]
-for i, s in enumerate(sources_spglib):
-    sources_spglib[i] = "%s/%s" % (source_dir, s)
+
+spg_source_dir = "../spglib_src"
+rpress_source_dir = "rigid_press"
+
+for i, src in enumerate(sources_spglib):
+    sources_spglib[i] = f"{spg_source_dir}/{src}"
+for i, src in enumerate(sources_rpress):
+    sources_rpress[i] = f"{rpress_source_dir}/{src}"
+
 
 rigid_press = Extension(
     "_rigid_press",
     include_dirs=["./", numpy.get_include()],
-    sources=[
-        "rigid_press.i",
-        "rigid_press.c",
-        "symmetrization.c",
-        "d_algebra.c",
-        "../randomgen.c",
-    ]
-    + sources_spglib,
-    extra_compile_args=["-std=gnu99", "-fPIC", "-O3"],
+    sources=sources_rpress + sources_spglib,
+    extra_compile_args=["-std=gnu99", "-fPIC", "-O3", "-DROPT_DEBUG"],
     libraries=["lapack", "blas"],
 )
 
