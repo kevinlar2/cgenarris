@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../crystal.h"
-#include "../crystal_utils.h"
-#include "../cocrystal.h"
+#include "../../crystal.h"
+#include "../../crystal_utils.h"
+#include "../../cocrystal.h"
 #include "rigid_press.h"
 #include "symmetrization.h"
 

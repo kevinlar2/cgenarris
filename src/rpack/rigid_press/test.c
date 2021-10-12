@@ -5,11 +5,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "../crystal.h"
-#include "../crystal_utils.h"
-#include "../cocrystal.h"
-#include "../spglib.h"
-#include "../algebra.h"
+#include "../../crystal.h"
+#include "../../crystal_utils.h"
+#include "../../cocrystal.h"
+#include "../../spglib.h"
 #include "rigid_press.h"
 
 unsigned int seed2;
@@ -131,13 +130,13 @@ int main(void)
     run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
     run_example("sample_structures/Example4", 30, 2, TRICLINIC, 2);
     */
-    //run_example("sample_structures/Example5", 30, 4, MONOCLINIC, 9);
-    //run_example("sample_structures/Example1", 12, 2, TRICLINIC, 2);
-    //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
-    //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
-    run_example("sample_structures/Example6", 12, 4, TRICLINIC,0);
-    //run_example("sample_structures/Example2", 12, 4, MONOCLINIC, 13);
-    //run_example("sample_structures/failed_2", 30, 2, TRICLINIC, 0);
+    //run_example("../sample_structures/Example5", 30, 4, MONOCLINIC, 9);
+    //run_example("../sample_structures/Example1", 12, 2, TRICLINIC, 2);
+    //run_example("../sample_structures/Example2", 12, 4, MONOCLINIC, 13);
+    //run_example("../sample_structures/Example2", 12, 4, MONOCLINIC, 13);
+    run_example("../sample_structures/Example6", 12, 4, TRICLINIC,0);
+    //run_example("../sample_structures/Example2", 12, 4, MONOCLINIC, 13);
+    //run_example("../sample_structures/failed_2", 30, 2, TRICLINIC, 0);
     return 0;
 }
 

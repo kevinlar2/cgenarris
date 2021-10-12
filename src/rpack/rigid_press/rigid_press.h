@@ -3,8 +3,8 @@
 #ifndef RIGID_PRESS_H
 #define RIGID_PRESS_H
 
-#include "../crystal.h"
-#include "../cocrystal.h"
+#include "../../crystal.h"
+#include "../../cocrystal.h"
 
 // crystal families & their lattice vector constraints
 #define TRICLINIC    0 // no constraints on lattice vectors
