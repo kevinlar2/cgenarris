@@ -78,6 +78,7 @@ struct molecular_crystal
     double ***collide; // collision distances for pairs of atoms between 2 molecules [ntype][ntype][natom[i]*natom[j]]
 
     // information about the crystal
+    double *mol_length; // Length of molecule. distance from geometric center to the farthest atom[nmol]
     int *type; // type of each molecule in the unit cell [nmol]
     int *invert; // inversion of each molecule in the unit cell (+1 for standard, -1 for inverted) [nmol]
 };
@@ -95,6 +96,7 @@ void free_molecular_crystal(struct molecular_crystal *xtl)
 {
     free(xtl->type);
     free(xtl->invert);
+    free(xtl->mol_length);
 
     for(int i=0 ; i<xtl->ntype ; i++)
     { free(xtl->geometry[i]); }
@@ -122,7 +124,7 @@ void print_state(double *state, int size)
 #endif
 
 // interatomic interaction kernel & its 1st & 2nd distance derivatives
-double kernel(double distance, // interatomic distance
+static inline double kernel(double distance, // interatomic distance
               // kernel parameters: (add/replace parameters for more physical interactions)
               double distance0, // collision distance
               double wt) // kernel weight
@@ -133,7 +135,7 @@ double kernel(double distance, // interatomic distance
     { return INFINITY; }
     return wt*(INTERACTION_CUTOFF - distance)/(distance - distance0);
 }
-double dkernel(double distance, // interatomic distance
+static inline double dkernel(double distance, // interatomic distance
               // kernel parameters: (add/replace parameters for more physical interactions)
               double distance0, // collision distance
               double wt) // kernel weight
@@ -145,7 +147,7 @@ double dkernel(double distance, // interatomic distance
     double recip = 1.0/(distance - distance0);
     return -wt*((INTERACTION_CUTOFF - distance)*recip*recip + recip);
 }
-double d2kernel(double distance, // interatomic distance
+static inline double d2kernel(double distance, // interatomic distance
               // kernel parameters: (add/replace parameters for more physical interactions)
               double distance0, // collision distance
               double wt) // kernel weight
@@ -159,7 +161,7 @@ double d2kernel(double distance, // interatomic distance
 }
 
 // position of atom in a translated & rotated molecule
-void position(double *local, // local coordinate of atom in the molecule [3]
+static inline void position(double *local, // local coordinate of atom in the molecule [3]
               double *state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
               double *global) // global coordinate of the atom in the crystal [3]
 {
@@ -175,7 +177,7 @@ void position(double *local, // local coordinate of atom in the molecule [3]
                                          - (state[4]*state[4] + state[5]*state[5])*local[2]);
 }
 // NOTE: simple derivatives w.r.t. state[0], state[1], & state[2] are ignored here
-void position_derivative(double *local, // local coordinate of atom in the molecule [3]
+static inline void position_derivative(double *local, // local coordinate of atom in the molecule [3]
                          double *state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
                          double *global1, // global coordinate 1st derivatives of the atom in the crystal [12]
                          double *global2) // global coordinate 2nd derivatives of the atom in the crystal [48]
@@ -588,6 +590,16 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
                 state2[1] += l*state[2] + m*state[4];
                 state2[2] += m*state[5];
 
+		// Compute the distance between mol pairs
+		double pair_dist = (state2[0] - state1[0]) * (state2[0] - state1[0]) 
+		    + (state2[1] - state1[1]) * (state2[1] - state1[1])
+		    + (state2[2] - state1[2]) * (state2[2] - state1[2]);
+		pair_dist = sqrt(pair_dist);
+		    
+		// Pairs are too far apart - interaction is impossible 
+		if(pair_dist > INTERACTION_CUTOFF + xtl->mol_length[i] + xtl->mol_length[j])
+		{ continue; }
+
                 energy += pair_energy(xtl->natom[xtl->type[i]], xtl->natom[xtl->type[j]],
                                       xtl->invert[i], xtl->invert[j],
                                       xtl->geometry[xtl->type[i]], xtl->geometry[xtl->type[j]],
@@ -688,6 +700,15 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
                 state2[0] += k*state[0] + l*state[1] + m*state[3];
                 state2[1] += l*state[2] + m*state[4];
                 state2[2] += m*state[5];
+
+		// Compute the distance between mol pairs
+		double pair_dist = (state2[0] - state1[0]) * (state2[0] - state1[0]) +
+		    (state2[1] - state1[1]) * (state2[1] - state1[1])+
+		    (state2[2] - state1[2]) * (state2[2] - state1[2]);
+		pair_dist = sqrt(pair_dist);
+		// Pairs are too far apart - interaction is impossible 
+		if(pair_dist > INTERACTION_CUTOFF + xtl->mol_length[i] + xtl->mol_length[j])
+		{ continue; }
 
                 double grad1[7], grad2[7], hess11[49], hess22[49], hess12[49];
                 pair_energy_derivative(xtl->natom[xtl->type[i]], xtl->natom[xtl->type[j]],
@@ -1375,10 +1396,40 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
     { xtl2.collide[0][0][j+i*xtl2.natom[0]] = cutoff_matrix[j+i*xtl2.natom[0]*xtl2.nmol]; }
     xtl2.type = (int*)malloc(sizeof(int)*xtl2.nmol);
     xtl2.invert = (int*)malloc(sizeof(int)*xtl2.nmol);
+    xtl2.mol_length = (double *)malloc(sizeof(double)*xtl2.nmol);
     for(int i=0 ; i<xtl2.nmol ; i++)
     { xtl2.type[i] = 0; xtl2.invert[i] = 1; }
     double *state = (double*)malloc(sizeof(double)*(6 + 7*xtl2.nmol));
 
+    // Compute molecule lengths
+    for(int i = 0; i < xtl->Z; i++)
+    {
+	double cog[3] = {0};
+	for(int j = 0; j < xtl->num_atoms_in_molecule; j++)
+	{
+	    cog[0] += xtl->Xcord[j];
+	    cog[1] += xtl->Ycord[j];
+	    cog[2] += xtl->Zcord[j];
+	}
+	
+	for(int j =0; j < 3; j++)
+	{ cog[j] /= xtl->num_atoms_in_molecule; }
+
+	double max_dist = 0;
+	double dist;
+	for(int j = 0; j < xtl->num_atoms_in_molecule; j++)
+	{
+	    dist = sqrt( (xtl->Xcord[j] - cog[0])*(xtl->Xcord[j] - cog[0])
+			+(xtl->Ycord[j] - cog[1])*(xtl->Ycord[j] - cog[1])
+			+(xtl->Zcord[j] - cog[2])*(xtl->Zcord[2] - cog[2])
+			);
+	    if(dist > max_dist)
+	    { max_dist = dist;}
+	}
+	xtl2.mol_length[i] = max_dist;
+	//printf("mol length = %lf", max_dist);
+    }
+    
     // form rotation matrix to align lattice vectors (QR decomposition)
     double latvec[9], latvec2[9];
     for(int i=0 ; i<3 ; i++)
