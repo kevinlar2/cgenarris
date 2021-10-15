@@ -367,6 +367,11 @@ void pair_energy_derivative(int natom1, // number of atoms in the 1st molecule
             double dist = sqrt((coord1[0] - coord2[0])*(coord1[0] - coord2[0])
                               +(coord1[1] - coord2[1])*(coord1[1] - coord2[1])
                               +(coord1[2] - coord2[2])*(coord1[2] - coord2[2]));
+
+	    // If the atoms don't interact, derivatives are trivially zero.
+	    if(dist > INTERACTION_CUTOFF)
+	    { continue; }
+	    
             double denergy = dkernel(dist, collide[i+j*natom1], wt)/dist;
             double d2energy = (d2kernel(dist, collide[i+j*natom1], wt) - denergy)/(dist*dist);
 
