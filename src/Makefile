@@ -36,7 +36,7 @@ pygenarris_mpi:pygenarris_mpi.o read_input.o spg_generation.o lattice_generator.
 		   molecule_utils.o combinatorics.o check_structure.o crystal_utils.o\
 		   molecule_placement.o randomgen.o  cgenarris_mpi.o swig_pygenarris_mpi\
 		   pywrap_pygenarris_mpi lattice_generator_layer.o spglib.o\
-		   pygenarris_mpi_utils.o cocrystal_utils.o rpack.o
+		   pygenarris_mpi_utils.o cocrystal_utils.o 
 	${CC} ${CFLAGS} -shared  *.o -o _pygenarris_mpi.so -lm
 
 pywrap: swig
@@ -57,7 +57,7 @@ pygenarris_mpi_utils.o: pygenarris_mpi_utils.h pygenarris_mpi_utils.c
 cgenarris_mpi.o:cgenarris_mpi.c
 	${CC} ${CFLAGS} -c cgenarris_mpi.c
 
-pygenarris_mpi.o:pygenarris_mpi.c pygenarris_mpi_utils.o rpack.o
+pygenarris_mpi.o:pygenarris_mpi.c pygenarris_mpi_utils.o 
 	${CC} ${CFLAGS} -c pygenarris_mpi.c
 
 #pygenarris.o: pygenarris.c
@@ -102,9 +102,6 @@ randomgen.o: randomgen.h
 
 spglib.o:
 	${CC} ${CFLAGS} -c spglib_src/*.c -lm
-
-rpack.o:
-	${CC} ${CFLAGS} -c rpack/rigid_press.c ${LLAPACK} -lm
 
 clean:
 	rm -rf *.o *.x *pygenarris.so __pycache__ pygenarris.py *wrap.c *.pyc _pygenarris.* build spglib_src/*.o *pygenarris_mpi.py _pygenarris_mpi* pygenarris_mpi.egg*

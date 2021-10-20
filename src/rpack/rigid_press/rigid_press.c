@@ -106,8 +106,7 @@ void free_molecular_crystal(struct molecular_crystal *xtl)
     {
         for(int j=0 ; j<xtl->ntype ; j++)
         { free(xtl->collide[i][j]); }
-
-        free(xtl->collide[i]);
+	free(xtl->collide[i]);
     }
     free(xtl->collide);
 
@@ -177,7 +176,7 @@ static inline void position(double *local, // local coordinate of atom in the mo
                                          - (state[4]*state[4] + state[5]*state[5])*local[2]);
 }
 // NOTE: simple derivatives w.r.t. state[0], state[1], & state[2] are ignored here
-static inline void position_derivative(double *local, // local coordinate of atom in the molecule [3]
+void position_derivative(double *local, // local coordinate of atom in the molecule [3]
                          double *state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
                          double *global1, // global coordinate 1st derivatives of the atom in the crystal [12]
                          double *global2) // global coordinate 2nd derivatives of the atom in the crystal [48]
@@ -323,7 +322,10 @@ double pair_energy(int natom1, // number of atoms in the 1st molecule
             double dist = sqrt((coord1[0] - coord2[0])*(coord1[0] - coord2[0])
                               +(coord1[1] - coord2[1])*(coord1[1] - coord2[1])
                               +(coord1[2] - coord2[2])*(coord1[2] - coord2[2]));
+
             energy += kernel(dist, collide[i+j*natom1], wt);
+	    if(energy == INFINITY)
+	    { return energy; }
         }
     }
     return energy;
@@ -1009,31 +1011,6 @@ double quad_search(double x, // optimization variable [0,1]
                    double *work) // work vector [13+14*xtl->nmol]
 {
     int size = 6+7*xtl->nmol, sym_test;
-
-    // Symmetrize gradient
-    
-    double grad2[6+7*xtl->nmol];
-    double grad3[6+7*xtl->nmol];
-    memcpy(grad2, grad, size*sizeof(double));
-    memcpy(grad3, grad2, size*sizeof(double));
-    //symmetrize_gradient(grad, xtl->invert, xtl->nmol, xtl->spg);
-    /*symmetrize_gradient(grad2, xtl->invert, xtl->nmol, xtl->spg);
-    symmetrize_gradient(grad2, xtl->invert, xtl->nmol, xtl->spg);
-    for(int i =0; i < size; i++)
-    {
-	if(fabs(grad[1] - grad2[2])> 0.1)
-	{
-	    printf("inconsistency \n");
-	}
-    }
-    
-    for(int i =0; i < size; i++)
-    {
-	printf("%e - %e - %e\n", grad[i], grad2[i], grad3[i]);
-    }
-    
-    exit(1);
-    */
     do
     {
         for(int i=0 ; i<size ; i++)
@@ -1306,8 +1283,8 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     if(niter == set.max_iteration)
     {  return ITER_LIMIT; }
 
-    //if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
-    //{ return FALSE_CONVERGENCE; }
+    if(energy_reduction_estimate < -ENERGY_REDUCTION_TOLERANCE*xtl->nmol)
+    { return FALSE_CONVERGENCE; }
 
     return SUCCESS;
     
@@ -1426,7 +1403,7 @@ for(int j=0 ; j<xtl->Z*xtl->num_atoms_in_molecule ; j++)
 	{
 	    dist = sqrt( (xtl->Xcord[j] - cog[0])*(xtl->Xcord[j] - cog[0])
 			+(xtl->Ycord[j] - cog[1])*(xtl->Ycord[j] - cog[1])
-			+(xtl->Zcord[j] - cog[2])*(xtl->Zcord[2] - cog[2])
+			+(xtl->Zcord[j] - cog[2])*(xtl->Zcord[j] - cog[2])
 			);
 	    if(dist > max_dist)
 	    { max_dist = dist;}
@@ -1647,7 +1624,9 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     printf("pos %d %f %f %f\n", j, xtl->Xcord[j], xtl->Ycord[j], xtl->Zcord[j]);
 }
 */
-    int family = set.cell_family;
+    int family = 0;
+    set.cell_family = 0;
+    set.spg = 0;
     // test of lattice vector formatting
     if(family != 0 && (xtl->lattice_vectors[0][1] != 0.0 ||
 		       xtl->lattice_vectors[0][2] != 0.0 ||
@@ -1656,6 +1635,7 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
 
     // allocate memory for the temporary crystal data structure & state vector
     struct molecular_crystal xtl2;
+    xtl2.spg = set.spg;
     xtl2.ntype = xtl->n_mol_types;
     xtl2.nmol = xtl->n_mols;
     xtl2.natom = (int*)malloc(sizeof(int)*xtl2.ntype);
