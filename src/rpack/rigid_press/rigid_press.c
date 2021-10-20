@@ -1652,6 +1652,37 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
     for(int i=0 ; i<xtl2.nmol ; i++)
     { if(xtl->n_atoms_in_mol[i] > max_num) { max_num = xtl->n_atoms_in_mol[i]; } }
 
+    // Molecular lengths
+    xtl2.mol_length = (double *)malloc(sizeof(double)*xtl2.nmol);
+    for(int imol = 0; imol < xtl2.nmol; imol++)
+    {
+	double cog[3] = {0};
+	int at_max = xtl->mol_index[imol] +xtl->n_atoms_in_mol[xtl->mol_types[imol]];
+	for(int at = xtl->mol_index[imol]; at < at_max ; at++)
+	{
+	    cog[0] += xtl->Xcord[at];
+	    cog[1] += xtl->Ycord[at];
+	    cog[2] += xtl->Zcord[at];
+	}
+
+	for(int j =0; j < 3; j++)
+	{ cog[j] /= xtl->n_atoms_in_mol[xtl->mol_types[imol]];  }
+
+	double max_dist = 0;
+	double dist;
+	for(int at = xtl->mol_index[imol]; at < at_max ; at++)
+	{
+	    dist = sqrt( (xtl->Xcord[at] - cog[0])*(xtl->Xcord[at] - cog[0])
+			+(xtl->Ycord[at] - cog[1])*(xtl->Ycord[at] - cog[1])
+			+(xtl->Zcord[at] - cog[2])*(xtl->Zcord[at] - cog[2])
+			);
+	    if(dist > max_dist)
+	    { max_dist = dist;}
+	}
+	xtl2.mol_length[imol] = max_dist;
+	printf("mol length = %lf", max_dist);
+    }
+    
     // form rotation matrix to align lattice vectors (QR decomposition)
     double latvec[9], latvec2[9];
     for(int i=0 ; i<3 ; i++)
@@ -1725,14 +1756,15 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
         jmol = 0;
         for(int j=0 ; j<xtl2.nmol ; j++)
         {
+	    printf("imol = %d, jmol = %d\n", imol, jmol);
             for(int k=0 ; k<xtl2.natom[xtl2.type[j]] ; k++)
             for(int l=0 ; l<xtl2.natom[xtl2.type[i]] ; l++)
             {
                 xtl2.collide[xtl2.type[i]][xtl2.type[j]][l + k*xtl2.natom[xtl2.type[i]]] = cutoff_matrix[l+imol + (k+jmol)*xtl->n_atoms];
             }
-            jmol += xtl2.natom[j];
+            jmol += xtl2.natom[xtl2.type[j]];
         }
-        imol += xtl2.natom[i];
+        imol += xtl2.natom[xtl2.type[i]];
     }
 
     // align & center all molecules (redundant for reference molecules)
