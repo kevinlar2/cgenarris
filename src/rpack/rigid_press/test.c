@@ -242,7 +242,6 @@ run_cocrystal_example(char *xdir, int natom1, int natom2, int  Z)
         {
             for(int st = 0; st < cxtal->stoic[m]; st++)
             {
-		printf("at = %d, mol_id = %d\n", at, mol_id);
                 cxtal->mol_types[mol_id] = m;
                 cxtal->mol_index[mol_id] = at;
                 at += n_atoms_in_mol[m];

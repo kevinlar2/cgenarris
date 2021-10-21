@@ -1680,7 +1680,6 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
 	    { max_dist = dist;}
 	}
 	xtl2.mol_length[imol] = max_dist;
-	printf("mol length = %lf", max_dist);
     }
     
     // form rotation matrix to align lattice vectors (QR decomposition)
@@ -1756,7 +1755,6 @@ for(int j=0 ; j<xtl->n_atoms ; j++)
         jmol = 0;
         for(int j=0 ; j<xtl2.nmol ; j++)
         {
-	    printf("imol = %d, jmol = %d\n", imol, jmol);
             for(int k=0 ; k<xtl2.natom[xtl2.type[j]] ; k++)
             for(int l=0 ; l<xtl2.natom[xtl2.type[i]] ; l++)
             {
