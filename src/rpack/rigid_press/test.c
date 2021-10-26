@@ -268,7 +268,7 @@ run_cocrystal_example(char *xdir, int natom1, int natom2, int  Z)
     set.spg = 0;
     int placeholder;
     printf("Starting optimization\n");
-    Opt_status status = optimize_cocrystal(cxtal, cutmat, set);
+    Opt_status status = optimize_cocrystal(cxtal, cutmat, placeholder, set);
 
     printf("Completed optimization\n");
     time_t end = time(NULL);

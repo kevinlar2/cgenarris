@@ -1611,7 +1611,8 @@ void state_2_xtal(crystal *xtl, double *state, struct molecular_crystal *xtl2)
 }
 
 // NOTE: rows/columns of the cutoff_matrix are over all atoms in the unit cell
-Opt_status optimize_cocrystal(cocrystal *xtl, float *cutoff_matrix, Opt_settings set)
+Opt_status optimize_cocrystal(cocrystal *xtl, float *cutoff_matrix,
+			      int placeholder, Opt_settings set)
 {
 /*
 printf("initial geometry:\n");

@@ -56,7 +56,7 @@ for i, src in enumerate(sources_rpress):
 
 
 rigid_press = Extension(
-    "_rigid_press",
+    "rigid_press._rigid_press",
     include_dirs=["./", numpy.get_include()],
     sources=sources_rpress + sources_spglib,
     extra_compile_args=["-std=gnu99", "-fPIC", "-O3", "-DROPT_DEBUG"],

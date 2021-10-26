@@ -37,7 +37,8 @@ Opt_status optimize_crystal(crystal *xtl, // a molecular crystal in the Genarris
 			    int placeholder,
 			    Opt_settings set);
 Opt_status optimize_cocrystal(cocrystal *xtl, // a molecular crystal in the Genarris co-crystal format [1]
-                        float *cutoff_matrix, // distance cutoff between pairs of atoms in the crystallized molecule [xtl->n_atoms^2]
-                        Opt_settings set); 
+			      float *cutoff_matrix, // distance cutoff between pairs of atoms in the crystallized molecule [xtl->n_atoms^2]
+			      int placeholder,
+			      Opt_settings set); 
 
 #endif
