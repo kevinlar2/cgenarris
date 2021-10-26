@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "../../crystal.h"
 #include "../../crystal_utils.h"
@@ -160,9 +161,9 @@ static inline double d2kernel(double distance, // interatomic distance
 }
 
 // position of atom in a translated & rotated molecule
-static inline void position(double *local, // local coordinate of atom in the molecule [3]
-              double *state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
-              double *global) // global coordinate of the atom in the crystal [3]
+static inline void position(double *restrict local, // local coordinate of atom in the molecule [3]
+              double *restrict state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
+              double *restrict global) // global coordinate of the atom in the crystal [3]
 {
     double wt = 2.0/(state[3]*state[3] + state[4]*state[4] + state[5]*state[5] + state[6]*state[6]);
     global[0] = state[0] + local[0] + wt*(-(state[5]*state[5] + state[6]*state[6])*local[0]
@@ -176,10 +177,10 @@ static inline void position(double *local, // local coordinate of atom in the mo
                                          - (state[4]*state[4] + state[5]*state[5])*local[2]);
 }
 // NOTE: simple derivatives w.r.t. state[0], state[1], & state[2] are ignored here
-void position_derivative(double *local, // local coordinate of atom in the molecule [3]
-                         double *state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
-                         double *global1, // global coordinate 1st derivatives of the atom in the crystal [12]
-                         double *global2) // global coordinate 2nd derivatives of the atom in the crystal [48]
+void position_derivative(double *restrict local, // local coordinate of atom in the molecule [3]
+                         double *restrict state, // state vector of the molecule (x-y-z & orientational quaternion) [7]
+                         double *restrict global1, // global coordinate 1st derivatives of the atom in the crystal [12]
+                         double *restrict global2) // global coordinate 2nd derivatives of the atom in the crystal [48]
 {
     double wt = 2.0/(state[3]*state[3] + state[4]*state[4] + state[5]*state[5] + state[6]*state[6]);
     double dwt = -wt*wt, dglobal[3], dglobal2[12];
@@ -560,7 +561,7 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
         bound_box(xtl->natom[xtl->type[i]], xtl->invert[i], xtl->geometry[xtl->type[i]], state1, reclat, box1);
 
         // loop over molecules in 2nd unit cell
-        for(int j=0 ; j<xtl->nmol ; j++)
+        for(int j=i ; j<xtl->nmol ; j++)
         {
             // calculate lattice-aligned bounding box for molecule 2
             double box2[6];
@@ -586,8 +587,13 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
             for(int m=latmin3 ; m<=latmax3 ; m++)
             {
                 // molecules don't interact with themselves & only consider unique pairs in central cell
-                if(i >= j && k == 0 && l == 0 && m == 0)
+                if(i == j && k == 0 && l == 0 && m == 0)
                 { continue; }
+
+                // reduced weights in central cell & between periodic images
+                double wt = 2.0;
+                if(i == j || (k == 0 && l == 0 && m == 0))
+                { wt = 1.0; }
 
                 // shift center of the 2nd molecule
                 double state2[7];
@@ -607,7 +613,7 @@ double total_energy(struct molecular_crystal *xtl, // description of the crystal
 		if(pair_dist > INTERACTION_CUTOFF + xtl->mol_length[i] + xtl->mol_length[j])
 		{ continue; }
 
-                energy += pair_energy(xtl->natom[xtl->type[i]], xtl->natom[xtl->type[j]],
+                energy += wt*pair_energy(xtl->natom[xtl->type[i]], xtl->natom[xtl->type[j]],
                                       xtl->invert[i], xtl->invert[j],
                                       xtl->geometry[xtl->type[i]], xtl->geometry[xtl->type[j]],
                                       xtl->collide[xtl->type[i]][xtl->type[j]],
@@ -668,7 +674,7 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
         bound_box(xtl->natom[xtl->type[i]], xtl->invert[i], xtl->geometry[xtl->type[i]], state1, reclat, box1);
 
         // loop over molecules in 2nd unit cell
-        for(int j=0 ; j<xtl->nmol ; j++)
+        for(int j=i ; j<xtl->nmol ; j++)
         {
             // calculate lattice-aligned bounding box for molecule 2
             double box2[6];
@@ -700,6 +706,11 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
                 if(i >= j && k == 0 && l == 0 && m == 0)
                 { continue; }
 
+                // reduced weights in central cell & between periodic images
+                double wt = 2.0;
+                if(i == j || (k == 0 && l == 0 && m == 0))
+                { wt = 1.0; }
+
                 // shift center of the 2nd molecule
                 double state2[7];
                 for(int n=0 ; n<7 ; n++)
@@ -723,6 +734,10 @@ void total_energy_derivative(struct molecular_crystal *xtl, // description of th
                                        xtl->geometry[xtl->type[i]], xtl->geometry[xtl->type[j]],
                                        xtl->collide[xtl->type[i]][xtl->type[j]],
                                        state1, state2, grad1, grad2, hess11, hess22, hess12);
+                for(int n=0 ; n<7 ; n++)
+                { grad1[n] *= wt; grad2[n] *= wt; }
+                for(int n=0 ; n<49 ; n++)
+                { hess11[n] *= wt; hess12[n] *= wt; hess22[n] *= wt; }
                 for(int n=0 ; n<7 ; n++)
                 {
                     grad[n+6+i*7] += grad1[n];
@@ -1091,6 +1106,8 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     int size = 6+7*xtl->nmol;
     double *workspace = (double*)malloc(sizeof(double)*size*2);
 
+    clock_t start = clock();
+
 #ifdef ROPT_DEBUG
     printf("\nStarted optimization with settings:\n");
     printf("Space group : %d\n", set.spg);
@@ -1273,6 +1290,9 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
 	//}while(1);
     } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
      niter < set.max_iteration);
+
+    clock_t diff = clock() - start;
+    printf("optimization time = %e s\n", (double)diff/(double)CLOCKS_PER_SEC);
 
     free(workspace);
     free(grad);
