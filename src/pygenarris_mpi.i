@@ -7,6 +7,7 @@
 #include "combinatorics.h"
 #include "check_structure.h"
 #include "crystal_utils.h"
+#include "cocrystal_utils.h"
 #include "randomgen.h"
 #include "spglib.h"
 #include "mpi.h"
@@ -124,3 +125,21 @@ int check_structure_with_vdw_matrix(crystal random_crystal,
 	int dim2);
 
 
+%include "cocrystal.h"
+%apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice[3][3])};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *coords, int total_atom)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *stoic, int n_types1)};
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *n_atoms_in_mol, int n_types2)};
+void cxtal_create_from_data(cocrystal *cxtal, double lattice[3][3],
+			    double *coords, int total_atom,
+			    char *atoms, int total_atoms2,
+			    int Z, int *stoic, int n_types1,
+			    int *n_atoms_in_mol, int n_types2, int spg);
+
+%apply (double INPLACE_ARRAY2[ANY][ANY]) {(double lattice[3][3])};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *coords, int total_atom)};
+void cxtal_get_data(cocrystal *cxtal, double lattice[3][3], double *coords,
+		    int total_atom);
+
+
+void cxtal_free(cocrystal *cxtal);

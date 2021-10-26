@@ -72,6 +72,19 @@ void cxtal_allocate(cocrystal *cxtal, int total_atoms)
     cxtal->atoms = malloc(total_atoms * sizeof(char) *2);
 }
 
+void cxtal_free(cocrystal *cxtal)
+{
+    free(cxtal->Xcord);
+    free(cxtal->Ycord);
+    free(cxtal->Zcord);
+    free(cxtal->atoms);
+    free(cxtal->com);
+    free(cxtal->stoic);
+    free(cxtal->n_atoms_in_mol);
+    free(cxtal->mol_types);
+    free(cxtal->mol_index);
+    free(cxtal->wyckoff_position);
+}
 
 void cxtal_print(cocrystal *cxtal, FILE* out, int fractional)
 {
@@ -198,4 +211,60 @@ float cxtal_get_cell_volume(cocrystal *cxtal)
     return cxtal->lattice_vectors[0][0]*
            cxtal->lattice_vectors[1][1]*
            cxtal->lattice_vectors[2][2];
+}
+
+void cxtal_create_from_data(cocrystal *cxtal, double lattice[3][3],
+			    double *coords, int total_atom1,
+			    char *atoms, int total_atoms2,
+			    int Z,int *stoic, int n_types1,
+			    int *n_atoms_in_mol, int n_types2, int spg)
+{
+    cxtal->lattice_vectors[0][0] = lattice[0][0];
+    cxtal->lattice_vectors[0][1] = lattice[0][1];
+    cxtal->lattice_vectors[0][2] = lattice[0][2];
+
+    cxtal->lattice_vectors[1][0] = lattice[1][0];
+    cxtal->lattice_vectors[1][1] = lattice[1][1];
+    cxtal->lattice_vectors[1][2] = lattice[1][2];
+
+    cxtal->lattice_vectors[2][0] = lattice[2][0];
+    cxtal->lattice_vectors[2][1] = lattice[2][1];
+    cxtal->lattice_vectors[2][2] = lattice[2][2];
+
+    cxtal_init(cxtal, stoic, n_atoms_in_mol, n_types1, Z);
+    
+    for(int at = 0; at < cxtal->n_atoms; at++)
+    {
+	cxtal->Xcord[at] = coords[3*at];
+        cxtal->Ycord[at] = coords[3*at + 1];
+        cxtal->Zcord[at] = coords[3*at + 2];
+        cxtal->atoms[2*at] = atoms[2*at];
+        cxtal->atoms[2*at + 1] = atoms[2*at + 1];
+    }
+    
+}
+
+// Get lattice and coords from cxtal structure.
+void cxtal_get_data(cocrystal *cxtal, double lattice[3][3], double *coords,
+		    int total_atom1)
+{
+    lattice[0][0] = cxtal->lattice_vectors[0][0]; 
+    lattice[0][1] = cxtal->lattice_vectors[0][1];
+    lattice[0][2] = cxtal->lattice_vectors[0][2];
+
+    lattice[1][0] = cxtal->lattice_vectors[1][0];
+    lattice[1][1] = cxtal->lattice_vectors[1][1];
+    lattice[1][2] = cxtal->lattice_vectors[1][2];
+
+    lattice[2][0] = cxtal->lattice_vectors[2][0];
+    lattice[2][1] = cxtal->lattice_vectors[2][1];
+    lattice[2][2] = cxtal->lattice_vectors[2][2];
+
+    for(int at = 0; at < cxtal->n_atoms; at++)
+    {
+	coords[3*at    ] = cxtal->Xcord[at];
+        coords[3*at + 1] = cxtal->Ycord[at];
+        coords[3*at + 2] = cxtal->Zcord[at];
+    }
+
 }
