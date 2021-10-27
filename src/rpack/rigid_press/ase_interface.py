@@ -1,6 +1,9 @@
 import numpy as np
 
-import rigid_press as rp
+try:
+    import rigid_press.rigid_press as rp
+except ModuleNotFoundError:
+    import rigid_press as rp
 import pygenarris_mpi as pg
 
 
