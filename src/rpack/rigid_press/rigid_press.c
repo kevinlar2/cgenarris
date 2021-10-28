@@ -1106,9 +1106,9 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     int size = 6+7*xtl->nmol;
     double *workspace = (double*)malloc(sizeof(double)*size*2);
 
+#ifdef ROPT_DEBUG
     clock_t start = clock();
 
-#ifdef ROPT_DEBUG
     printf("\nStarted optimization with settings:\n");
     printf("Space group : %d\n", set.spg);
     printf("Cell family: %d\n", set.cell_family);
@@ -1291,9 +1291,10 @@ Opt_status optimize(struct molecular_crystal *xtl, // description of the crystal
     } while((energy - new_energy) > OPTIMIZATION_TOLERANCE*fabs(new_energy) &&
      niter < set.max_iteration);
 
+#ifdef ROPT_DEBUG
     clock_t diff = clock() - start;
     printf("optimization time = %e s\n", (double)diff/(double)CLOCKS_PER_SEC);
-
+#endif
     free(workspace);
     free(grad);
     free(hess);
