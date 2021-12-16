@@ -119,6 +119,34 @@ int find_num_structure_for_spg(int num_structures, char spg_dist_type[10], int s
 
         return 0;
     }
+    
+    else if(strcmp(spg_dist_type, "custom") == 0)
+    {
+        int custom[230], ret;
+        int nspg = 0;
+        FILE *fptr = fopen("spg", "r");
+
+	    if(!fptr)
+	    {
+	        printf("spg file not found\n");
+	        exit(EXIT_FAILURE);
+	    }
+        do
+        {
+            ret = fscanf(fptr, "%d", &custom[nspg]);
+            nspg++;
+
+        }while(ret != EOF);
+        nspg--;
+
+        for(int j = 0; j < nspg; j++)
+        {
+            if(custom[j] == spg)
+                return num_structures;
+        }
+
+        return 0;
+    }
 
     else
     {
