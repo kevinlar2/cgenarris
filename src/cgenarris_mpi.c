@@ -127,7 +127,6 @@ int main(int argc, char **argv)
         dim_vdw_matrix,
         num_structures,
         Z,
-	rigid_press,
         volume_mean,
         volume_std,
         tol,
