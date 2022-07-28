@@ -15,7 +15,7 @@
 /*   the documentation and/or other materials provided with the */
 /*   distribution. */
 
-/* * Neither the name of the phonopy project nor the names of its */
+/* * Neither the name of the spglib project nor the names of its */
 /*   contributors may be used to endorse or promote products derived */
 /*   from this software without specific prior written permission. */
 
@@ -36,24 +36,25 @@
 #define __refinement_H__
 
 #include "cell.h"
-#include "symmetry.h"
 #include "spacegroup.h"
+#include "symmetry.h"
 
 typedef struct {
-  Cell *bravais;
-  Symmetry *symmetry;
-  int *wyckoffs;
-  int *equivalent_atoms;
-  int *std_mapping_to_primitive;
-  double rotation[3][3];
+    Cell *bravais;
+    Symmetry *symmetry;
+    int *wyckoffs;
+    char (*site_symmetry_symbols)[7];
+    int *equivalent_atoms;
+    int *crystallographic_orbits;
+    int *std_mapping_to_primitive;
+    double rotation[3][3];
 } ExactStructure;
 
-ExactStructure *
-ref_get_exact_structure_and_symmetry(Spacegroup * spacegroup,
-                                     const Cell * primitive,
-                                     const Cell * cell,
-                                     const int * mapping_table,
-                                     const double symprec);
+ExactStructure *ref_get_exact_structure_and_symmetry(Spacegroup *spacegroup,
+                                                     const Cell *primitive,
+                                                     const Cell *cell,
+                                                     const int *mapping_table,
+                                                     const double symprec);
 void ref_free_exact_structure(ExactStructure *exstr);
 
 #endif

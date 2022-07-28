@@ -15,7 +15,7 @@
 /*   the documentation and/or other materials provided with the */
 /*   distribution. */
 
-/* * Neither the name of the phonopy project nor the names of its */
+/* * Neither the name of the spglib project nor the names of its */
 /*   contributors may be used to endorse or promote products derived */
 /*   from this software without specific prior written permission. */
 
@@ -39,43 +39,47 @@
 #include "symmetry.h"
 
 typedef enum {
-  HOLOHEDRY_NONE,
-  TRICLI,
-  MONOCLI,
-  ORTHO,
-  TETRA,
-  TRIGO,
-  HEXA,
-  CUBIC,
+    HOLOHEDRY_NONE,
+    TRICLI,
+    MONOCLI,
+    ORTHO,
+    TETRA,
+    TRIGO,
+    HEXA,
+    CUBIC,
 } Holohedry;
 
 typedef enum {
-  LAUE_NONE,
-  LAUE1,
-  LAUE2M,
-  LAUEMMM,
-  LAUE4M,
-  LAUE4MMM,
-  LAUE3,
-  LAUE3M,
-  LAUE6M,
-  LAUE6MMM,
-  LAUEM3,
-  LAUEM3M,
+    LAUE_NONE,
+    LAUE1,
+    LAUE2M,
+    LAUEMMM,
+    LAUE4M,
+    LAUE4MMM,
+    LAUE3,
+    LAUE3M,
+    LAUE6M,
+    LAUE6MMM,
+    LAUEM3,
+    LAUEM3M,
 } Laue;
 
 typedef struct {
-  int number;
-  char symbol[6];
-  char schoenflies[4];
-  Holohedry holohedry;
-  Laue laue;
+    int number;
+    char symbol[6];
+    char schoenflies[4];
+    Holohedry holohedry;
+    Laue laue;
 } Pointgroup;
 
 Pointgroup ptg_get_transformation_matrix(int transform_mat[3][3],
-					 SPGCONST int rotations[][3][3],
-					 const int num_rotations);
+                                         SPGCONST int rotations[][3][3],
+                                         const int num_rotations);
+Pointgroup ptg_get_layer_transformation_matrix(int transform_mat[3][3],
+                                               SPGCONST int rotations[][3][3],
+                                               const int num_rotations,
+                                               const int aperiodic_axis);
 Pointgroup ptg_get_pointgroup(const int pointgroup_number);
 PointSymmetry ptg_get_pointsymmetry(SPGCONST int rotations[][3][3],
-				    const int num_rotations);
+                                    const int num_rotations);
 #endif
