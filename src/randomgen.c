@@ -6,7 +6,7 @@
 # include <stdbool.h>
 # include "randomgen.h"
 
-unsigned int *seed2;
+//unsigned int *seed2;
 /* Period parameters */
 #define N 624
 #define M 397

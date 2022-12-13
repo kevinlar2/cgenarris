@@ -15,7 +15,7 @@
 /*   the documentation and/or other materials provided with the */
 /*   distribution. */
 
-/* * Neither the name of the phonopy project nor the names of its */
+/* * Neither the name of the spglib project nor the names of its */
 /*   contributors may be used to endorse or promote products derived */
 /*   from this software without specific prior written permission. */
 
@@ -41,15 +41,14 @@
 #include "spacegroup.h"
 
 typedef struct {
-  Primitive *primitive;
-  Spacegroup *spacegroup;
-  ExactStructure *exact_structure;
+    Primitive *primitive;
+    Spacegroup *spacegroup;
+    ExactStructure *exact_structure;
 } DataContainer;
 
-DataContainer * det_determine_all(const Cell * cell,
-                                  const int hall_number,
-                                  const double symprec,
-                                  const double angle_symprec);
-void det_free_container(DataContainer * container);
+DataContainer *det_determine_all(const Cell *cell, const int hall_number,
+                                 const double symprec,
+                                 const double angle_symprec);
+void det_free_container(DataContainer *container);
 
 #endif
