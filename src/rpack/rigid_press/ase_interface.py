@@ -60,8 +60,10 @@ def optimize_structure(struct, Z, cutoff_mat, spg=0, max_iter=400):
     else:
         return False
 
-def optimize_cocrystal_structure(struct, Z, n_atoms_in_mol, cutoff_mat,
-                                 stoic=None, spg=0, max_iter=400):
+
+def optimize_cocrystal_structure(
+    struct, Z, n_atoms_in_mol, cutoff_mat, stoic=None, spg=0, max_iter=400
+):
     """
     Optimizes the geometry of cocrystal using rigid press
     """
@@ -120,13 +122,14 @@ def test_optimize():
     struct = read("../sample_structures/Example5/geometry.in")
     optimize_cocrystal_structure(struct, 2, [30, 30], cutoff_mat)
 
-    #cutoff_mat = np.loadtxt(
+    # cutoff_mat = np.loadtxt(
     #    "sample_structures/Example4/cutoff_matrix.txt", dtype="float32"
-    #)
-    #struct = read("sample_structures/Example4/geometry.in")
-    #print(struct.positions, struct.cell)
-    #optimize_structure(struct, 2, cutoff_mat, spg=2)
-    #print(struct.positions, struct.cell)
+    # )
+    # struct = read("sample_structures/Example4/geometry.in")
+    # print(struct.positions, struct.cell)
+    # optimize_structure(struct, 2, cutoff_mat, spg=2)
+    # print(struct.positions, struct.cell)
+
 
 if __name__ == "__main__":
     test_optimize()
