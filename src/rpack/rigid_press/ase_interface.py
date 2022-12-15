@@ -4,7 +4,10 @@ try:
     import rigid_press.rigid_press as rp
 except ModuleNotFoundError:
     import rigid_press as rp
-import pygenarris_mpi as pg
+try:
+    import pygenarris_mpi as pg
+except ModuleNotFoundError:
+    from gnrs.generation import pygenarris_mpi as pg
 
 
 def optimize_structure(struct, Z, cutoff_mat, spg=0, max_iter=400):
@@ -116,19 +119,19 @@ def optimize_cocrystal_structure(
 def test_optimize():
     from ase.io import read
 
-    cutoff_mat = np.loadtxt(
-        "../sample_structures/Example5/cutoff_matrix.txt", dtype="float32"
-    )
-    struct = read("../sample_structures/Example5/geometry.in")
-    optimize_cocrystal_structure(struct, 2, [30, 30], cutoff_mat)
-
     # cutoff_mat = np.loadtxt(
-    #    "sample_structures/Example4/cutoff_matrix.txt", dtype="float32"
+    #     "../sample_structures/Example5/cutoff_matrix.txt", dtype="float32"
     # )
-    # struct = read("sample_structures/Example4/geometry.in")
-    # print(struct.positions, struct.cell)
-    # optimize_structure(struct, 2, cutoff_mat, spg=2)
-    # print(struct.positions, struct.cell)
+    # struct = read("../sample_structures/Example5/geometry.in")
+    # optimize_cocrystal_structure(struct, 2, [30, 30], cutoff_mat)
+
+    cutoff_mat = np.loadtxt(
+       "../sample_structures/Example4/cutoff_matrix.txt", dtype="float32"
+    )
+    struct = read("../sample_structures/Example4/geometry.in")
+    print(struct.positions, struct.cell)
+    optimize_structure(struct, 2, cutoff_mat, spg=2)
+    print(struct.positions, struct.cell)
 
 
 if __name__ == "__main__":
