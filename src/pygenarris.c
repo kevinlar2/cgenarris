@@ -80,7 +80,7 @@ int num_compatible_spacegroups(int Z, double tolerance)
     molecule *mol = (molecule*)malloc(sizeof(molecule));
 
     //read geometry from geometry.in
-    read_geometry(mol);
+    read_geometry(mol, "geometry.in");
 
     find_compatible_spg_positions(mol,
                                   Z,
